@@ -21,7 +21,6 @@ TOOL_LINKS = {
 
 DEFAULT_GAME = "S.T.A.L.K.E.R. 2"
 DEFAULT_VANILLA_FOLDER_SUFFIX = r"Stalker2\Content\Paks\pakchunk0-Windows"
-DEFAULT_MOD_FOLDER_SUFFIX = r"Stalker2\Content\Paks\~mods"
 
 GAMES = {
     "S.T.A.L.K.E.R. 2": {

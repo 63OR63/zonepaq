@@ -70,11 +70,6 @@ class GUI_SettingsMenu(GUI_Popup):
             translate("menu_preferences_settings_path_game"): [
                 (
                     settings.GAME_PATHS,
-                    "mods_folder",
-                    translate("menu_preferences_settings_mods_folder"),
-                ),
-                (
-                    settings.GAME_PATHS,
                     "vanilla_unpacked",
                     translate("menu_preferences_settings_vanilla_unpacked"),
                 ),

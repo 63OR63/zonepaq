@@ -90,9 +90,7 @@ class Repak:
         logging.debug(f"Attempting to repack: {source}")
         try:
             source = Path(source)
-            packed_file = (
-                Path(forced_destination or destination) / f"{source.name}.pak"
-            )
+            packed_file = Path(forced_destination or destination) / f"{source.name}.pak"
 
             if packed_file.is_file():
                 logging.warning(f"Removing existing packed file: {packed_file}")

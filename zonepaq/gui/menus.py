@@ -17,6 +17,7 @@ from gui.gui_toplevel import GUI_SettingsMenu
 
 class MenuRibbon:
     """Creates the application menu bar."""
+
     def __init__(self, parent):
         self.root = parent
         self.show_hints = tk.BooleanVar(value=settings.SHOW_HINTS)

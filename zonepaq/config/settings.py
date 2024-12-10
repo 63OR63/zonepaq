@@ -4,7 +4,6 @@ from pathlib import Path
 
 from .defaults import (
     DEFAULT_GAME,
-    DEFAULT_MOD_FOLDER_SUFFIX,
     DEFAULT_SETTINGS,
     DEFAULT_TOOLS_PATHS,
     DEFAULT_VANILLA_FOLDER_SUFFIX,
@@ -23,6 +22,7 @@ from .translations import get_available_languages, get_translation
 
 class SteamGameUtils:
     """Utility class for locating Steam game installation paths."""
+
     @staticmethod
     def find_steam_game_path(game_id):
         try:
@@ -72,6 +72,7 @@ class SteamGameUtils:
 
 class Settings:
     """Manages application settings."""
+
     def __init__(self):
         self._reload_settings()
         self.save_settings()
@@ -107,9 +108,8 @@ class Settings:
         config.setdefault("SETTINGS", DEFAULT_SETTINGS)
         config.setdefault("TOOLS_PATHS", DEFAULT_TOOLS_PATHS)
         game_path = SteamGameUtils.get_game_path(DEFAULT_GAME, GAMES)
-        mods_folder = str(Path(game_path) / Path(DEFAULT_MOD_FOLDER_SUFFIX))
         vanilla_unpacked = str(Path(game_path) / Path(DEFAULT_VANILLA_FOLDER_SUFFIX))
-        game_paths = {"mods_folder": mods_folder, "vanilla_unpacked": vanilla_unpacked}
+        game_paths = {"vanilla_unpacked": vanilla_unpacked}
         config.setdefault("GAME_PATHS", game_paths)
         return config
 

@@ -9,7 +9,6 @@ TRANSLATIONS = {
         "menu_preferences_settings": "Paths Settings",
         "menu_preferences_settings_path_tools": "Tools Paths",
         "menu_preferences_settings_path_game": "Game Paths",
-        "menu_preferences_settings_mods_folder": "Mods Folder",
         "menu_preferences_settings_vanilla_unpacked": "Vanilla Unpacked",
         "menu_preferences_settings_browse": "Browse",
         "menu_preferences_settings_save": "Save",
@@ -93,7 +92,7 @@ TRANSLATIONS = {
             "...once all conflicts are resolved and the last merging engine window is closed, saved files will be repacked into a merged mod at the location of your choice...\n"
             "\n"
             "Please, note:\n"
-            '- You have to unpack vanilla files and set their location in the settings menu if you plan to use them in comparisons;\n'
+            "- You have to unpack vanilla files and set their location in the settings menu if you plan to use them in comparisons;\n"
             '- Files without conflicts will be included in the merged mod only if "Ignore files without conflicts" is unchecked;\n'
             "- Dual-source conflicts will be opened in the merging engine with a matching vanilla file as a base for merging;\n"
             "- Tri-source conflicts will be opened in the merging engine without vanilla base;\n"
@@ -111,7 +110,6 @@ TRANSLATIONS = {
         "menu_preferences_settings": "Настройки путей",
         "menu_preferences_settings_path_tools": "Пути к инструментам",
         "menu_preferences_settings_path_game": "Пути к игровым папкам",
-        "menu_preferences_settings_mods_folder": "Папка модов",
         "menu_preferences_settings_vanilla_unpacked": "Оригинальные файлы (распакованные)",
         "menu_preferences_settings_browse": "Обзор",
         "menu_preferences_settings_save": "Сохранить",
@@ -195,7 +193,7 @@ TRANSLATIONS = {
             "...когда все конфликты будут разрешены и последнее окно утилиты сравнения будет закрыто, сохраненные файлы будут упакованы в объединенный мод по выбранному пути...\n"
             "\n"
             "Пожалуйста, учтите:\n"
-            '- Чтобы использовать оригинальные файлы в сравнении, они должны быть пердварительно распакованы и указаны в настройках путей;\n'
+            "- Чтобы использовать оригинальные файлы в сравнении, они должны быть пердварительно распакованы и указаны в настройках путей;\n"
             '- Файлы без конфликтов будут включены в объединённый мод только если флажок "Игнорировать файлы без конфликтов" снят;\n'
             "- Конфликты с двумя источниками откроются в утилите сравнения с оригинальным файлом в качестве основы;\n"
             "- Конфликты с тремя источниками откроются в утилите сравнения без оригинальной основы;\n"

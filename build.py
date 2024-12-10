@@ -1,11 +1,12 @@
-from pathlib import Path
 import sys
-from PyInstaller.__main__ import run
+from pathlib import Path
 
+from PyInstaller.__main__ import run
 from zonepaq.config import metadata
 
 entry_point = r"zonepaq\__main__.py"
 exe_name = f"{metadata.APP_NAME} v{metadata.APP_VERSION}".replace(" ", "_")
+
 
 def create_version_file():
 
@@ -34,7 +35,7 @@ VSVersionInfo(
         StringStruct(u'OriginalFilename', u'{exe_name}'),
         StringStruct(u'ProductName', u'{metadata.APP_NAME}'),
         StringStruct(u'ProductVersion', u'{metadata.APP_VERSION}')])
-      ]), 
+      ]),
     VarFileInfo([VarStruct(u'Translation', [1033, 1200])])
   ]
 )
@@ -47,41 +48,58 @@ VSVersionInfo(
     print(f"Spec file generated: {version_file_name}")
     return version_file_name
 
+
 def build_win():
     version_file = create_version_file()
-    
+
     args = [
-        "--onefile", "--noconsole",
-        "--name", exe_name,
-        "--icon", metadata.APP_ICONS["ico"],
-        "--add-data", f"{metadata.APP_ICONS['png']};{Path(metadata.APP_ICONS['png']).parent}",
-        "--version-file", version_file,
-        entry_point
+        "--onefile",
+        "--noconsole",
+        "--name",
+        exe_name,
+        "--icon",
+        metadata.APP_ICONS["ico"],
+        "--add-data",
+        f"{metadata.APP_ICONS['png']};{Path(metadata.APP_ICONS['png']).parent}",
+        "--version-file",
+        version_file,
+        entry_point,
     ]
 
     run(args)
+
 
 def build_macos():
     args = [
-        "--onefile", "--noconsole",
-        "--name", exe_name,
-        "--icon", metadata.APP_ICONS["icns"],
-        "--add-data", f"{metadata.APP_ICONS['png']};{Path(metadata.APP_ICONS['png']).parent}",
-        entry_point
+        "--onefile",
+        "--noconsole",
+        "--name",
+        exe_name,
+        "--icon",
+        metadata.APP_ICONS["icns"],
+        "--add-data",
+        f"{metadata.APP_ICONS['png']};{Path(metadata.APP_ICONS['png']).parent}",
+        entry_point,
     ]
 
     run(args)
+
 
 def build_linux():
     args = [
-        "--onefile", "--noconsole",
-        "--name", exe_name,
-        "--icon", metadata.APP_ICONS["png"],
-        "--add-data", f"{metadata.APP_ICONS['png']};{Path(metadata.APP_ICONS['png']).parent}",
-        entry_point
+        "--onefile",
+        "--noconsole",
+        "--name",
+        exe_name,
+        "--icon",
+        metadata.APP_ICONS["png"],
+        "--add-data",
+        f"{metadata.APP_ICONS['png']};{Path(metadata.APP_ICONS['png']).parent}",
+        entry_point,
     ]
 
     run(args)
+
 
 def main():
     if sys.platform == "win32":
@@ -92,6 +110,7 @@ def main():
         build_linux()
     else:
         print("Unsupported platform: ", sys.platform)
+
 
 if __name__ == "__main__":
     main()
