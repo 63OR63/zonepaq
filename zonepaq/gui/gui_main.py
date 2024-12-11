@@ -2,6 +2,7 @@ import sys
 import tkinter as tk
 import traceback
 from collections import deque
+from concurrent.futures import as_completed
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
@@ -790,13 +791,23 @@ class GUI_RepakScreen(GUI_Secondary):
 
                 results_ok = []
                 results_ko = []
+                futures = {}
+
                 for file in files:
                     file = Path(file)
-                    success, result = Repak.unpack(file, folder)
-                    if success:
-                        results_ok.append(f"Unpacked {file} to: {result}")
-                    else:
-                        results_ko.append(f"Error unpacking {file}: {result}")
+                    futures[Repak.unpack(file, folder)] = file
+
+                for future in as_completed(futures):
+                    file = futures[future]
+                    try:
+                        success, result = future.result()
+                        if success:
+                            results_ok.append(f"Unpacked {file} to: {result}")
+                        else:
+                            results_ko.append(f"Error unpacking {file}: {result}")
+                    except Exception as e:
+                        results_ko.append(f"Error unpacking {file}: {str(e)}")
+
                 self.show_results(results_ok, results_ko)
 
         else:
@@ -814,13 +825,23 @@ class GUI_RepakScreen(GUI_Secondary):
                 results_ok = []
                 results_ko = []
 
+                futures = {}
+
+                # Submit repack tasks
                 for folder in folders:
                     folder = Path(folder)
-                    success, result = Repak.repack(folder, target_folder)
-                    if success:
-                        results_ok.append(f"Repacked {folder} into: {result}")
-                    else:
-                        results_ko.append(f"Error repacking {folder}: {result}")
+                    futures[Repak.repack(folder, target_folder)] = folder
+
+                for future in as_completed(futures):
+                    folder = futures[future]
+                    try:
+                        success, result = future.result()
+                        if success:
+                            results_ok.append(f"Repacked {folder} into: {result}")
+                        else:
+                            results_ko.append(f"Error repacking {folder}: {result}")
+                    except Exception as e:
+                        results_ko.append(f"Error repacking {folder}: {str(e)}")
 
                 self.show_results(results_ok, results_ko)
 
@@ -864,13 +885,22 @@ class GUI_MergeScreen(GUI_Secondary):
         if files:
             results_ok = {}
             results_ko = {}
+            futures = {}
+
             for file in files:
                 file = Path(file)
-                success, result = Repak.get_list(file)
-                if success:
-                    results_ok[file.as_posix()] = result
-                else:
-                    results_ko[str(file)] = result
+                futures[Repak.get_list(file)] = file
+
+            for future in as_completed(futures):
+                file = futures[future]
+                try:
+                    success, result = future.result()
+                    if success:
+                        results_ok[file.as_posix()] = result
+                    else:
+                        results_ko[file.as_posix()] = result
+                except Exception as e:
+                    results_ko[file.as_posix()] = str(e)
 
             content_tree = Files.build_content_tree(results_ok)
 

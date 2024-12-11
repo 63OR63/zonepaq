@@ -1,9 +1,23 @@
 import shutil
 import subprocess
+from concurrent.futures import ThreadPoolExecutor
+from functools import wraps
 from pathlib import Path
 
 from backend.logger import log
 from config.settings import settings
+
+executor = ThreadPoolExecutor()
+
+
+def run_in_executor(func):
+    """Decorator to run methods asynchronously using ThreadPoolExecutor."""
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        return executor.submit(func, *args, **kwargs)
+
+    return wrapper
 
 
 class Repak:
@@ -12,6 +26,7 @@ class Repak:
     REPAK_PATH = settings.TOOLS_PATHS["repak_cli"]
 
     @classmethod
+    @run_in_executor
     def get_list(cls, file):
         log.debug(f"Attempting to list contents of the file: {file}")
         try:
@@ -39,6 +54,7 @@ class Repak:
             return False, str(e)
 
     @classmethod
+    @run_in_executor
     def unpack(cls, source, destination):
         log.debug(f"Attempting to unpack: {source}")
         try:
@@ -79,6 +95,7 @@ class Repak:
             return False, str(e)
 
     @classmethod
+    @run_in_executor
     def repack(cls, source, destination=None, forced_destination=None):
         if not destination and not forced_destination:
             raise TypeError(

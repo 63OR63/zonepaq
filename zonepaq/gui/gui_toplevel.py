@@ -1,6 +1,7 @@
 import tempfile
 import tkinter as tk
 from collections import deque
+from concurrent.futures import as_completed
 from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
@@ -555,7 +556,7 @@ class GUI_ConflictsReport(GUI_Popup):
                             log.debug(f"{item_name} skipped (no conflicts)")
                             self.not_processed.append(f"{item_name} (no conflicts)")
                         else:
-                            self._merge_files(
+                            self._unpack_and_merge(
                                 item_name,
                                 item_sources_paths,
                                 item_sources_names,
@@ -564,7 +565,7 @@ class GUI_ConflictsReport(GUI_Popup):
                                 True,
                             )
                     elif "dual_match" in item_tags:
-                        self._merge_files(
+                        self._unpack_and_merge(
                             item_name,
                             item_sources_paths,
                             item_sources_names,
@@ -573,7 +574,7 @@ class GUI_ConflictsReport(GUI_Popup):
                             True,
                         )
                     elif "dual_no_match" in item_tags:
-                        self._merge_files(
+                        self._unpack_and_merge(
                             item_name,
                             item_sources_paths,
                             item_sources_names,
@@ -581,7 +582,7 @@ class GUI_ConflictsReport(GUI_Popup):
                             temp_merging_dir,
                         )
                     elif "tri" in item_tags:
-                        self._merge_files(
+                        self._unpack_and_merge(
                             item_name,
                             item_sources_paths,
                             item_sources_names,
@@ -634,24 +635,39 @@ class GUI_ConflictsReport(GUI_Popup):
                     log.info(
                         f"Repacking: {str(temp_merging_dir)} into {str(folder_to_place_merged_mod)}"
                     )
-                    repack_success, repak_result = Repak.repack(
+                    future = Repak.repack(
                         temp_merging_dir, forced_destination=merged_mod_path
                     )
 
-                    if repack_success:
-                        processed_str = "\n".join(map(str, self.processed_conflicts))
-                        not_processed_str = "\n".join(map(str, self.not_processed))
-                        messagebox.showinfo(
-                            translate("generic_success"),
-                            f'{translate("merge_screen_conflicts_final_report_1")}\n{repak_result}\n\n{translate("merge_screen_conflicts_final_report_2")}\n{processed_str}\n\n{translate("merge_screen_conflicts_final_report_3")}\n{not_processed_str}',
-                            parent=self.window,
-                        )
-                    else:
+                    try:
+                        repack_success, repak_result = future.result()
+
+                        if repack_success:
+                            processed_str = "\n".join(
+                                map(str, self.processed_conflicts)
+                            )
+                            not_processed_str = "\n".join(map(str, self.not_processed))
+                            messagebox.showinfo(
+                                translate("generic_success"),
+                                f'{translate("merge_screen_conflicts_final_report_1")}\n{repak_result}\n\n'
+                                f'{translate("merge_screen_conflicts_final_report_2")}\n{processed_str}\n\n'
+                                f'{translate("merge_screen_conflicts_final_report_3")}\n{not_processed_str}',
+                                parent=self.window,
+                            )
+                        else:
+                            messagebox.showerror(
+                                translate("generic_error"),
+                                f'{translate("merge_screen_conflicts_repak_error")} {repak_result}',
+                                parent=self.window,
+                            )
+
+                    except Exception as e:
                         messagebox.showerror(
                             translate("generic_error"),
-                            f'{translate("merge_screen_conflicts_repak_error")} {repak_result}',
+                            f'{translate("merge_screen_conflicts_repak_error")} {str(e)}',
                             parent=self.window,
                         )
+                        log.error(f"Unexpected error during repack: {str(e)}")
 
                 else:
                     messagebox.showwarning(
@@ -659,6 +675,92 @@ class GUI_ConflictsReport(GUI_Popup):
                         translate("merge_screen_conflicts_aborted"),
                         parent=self.window,
                     )
+
+    def _unpack_and_merge(
+        self,
+        item_name,
+        item_sources_paths,
+        item_sources_names,
+        item_path,
+        temp_merging_dir,
+        use_vanilla=False,
+    ):
+
+        with tempfile.TemporaryDirectory() as temp_unpack_dir:
+            temp_dir_path = Path(temp_unpack_dir)
+            unpacked_files = self._unpack_files(
+                item_sources_paths, item_sources_names, item_path, temp_dir_path
+            )
+            self._merge_files(
+                unpacked_files,
+                item_name,
+                item_path,
+                temp_merging_dir,
+                use_vanilla,
+            )
+
+    def _unpack_files(
+        self, item_sources_paths, item_sources_names, item_path, temp_dir_path
+    ):
+        unpacked_files = deque()
+        futures = {}
+
+        for i, item_source_path in enumerate(item_sources_paths):
+            item_source_path = str(Path(item_source_path))
+            future = Repak.unpack(item_source_path, temp_dir_path)
+            futures[future] = (i, item_source_path)
+
+        for future in as_completed(futures):
+            i, item_source_path = futures[future]
+            try:
+                unpack_success, unpacked_folder = future.result()
+                if unpack_success:
+                    unpacked_file = Path(unpacked_folder) / item_path
+                    if unpacked_file.exists():
+                        unpacked_files.append(unpacked_file)
+                    else:
+                        log.warning(f"Unpacked file does not exist: {unpacked_file}")
+                else:
+                    log.error(f"Unpack failed for {item_source_path}")
+            except FileNotFoundError as e:
+                log.error(
+                    f"File not found: {item_sources_names[i]} -> {item_source_path}: {e}"
+                )
+            except Exception as e:
+                log.error(f"Unexpected error unpacking {item_sources_names[i]}: {e}")
+
+        return unpacked_files
+
+    def _merge_files(
+        self, unpacked_files, item_name, item_path, temp_merging_dir, use_vanilla=False
+    ):
+        if unpacked_files:
+            save_path = temp_merging_dir / item_path
+            save_path.parent.mkdir(parents=True, exist_ok=True)
+
+            if use_vanilla:
+                vanilla_file = (
+                    Path(settings.GAME_PATHS.get("vanilla_unpacked")) / item_path
+                )
+                if vanilla_file.exists():
+                    unpacked_files.appendleft(vanilla_file)
+
+            compare_success, compare_result = Merging._run_engine(
+                unpacked_files, save_path
+            )
+
+            if compare_success and compare_result.returncode == 0:
+                log.info(f"Merging successful for {str(item_path)}")
+                self.processed_conflicts.append(item_name)
+            else:
+                log.error(
+                    f"Merging failed for {str(item_path)}: {compare_result.stderr}"
+                )
+                self.not_processed.append(
+                    f"{item_name} (wasn't saved in {settings.MERGING_ENGINE})"
+                )
+        else:
+            log.error(f"No valid files to compare for {str(item_path)}")
 
     def _insistent_askdirectory(self, initialdir=None, title=None):
         folder_selected = None
@@ -678,72 +780,6 @@ class GUI_ConflictsReport(GUI_Popup):
                 if not retry:
                     return None
 
-    def _merge_files(
-        self,
-        item_name,
-        item_sources_paths,
-        item_sources_names,
-        item_path,
-        temp_merging_dir,
-        use_vanilla=False,
-    ):
-        with tempfile.TemporaryDirectory() as temp_unpack_dir:
-            temp_dir_path = Path(temp_unpack_dir)
-            unpacked_files = deque()
-
-            for i, item_source_path in enumerate(item_sources_paths):
-                try:
-                    item_source_path = str(Path(item_source_path))
-                    unpack_success, unpacked_folder = Repak.unpack(
-                        item_source_path, temp_dir_path
-                    )
-                    if unpack_success:
-                        unpacked_file = unpacked_folder / item_path
-                        if unpacked_file.exists():
-                            unpacked_files.append(unpacked_file)
-                        else:
-                            log.warning(
-                                f"Unpacked file does not exist: {unpacked_file}"
-                            )
-                    else:
-                        log.error(f"Unpack failed for {item_source_path}")
-                except FileNotFoundError as e:
-                    log.error(
-                        f"File not found: {item_sources_names[i]} -> {item_source_path}: {e}"
-                    )
-                except Exception as e:
-                    log.error(
-                        f"Unexpected error unpacking {item_sources_names[i]}: {e}"
-                    )
-
-            if unpacked_files:
-                save_path = temp_merging_dir / item_path
-                save_path.parent.mkdir(parents=True, exist_ok=True)
-
-                if use_vanilla:
-                    vanilla_file = (
-                        Path(settings.GAME_PATHS.get("vanilla_unpacked")) / item_path
-                    )
-                    if vanilla_file.exists():
-                        unpacked_files.appendleft(vanilla_file)
-
-                compare_success, compare_result = Merging._run_engine(
-                    unpacked_files, save_path
-                )
-
-                if compare_success and compare_result.returncode == 0:
-                    log.info(f"Merging successful for {str(item_path)}")
-                    self.processed_conflicts.append(item_name)
-                else:
-                    log.error(
-                        f"Merging failed for {str(item_path)}: {compare_result.stderr}"
-                    )
-                    self.not_processed.append(
-                        f"{item_name} (wasn't saved in {settings.MERGING_ENGINE})"
-                    )
-            else:
-                log.error(f"No valid files to compare for {str(item_path)}")
-
     def _populate_tree(self, parent_node, data):
         queue = deque([(parent_node, data, [])])
 
@@ -756,7 +792,12 @@ class GUI_ConflictsReport(GUI_Popup):
         while queue:
             current_parent_node, current_data, parent_path = queue.popleft()
 
-            for key, value in current_data.items():
+            sorted_items = sorted(
+                current_data.items(),
+                key=lambda item: (not isinstance(item[1], dict), item[0].lower()),
+            )
+
+            for key, value in sorted_items:
                 full_path = str(Path(*parent_path) / key)
 
                 if isinstance(value, list):
@@ -805,8 +846,11 @@ class GUI_ConflictsReport(GUI_Popup):
         }
 
     def _insert_node_into_tree(self, parent_node, key, value, full_path, tag):
-        source_paths = [str(Path(src)) for src in value]
-        source_filenames = [str(Path(src).name) for src in value]
+        sorted_value = sorted(value, key=lambda src: Path(src).name)
+
+        source_paths = [str(Path(src)) for src in sorted_value]
+        source_filenames = [str(Path(src).name) for src in sorted_value]
+
         self.tree.insert(
             parent_node,
             "end",
