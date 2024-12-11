@@ -74,6 +74,10 @@ If `zzz_mod.pak` contains `file1.cfg` and `z_mod.pak` contains both `file1.cfg` 
 
 Additionally, if you add `_P` at the end of a `.pak` file's name, it will have even higher priority and override files in mods without this special suffix.
 
+- ### Should I keep original mods after creating a merged one?
+
+Typically, you copy the merged mod and delete the original mods it was merged from. However, mods often contain multiple files — some conflicting and others not. If you're unsure what you're doing, a more dirty yet robust approach is to rename the merged mod to something like `zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz_merged_P.pak` so it loads last and overwrites any conflicts, and can keep all the original mods in place.
+
 - ### How does the merging in **ZonePaq Toolkit** works?
 
 **ZonePaq Toolkit** uses a combination of **[repak_cli](https://github.com/trumank/repak)** and file comparison tools to compare files from multiple `.pak` archives. It highlights conflicting files and allows you to merge them into a single merged mod.
