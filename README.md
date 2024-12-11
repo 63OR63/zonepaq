@@ -1,4 +1,4 @@
-# ![ZonePaq Toolkit](https://github.com/user-attachments/assets/c95e5cd9-1ead-4248-88d0-7c4e65e24cc4)
+# ![ZonePaq Toolkit](https://github.com/user-attachments/assets/9feab811-87b0-4c4a-bc54-379133e6b273)
 
 ## Description
 
@@ -52,9 +52,9 @@ You can compile an executable for your operating system by running `python build
     - **[repak_cli](https://github.com/trumank/repak)**
     - Either **[kdiff3](https://kdiff3.sourceforge.net)** or **[WinMerge](https://winmerge.org)**
 
-3. **Tip:** Unpacking the vanilla game files is highly recommended for better mod comparison. Usually unpacking `pakchunk0-Windows.pak` is sufficient for this purpose.
+3. Once your settings are configured, click **Save** and follow the on-screen instructions.
 
-4. Once your settings are configured, click **Save** and follow the on-screen instructions.
+*Note:* Unpacking the vanilla game files is highly recommended for better mod comparison. Usually unpacking `pakchunk0-Windows.pak` is sufficient for this purpose. However, the **AES decryption key** is needed to do so, which isn't included in this release for now due to legal concern. I'll integrate [AESDumpster](https://github.com/GHFear/AESDumpster) in future releases to circumvent this, for now you can use other tools alongside correct AES decryption key to unpack vanilla files.
 
 ## Troubleshooting
 
