@@ -130,7 +130,6 @@ dmypy.json
 
 # Edit below this line
 
-/.github
 /test
 /tests
 version.rc
