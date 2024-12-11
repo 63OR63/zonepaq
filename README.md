@@ -56,6 +56,11 @@ You can compile an executable for your operating system by running `python build
 
 4. Once your settings are configured, click **Save** and follow the on-screen instructions.
 
+## Troubleshooting
+
+- If you encounter any errors after changing settings, you can reset them to default by deleting the `settings.ini` file located in the same folder as the app.
+- If you get some bug, please include latest logs from `logs/zonepaq.log` file in your report.
+
 ## FAQ
 
 - ### What are `.pak` files in S.T.A.L.K.E.R. 2?
