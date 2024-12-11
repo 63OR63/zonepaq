@@ -3,6 +3,7 @@ import tkinter as tk
 import webbrowser
 from tkinter import messagebox
 
+from backend.logger import log
 from config.metadata import (
     APP_AUTHOR,
     APP_DESCRIPTION,
@@ -126,6 +127,7 @@ class MenuRibbon:
         sys.exit(0)
 
     def open_settings_window(self):
+        log.debug("Opening settings menu...")
         GUI_SettingsMenu(parent=self.root)
 
     def show_license(self):

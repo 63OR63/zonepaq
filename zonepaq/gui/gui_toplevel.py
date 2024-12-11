@@ -1,4 +1,3 @@
-import logging
 import tempfile
 import tkinter as tk
 from collections import deque
@@ -6,6 +5,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
+from backend.logger import log
 from backend.tools import Files, Merging, Repak
 from config.metadata import APP_NAME
 from config.settings import settings, translate
@@ -44,6 +44,7 @@ class GUI_SettingsMenu(GUI_Popup):
         self._add_settings_groups()
         self._add_save_button()
         self.root.adjust_to_content(root=self.window, adjust_width=True)
+        log.info("Settings menu opened.")
 
     def _add_settings_groups(self):
         # Configure columns to allow entry expansion
@@ -222,6 +223,7 @@ class GUI_ConflictsReport(GUI_Popup):
         self.root.adjust_to_content(
             root=self.window, adjust_width=True, adjust_height=False
         )
+        log.info("Conflicts resolver screen menu opened.")
 
     def setup(self):
         self._create_search_frame()
@@ -527,14 +529,14 @@ class GUI_ConflictsReport(GUI_Popup):
                     item_values = item.get("values", [])
 
                     if len(item_values) < 3:
-                        logging.warning(
+                        log.warning(
                             f"Item '{item_name}' ({item_id}) has insufficient values: {item_values}"
                         )
                         self.not_processed.append(f"{item_name} (invalid values)")
                         continue
 
                     if not item_values[0] or not item_values[1] or not item_values[2]:
-                        logging.debug(
+                        log.debug(
                             f"Item '{item_name}' ({item_id}) is probably not a file, skipping."
                         )
                         continue
@@ -543,8 +545,14 @@ class GUI_ConflictsReport(GUI_Popup):
                     item_sources_paths = item_values[1].split(", ")
                     item_path = Path(item_values[2])
 
+                    log.debug(f"Starting to process {item_name}...")
+                    log.debug(f"{item_name} tags: {item_tags}...")
+                    log.debug(f"{item_name} internal path: {item_path}...")
+                    log.debug(f"{item_name} sourcs paths: {item_sources_paths}...")
+
                     if "no_conflicts" in item_tags:
                         if self.ignore_no_conflicts:
+                            log.debug(f"{item_name} skipped (no conflicts)")
                             self.not_processed.append(f"{item_name} (no conflicts)")
                         else:
                             self._merge_files(
@@ -581,20 +589,33 @@ class GUI_ConflictsReport(GUI_Popup):
                             temp_merging_dir,
                         )
                     elif "complex" in item_tags:
+                        log.debug(f"{item_name} skipped (too much sources)")
                         self.not_processed.append(f"{item_name} (too much sources)")
                     else:
+                        log.debug(f"{item_name} skipped (ineligible for merging)")
                         self.not_processed.append(
                             f"{item_name} (ineligible for merging)"
                         )
 
                 except KeyError as e:
-                    logging.error(f"Missing key for item '{item_name}': {e}")
+                    log.error(f"Missing key for item '{item_name}': {e}")
                     self.not_processed.append(f"{item_name} (missing key)")
                 except Exception as e:
-                    logging.error(f"Error processing '{item_name}': {e}")
+                    log.error(f"Error processing '{item_name}': {e}")
                     self.not_processed.append(f"{item_name} (processing error)")
 
-            if Files.is_folder_empty(temp_merging_dir):
+            if not self.processed_conflicts and self.not_processed:
+                not_processed_str = "\n".join(map(str, self.not_processed))
+                not_processed_str2 = ", ".join(map(str, self.not_processed))
+                log.warning("No files were processed!")
+                log.debug(f"Skipped files: {not_processed_str2}")
+                messagebox.showinfo(
+                    translate("generic_warning"),
+                    f'{translate("merge_screen_conflicts_no_files_processed")}\n\n{translate("merge_screen_conflicts_final_report_3")}\n{not_processed_str}',
+                    parent=self.window,
+                )
+                return
+            elif Files.is_folder_empty(temp_merging_dir):
                 messagebox.showerror(
                     translate("generic_error"),
                     translate("merge_dir_is_empty"),
@@ -610,7 +631,7 @@ class GUI_ConflictsReport(GUI_Popup):
                         folder_to_place_merged_mod / f"z_merged_{formatted_time}_P.pak"
                     )
 
-                    logging.info(
+                    log.info(
                         f"Repacking: {str(temp_merging_dir)} into {str(folder_to_place_merged_mod)}"
                     )
                     repack_success, repak_result = Repak.repack(
@@ -681,17 +702,17 @@ class GUI_ConflictsReport(GUI_Popup):
                         if unpacked_file.exists():
                             unpacked_files.append(unpacked_file)
                         else:
-                            logging.warning(
+                            log.warning(
                                 f"Unpacked file does not exist: {unpacked_file}"
                             )
                     else:
-                        logging.error(f"Unpack failed for {item_source_path}")
+                        log.error(f"Unpack failed for {item_source_path}")
                 except FileNotFoundError as e:
-                    logging.error(
+                    log.error(
                         f"File not found: {item_sources_names[i]} -> {item_source_path}: {e}"
                     )
                 except Exception as e:
-                    logging.error(
+                    log.error(
                         f"Unexpected error unpacking {item_sources_names[i]}: {e}"
                     )
 
@@ -703,24 +724,25 @@ class GUI_ConflictsReport(GUI_Popup):
                     vanilla_file = (
                         Path(settings.GAME_PATHS.get("vanilla_unpacked")) / item_path
                     )
-                    unpacked_files.appendleft(vanilla_file)
+                    if vanilla_file.exists():
+                        unpacked_files.appendleft(vanilla_file)
 
                 compare_success, compare_result = Merging._run_engine(
                     unpacked_files, save_path
                 )
 
                 if compare_success and compare_result.returncode == 0:
-                    logging.info(f"Merging successful for {str(item_path)}")
+                    log.info(f"Merging successful for {str(item_path)}")
                     self.processed_conflicts.append(item_name)
                 else:
-                    logging.error(
+                    log.error(
                         f"Merging failed for {str(item_path)}: {compare_result.stderr}"
                     )
                     self.not_processed.append(
                         f"{item_name} (wasn't saved in {settings.MERGING_ENGINE})"
                     )
             else:
-                logging.error(f"No valid files to compare for {str(item_path)}")
+                log.error(f"No valid files to compare for {str(item_path)}")
 
     def _populate_tree(self, parent_node, data):
         queue = deque([(parent_node, data, [])])

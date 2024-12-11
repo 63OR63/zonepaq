@@ -1,7 +1,7 @@
-import logging
 from app_gui import main
+from backend.logger import log
 
-# logging.basicConfig(level=logging.DEBUG)
-logging.basicConfig(level=logging.INFO)
 if __name__ == "__main__":
+    log.info("Starting the application...")
     main()
+    log.info("Application finished.")

@@ -1,9 +1,8 @@
-import logging
 import shutil
 import subprocess
-from collections import deque
 from pathlib import Path
 
+from backend.logger import log
 from config.settings import settings
 
 
@@ -14,7 +13,7 @@ class Repak:
 
     @classmethod
     def get_list(cls, file):
-        logging.debug(f"Attempting to list contents of the file: {file}")
+        log.debug(f"Attempting to list contents of the file: {file}")
         try:
             file = Path(file)
             result = subprocess.run(
@@ -24,31 +23,31 @@ class Repak:
                 text=True,
             )
             if result.returncode != 0:
-                logging.error(
+                log.error(
                     f"Failed to list contents of {str(file)}: {result.stderr.strip()}"
                 )
                 raise RuntimeError(
                     f"Command failed with error:\n{result.stderr.strip()}"
                 )
 
-            logging.debug(f"Successfully listed contents of {str(file)}")
+            log.debug(f"Successfully listed contents of {str(file)}")
             return True, result.stdout.strip().splitlines()
         except Exception as e:
-            logging.exception(
+            log.exception(
                 f"An error occurred while listing the contents of {str(file)}"
             )
             return False, str(e)
 
     @classmethod
     def unpack(cls, source, destination):
-        logging.debug(f"Attempting to unpack: {source}")
+        log.debug(f"Attempting to unpack: {source}")
         try:
             source = Path(source)
             destination = Path(destination)
             unpacked_folder = Path(source).with_suffix("")
 
             if unpacked_folder.is_dir():
-                logging.warning(f"Removing existing unpacked folder: {unpacked_folder}")
+                log.warning(f"Removing existing unpacked folder: {unpacked_folder}")
                 shutil.rmtree(unpacked_folder)
 
             result = subprocess.run(
@@ -60,7 +59,7 @@ class Repak:
             )
 
             if result.returncode != 0:
-                logging.error(f"Failed to unpack {source}: {result.stderr.strip()}")
+                log.error(f"Failed to unpack {source}: {result.stderr.strip()}")
                 raise RuntimeError(
                     f"Command failed with error:\n{result.stderr.strip()}"
                 )
@@ -68,17 +67,15 @@ class Repak:
             target_folder = destination / unpacked_folder.name
 
             if target_folder.is_dir():
-                logging.warning(
-                    f"Removing existing target folder: {str(target_folder)}"
-                )
+                log.warning(f"Removing existing target folder: {str(target_folder)}")
                 shutil.rmtree(target_folder)
 
             shutil.move(unpacked_folder, target_folder)
-            logging.info(f"Successfully unpacked {str(source)} to {str(target_folder)}")
+            log.info(f"Successfully unpacked {str(source)} to {str(target_folder)}")
             return True, str(target_folder)
 
         except Exception as e:
-            logging.exception(f"An error occurred while unpacking {str(source)}")
+            log.exception(f"An error occurred while unpacking {str(source)}")
             return False, str(e)
 
     @classmethod
@@ -87,7 +84,7 @@ class Repak:
             raise TypeError(
                 "repack() missing required arguments: either 'destination' or 'forced_destination'"
             )
-        logging.debug(f"Attempting to repack: {source}")
+        log.debug(f"Attempting to repack: {source}")
         try:
             source = Path(source)
 
@@ -97,7 +94,7 @@ class Repak:
                 packed_file = Path(destination) / f"{source.name}.pak"
 
             if packed_file.is_file():
-                logging.warning(f"Removing existing packed file: {packed_file}")
+                log.warning(f"Removing existing packed file: {packed_file}")
                 packed_file.unlink()
 
             result = subprocess.run(
@@ -116,16 +113,16 @@ class Repak:
             )
 
             if result.returncode != 0:
-                logging.error(f"Failed to repack {str(source)} to {str(packed_file)}")
+                log.error(f"Failed to repack {str(source)} to {str(packed_file)}")
                 raise RuntimeError(
                     f"Command failed with error:\n{result.stderr.strip()}"
                 )
 
-            logging.info(f"Successfully repacked {str(source)} to {str(packed_file)}")
+            log.info(f"Successfully repacked {str(source)} to {str(packed_file)}")
             return True, str(packed_file)
 
         except Exception as e:
-            logging.exception(f"An error occurred while repacking {str(source)}")
+            log.exception(f"An error occurred while repacking {str(source)}")
             return False, str(e)
 
 
@@ -144,7 +141,7 @@ class Merging:
         if merging_engine == "WinMerge":
             engine_path = Path(tool_paths.get("winmerge"))
             if not engine_path.exists():
-                logging.error(f"{merging_engine} doesn't exist at {engine_path}")
+                log.error(f"{merging_engine} doesn't exist at {engine_path}")
                 return False, None
             command = [
                 str(engine_path),
@@ -163,7 +160,7 @@ class Merging:
                 *map(str, unpacked_files_paths),
             ]
         else:
-            logging.error(f"Unsupported merging engine: {merging_engine}")
+            log.error(f"Unsupported merging engine: {merging_engine}")
             return False, None
 
         try:
@@ -171,9 +168,9 @@ class Merging:
                 command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
             )
         except FileNotFoundError as e:
-            logging.error(f"Merging tool not found: {e}")
+            log.error(f"Merging tool not found: {e}")
         except Exception as e:
-            logging.error(f"Error during merging: {e}")
+            log.error(f"Error during merging: {e}")
 
 
 class Files:

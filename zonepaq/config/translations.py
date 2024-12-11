@@ -72,6 +72,7 @@ TRANSLATIONS = {
         "merge_screen_conflicts_tri_count": "Number of tri-source conflicts:",
         "merge_screen_conflicts_complex_count": "Number of complex conflicts:",
         "merge_screen_conflicts_select_files": "Please, select files in the tree view to continue.",
+        "merge_screen_conflicts_no_files_processed": "No files were processed!",
         "merge_screen_conflicts_final_report_1": "Merged mod was saved at:",
         "merge_screen_conflicts_final_report_2": "Processed:",
         "merge_screen_conflicts_final_report_3": "Skipped:",

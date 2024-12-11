@@ -131,7 +131,9 @@ dmypy.json
 # Edit below this line
 
 /test
+/tests
 version.rc
 settings.ini
 /.vscode
 /tmp
+/logs

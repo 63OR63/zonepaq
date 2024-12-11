@@ -1,4 +1,3 @@
-import logging
 import sys
 import tkinter as tk
 import traceback
@@ -6,6 +5,7 @@ from collections import deque
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
+from backend.logger import log
 from backend.tools import Files, Repak
 from config.metadata import APP_NAME
 from config.settings import settings, translate
@@ -22,26 +22,26 @@ class InstanceManager:
 
     def register_window(self, window):
         if window not in self.windows:
-            logging.debug(f"Registering window: {window}")
+            log.deep_debug(f"Registering window: {window}")
             self.windows.append(window)
 
     def unregister_window(self, window):
         if window in self.windows:
-            logging.debug(f"Unregistering window: {window}")
+            log.deep_debug(f"Unregistering window: {window}")
             self.windows.remove(window)
 
         for widget in list(self.widgets.keys()):
             if self.widgets[widget] == window:
-                logging.debug(f"Unregistering widget: {widget} @ {window}")
+                log.deep_debug(f"Unregistering widget: {widget} @ {window}")
                 self.widgets.pop(widget)
 
     def register_widget(self, widget, window):
         if widget not in self.widgets:
-            logging.debug(f"Registering widget: {widget} @ {window}")
+            log.deep_debug(f"Registering widget: {widget} @ {window}")
             self.widgets[widget] = window
 
     def _reset(self):
-        logging.debug("'windows' and 'widgets' instance storages reset.")
+        log.deep_debug("'windows' and 'widgets' instance storages reset.")
         self.windows = deque()
         self.widgets = {}
 
@@ -77,7 +77,7 @@ class CustomizationManager:
 
     def reset(self):
         self.instances._reset()
-        logging.debug("'CustomizationManager' instance cleared.")
+        log.deep_debug("'CustomizationManager' instance cleared.")
         CustomizationManager._instance = None
 
     def apply_theme(self, window, theme_name):
@@ -467,6 +467,7 @@ class GUI_LaunchScreen(GUI_Base):
         super().__init__(title=translate("launch_screen_title"))
         self._setup()
         self.adjust_to_content()
+        log.info("Launch screen opened.")
 
     def _setup(self):
         # Place the header in row 0
@@ -500,9 +501,11 @@ class GUI_LaunchScreen(GUI_Base):
         self.grid_columnconfigure(0, weight=1)
 
     def _open_repak_gui(self):
+        log.debug("Opening repak screen...")
         self.open_gui(GUI_RepakScreen)
 
     def _open_merge_gui(self):
+        log.debug("Opening merge screen...")
         self.open_gui(GUI_MergeScreen)
 
 
@@ -682,20 +685,24 @@ class GUI_Secondary(GUI_Base):
         for file in files:
             if file not in listbox.get(0, tk.END):
                 listbox.insert(tk.END, file)
+                log.debug(f"Added {file} to {listbox}")
 
     @staticmethod
     def _clear_files_from_listbox(listbox):
         listbox.delete(0, tk.END)
+        log.debug(f"Cleared {listbox}")
 
     @staticmethod
     def _add_folder_to_listbox(listbox):
         folder = filedialog.askdirectory()
         if folder:
             listbox.insert(tk.END, folder)
+            log.debug(f"Added {folder} to {listbox}")
 
     @staticmethod
     def _clear_folders_from_listbox(listbox):
         listbox.delete(0, tk.END)
+        log.debug(f"Cleared {listbox}")
 
     def show_results(self, results_ok, results_ko):
         message_ok = "\n".join(results_ok) if results_ok else ""
@@ -714,6 +721,7 @@ class GUI_Secondary(GUI_Base):
         self.open_launch_screen()
 
     def open_launch_screen(self):
+        log.debug("Opening launch screen...")
         self.open_gui(GUI_LaunchScreen)
 
 
@@ -724,6 +732,7 @@ class GUI_RepakScreen(GUI_Secondary):
         super().__init__(title=translate("repak_screen_title"), resizable=(True, False))
         self._create_sections()
         self.adjust_to_content(adjust_width=True)
+        log.info("Repak screen opened.")
 
     def _create_sections(self):
         sections = [
@@ -830,6 +839,7 @@ class GUI_MergeScreen(GUI_Secondary):
         self._create_sections()
 
         self.adjust_to_content(adjust_width=True)
+        log.info("Merge screen opened.")
 
     def _create_sections(self):
         sections = [
@@ -864,6 +874,7 @@ class GUI_MergeScreen(GUI_Secondary):
 
             content_tree = Files.build_content_tree(results_ok)
 
+            log.debug("Opening conflicts resolver screen...")
             GUI_ConflictsReport(parent=self, content_tree=content_tree)
 
         else:
