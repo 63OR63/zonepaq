@@ -95,7 +95,7 @@ Yes! The **ZonePaq Toolkit** module will automatically repack files into a `.pak
 
 Currently, **[WinMerge](https://winmerge.org)** and **[kdiff3](https://kdiff3.sourceforge.net)** are supported.
 
-- ### Can this Toolkit be user for other Unreal Engine games?
+- ### Can this Toolkit be used for other Unreal Engine games?
 
 Theoretically, yes, but that wasn't tested by me. You can try and leave your feedback.
 
