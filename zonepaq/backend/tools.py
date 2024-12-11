@@ -55,8 +55,10 @@ class Repak:
 
     @classmethod
     @run_in_executor
-    def unpack(cls, source, destination):
-        log.debug(f"Attempting to unpack: {source}")
+    def unpack(cls, source, destination, aes_key=None):
+        log.debug(
+            f'Attempting to unpack: {source}{" using key: " + aes_key if aes_key else ""}'
+        )
         try:
             source = Path(source)
             destination = Path(destination)
@@ -66,8 +68,13 @@ class Repak:
                 log.warning(f"Removing existing unpacked folder: {unpacked_folder}")
                 shutil.rmtree(unpacked_folder)
 
+            command = [cls.REPAK_PATH]
+            if aes_key:
+                command.extend(["-a", aes_key])
+            command.extend(["unpack", str(source)])
+
             result = subprocess.run(
-                [cls.REPAK_PATH, "unpack", str(source)],
+                command,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
@@ -75,6 +82,16 @@ class Repak:
             )
 
             if result.returncode != 0:
+                if (
+                    not aes_key
+                    and "pak is encrypted but no key was provided"
+                    in result.stderr.strip()
+                ):
+                    log.warning(f"{source} is encrypted, trying again with AES key")
+                    future = cls.unpack(source, destination, settings.AES_KEY)
+                    success, output = future.result()
+                    return success, output
+
                 log.error(f"Failed to unpack {source}: {result.stderr.strip()}")
                 raise RuntimeError(
                     f"Command failed with error:\n{result.stderr.strip()}"
@@ -82,11 +99,14 @@ class Repak:
 
             target_folder = destination / unpacked_folder.name
 
-            if target_folder.is_dir():
-                log.warning(f"Removing existing target folder: {str(target_folder)}")
-                shutil.rmtree(target_folder)
+            if unpacked_folder != target_folder:
+                if target_folder.is_dir():
+                    log.warning(
+                        f"Removing existing target folder: {str(target_folder)}"
+                    )
+                    shutil.rmtree(target_folder)
 
-            shutil.move(unpacked_folder, target_folder)
+                shutil.move(unpacked_folder, target_folder)
             log.info(f"Successfully unpacked {str(source)} to {str(target_folder)}")
             return True, str(target_folder)
 

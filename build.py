@@ -28,7 +28,7 @@ VSVersionInfo(
       StringTable(
         u'040904B0',
         [StringStruct(u'CompanyName', u'{metadata.APP_AUTHOR}'),
-        StringStruct(u'FileDescription', u'{metadata.APP_DESCRIPTION}'),
+        StringStruct(u'FileDescription', u'{metadata.APP_DESCRIPTION_EN}'),
         StringStruct(u'FileVersion', u'{metadata.APP_VERSION}'),
         StringStruct(u'InternalName', u'zonepaq'),
         StringStruct(u'LegalCopyright', u'{metadata.COPYRIGHT}'),

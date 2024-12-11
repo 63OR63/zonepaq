@@ -1,12 +1,10 @@
-import sys
 import tkinter as tk
-import traceback
 from collections import deque
 from concurrent.futures import as_completed
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
-from backend.logger import log
+from backend.logger import handle_exception, log
 from backend.tools import Files, Repak
 from config.metadata import APP_NAME
 from config.settings import settings, translate
@@ -371,7 +369,7 @@ class GUI_Base(tk.Tk):
     def __init__(self, title, width=800, height=350, resizable=(False, False)):
         super().__init__()  # Initialize the tk.Tk class
 
-        self.report_callback_exception = self._custom_error_handler
+        self.report_callback_exception = handle_exception
 
         self.title(f"{APP_NAME} - {title}")
         self.configure(bg=settings.THEME_DICT["color_background"])
@@ -386,16 +384,6 @@ class GUI_Base(tk.Tk):
 
     def __del__(self):
         self.customization_manager.instances.unregister_window(self)
-
-    def _custom_error_handler(self, exc_type, exc_value, exc_traceback):
-        self.destroy()
-        error_message = "".join(
-            traceback.format_exception(exc_type, exc_value, exc_traceback)
-        )
-        messagebox.showerror(
-            "Application Error", f"An error occurred:\n{error_message}"
-        )
-        sys.exit(1)
 
     def adjust_to_content(self, root=None, adjust_width=False, adjust_height=False):
         root = root or self
@@ -520,8 +508,10 @@ class GUI_Secondary(GUI_Base):
         self,
         title,
         listbox_name,
+        listbox_mode,
         scroll_name,
         add_command,
+        remove_command,
         clear_command,
         action_name,
         action_command,
@@ -533,9 +523,11 @@ class GUI_Secondary(GUI_Base):
         hints_frame.grid(row=0, column=0, sticky="w", pady=(self.padding, 0))
         self._create_hints(hints_frame, hints)
         content_frame = self._create_content_frame(
-            section_frame, listbox_name, scroll_name
+            section_frame, listbox_name, scroll_name, listbox_mode
         )
-        self._create_side_buttons(content_frame, add_command, clear_command)
+        self._create_side_buttons(
+            content_frame, add_command, remove_command, clear_command
+        )
         self._create_action_button(section_frame, action_name, action_command)
 
     def _create_header(self, title):
@@ -565,7 +557,9 @@ class GUI_Secondary(GUI_Base):
             hints_label = ttk.Label(section_frame, text=hints, style="Hints.TLabel")
             hints_label.grid(row=0, column=0, columnspan=3, sticky="ew")
 
-    def _create_content_frame(self, section_frame, listbox_name, scroll_name):
+    def _create_content_frame(
+        self, section_frame, listbox_name, scroll_name, listbox_mode
+    ):
         """Creates the content frame containing the listbox and scrollbar."""
         content_frame = ttk.Frame(section_frame, style="TFrame")
         content_frame.grid(row=1, column=0, columnspan=3, sticky="nsew")
@@ -585,21 +579,18 @@ class GUI_Secondary(GUI_Base):
                 settings.THEME_DICT["font_size_small"],
                 "normal",
             ),
-            selectmode=tk.NONE,
+            selectmode=tk.EXTENDED,
         )
         listbox.grid(row=0, column=0, sticky="nsew", pady=(self.padding, 0))
         setattr(self, listbox_name, listbox)
 
-        def _disable_selection(event):
-            return "break"
-
         listbox.bind(
-            "<<ListboxSelect>>", _disable_selection
-        )  # Prevent selection events
+            "<Control-v>",
+            lambda event: self._paste_clipboard(listbox=listbox, mode=listbox_mode),
+        )
         listbox.bind(
-            "<Button-1>", _disable_selection
-        )  # Disable mouse clicks for selection
-        listbox.bind("<B1-Motion>", _disable_selection)  # Prevent dragging to select
+            "<Delete>", lambda event: self._remove_from_listbox(listbox=listbox)
+        )
 
         scrollbar = ttk.Scrollbar(
             content_frame, orient=tk.VERTICAL, command=listbox.yview
@@ -610,7 +601,26 @@ class GUI_Secondary(GUI_Base):
 
         return content_frame
 
-    def _create_side_buttons(self, content_frame, add_command, clear_command):
+    def _paste_clipboard(self, listbox, mode):
+        try:
+            clipboard_data = self.clipboard_get()
+            paths = clipboard_data.splitlines()
+
+            for item in paths:
+                path = Path(item.strip())
+
+                if mode == "pak" and path.is_file() and path.suffix == ".pak":
+                    listbox.insert(tk.END, path)
+                elif mode == "folder" and path.is_dir():
+                    listbox.insert(tk.END, path)
+                else:
+                    log.debug(f"Invalid path: {path} (Mode: {mode})")
+        except Exception as e:
+            log.error("Clipboard error:", e)
+
+    def _create_side_buttons(
+        self, content_frame, add_command, remove_command, clear_command
+    ):
         buttons = {
             "custom": [
                 {
@@ -622,11 +632,19 @@ class GUI_Secondary(GUI_Base):
                     "column": 0,
                 },
                 {
+                    "text": translate("button_remove"),
+                    "command": remove_command,
+                    "width": 130,
+                    "height": 50,
+                    "row": 2,
+                    "column": 0,
+                },
+                {
                     "text": translate("button_clear"),
                     "command": clear_command,
                     "width": 130,
                     "height": 50,
-                    "row": 2,
+                    "row": 3,
                     "column": 0,
                 },
             ],
@@ -636,7 +654,7 @@ class GUI_Secondary(GUI_Base):
             },  # Padding for the button frame
             "grid": {
                 "padx": 0,
-                "pady": self.padding / 2,
+                "pady": self.padding / 4,
             },  # Padding for individual buttons
         }
         self._create_buttons(
@@ -689,11 +707,6 @@ class GUI_Secondary(GUI_Base):
                 log.debug(f"Added {file} to {listbox}")
 
     @staticmethod
-    def _clear_files_from_listbox(listbox):
-        listbox.delete(0, tk.END)
-        log.debug(f"Cleared {listbox}")
-
-    @staticmethod
     def _add_folder_to_listbox(listbox):
         folder = filedialog.askdirectory()
         if folder:
@@ -701,7 +714,21 @@ class GUI_Secondary(GUI_Base):
             log.debug(f"Added {folder} to {listbox}")
 
     @staticmethod
-    def _clear_folders_from_listbox(listbox):
+    def _remove_from_listbox(listbox):
+        try:
+            selected_indices = listbox.curselection()
+            if not selected_indices:
+                log.debug("No items selected to remove.")
+                return
+
+            for index in reversed(selected_indices):
+                listbox.delete(index)
+            log.debug(f"Removed items at indices {selected_indices} from {listbox}")
+        except Exception as e:
+            log.error(f"Error removing selected items: {e}")
+
+    @staticmethod
+    def _clear_listbox(listbox):
         listbox.delete(0, tk.END)
         log.debug(f"Cleared {listbox}")
 
@@ -740,11 +767,13 @@ class GUI_RepakScreen(GUI_Secondary):
             {
                 "title": translate("repak_screen_unpack_header"),
                 "listbox_name": "unpack_listbox",
+                "listbox_mode": "pak",
                 "scroll_name": "unpack_scroll",
                 "add_command": lambda: self._add_file_to_listbox(self.unpack_listbox),
-                "clear_command": lambda: self._clear_files_from_listbox(
+                "remove_command": lambda: self._remove_from_listbox(
                     self.unpack_listbox
                 ),
+                "clear_command": lambda: self._clear_listbox(self.unpack_listbox),
                 "action_name": translate("repak_screen_unpack_button"),
                 "action_command": self._unpack_files,
                 "hints": translate("repak_screen_unpack_hints"),
@@ -752,11 +781,13 @@ class GUI_RepakScreen(GUI_Secondary):
             {
                 "title": translate("repak_screen_repack_header"),
                 "listbox_name": "repack_listbox",
+                "listbox_mode": "folder",
                 "scroll_name": "repack_scroll",
                 "add_command": lambda: self._add_folder_to_listbox(self.repack_listbox),
-                "clear_command": lambda: self._clear_pa_clear_folders_from_listboxk_files(
+                "remove_command": lambda: self._remove_from_listbox(
                     self.repack_listbox
                 ),
+                "clear_command": lambda: self._clear_listbox(self.repack_listbox),
                 "action_name": translate("repak_screen_repack_button"),
                 "action_command": self._repack_folders,
                 "hints": translate("repak_screen_repack_hints"),
@@ -867,11 +898,11 @@ class GUI_MergeScreen(GUI_Secondary):
             {
                 "title": translate("merge_screen_header"),
                 "listbox_name": "merge_listbox",
+                "listbox_mode": "pak",
                 "scroll_name": "merge_scroll",
                 "add_command": lambda: self._add_file_to_listbox(self.merge_listbox),
-                "clear_command": lambda: self._clear_files_from_listbox(
-                    self.merge_listbox
-                ),
+                "remove_command": lambda: self._remove_from_listbox(self.merge_listbox),
+                "clear_command": lambda: self._clear_listbox(self.merge_listbox),
                 "action_name": translate("merge_screen_analyze_button"),
                 "action_command": self._find_conflicts,
                 "hints": translate("merge_screen_hints"),

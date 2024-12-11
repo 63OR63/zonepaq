@@ -6,12 +6,13 @@ TRANSLATIONS = {
         "menu_file_exit": "Exit",
         "menu_preferences": "Preferences",
         "menu_preferences_hints": "Show hints",
-        "menu_preferences_settings": "Paths Settings",
+        "menu_preferences_settings": "Settings",
         "menu_preferences_settings_path_tools": "Tools Paths",
         "menu_preferences_settings_path_game": "Game Paths",
         "menu_preferences_settings_vanilla_unpacked": "Vanilla Unpacked",
         "menu_preferences_settings_browse": "Browse",
         "menu_preferences_settings_save": "Save",
+        "menu_preferences_settings_aes_key": "AES key",
         "menu_preferences_merging_engine": "Merging Engine",
         "menu_preferences_language": "Language",
         "menu_preferences_theme": "Color theme",
@@ -34,7 +35,9 @@ TRANSLATIONS = {
         "repak_screen_unpack_header": "Unpack .pak files",
         "repak_screen_unpack_hints": (
             "Instructions:\n"
-            "1. Add one or more .pak files.\n"
+            "1. Add one or more .pak files using one of the following methods:\n"
+            '  - Clicking the "Add" button.\n'
+            "  - Copying them from Explorer and pressing CTRL+V while the list box is selected.\n"
             '2. Click the "Unpack" button and choose a destination folder\n'
             "...each .pak file will be unpacked into a separate folder at the selected destination..."
         ),
@@ -45,19 +48,24 @@ TRANSLATIONS = {
         "repak_screen_repack_header": "Repack folders",
         "repak_screen_repack_hints": (
             "Instructions:\n"
-            "1. Add one or more folders one by one.\n"
+            "1. Add one or more folders using one of the following methods:\n"
+            '  - Clicking the "Add" button.\n'
+            "  - Copying them from Explorer and pressing CTRL+V while the list box is selected.\n"
             '2. Click the "Repack" button and choose a destination folder\n'
             "...each folder will be repacked into a separate .pak file at the selected destination..."
         ),
         "repak_screen_repack_button": "Repack",
         "repak_screen_repack_msg_empty_list": "Please, select some folders to repack.",
         "button_add": "Add",
+        "button_remove": "Remove",
         "button_clear": "Clear",
         "merge_screen_title": "Find conflicts or merge mods",
         "merge_screen_header": "Resolve conflicts between mods",
         "merge_screen_hints": (
             "Instructions:\n"
-            "1. Add one or more .pak files.\n"
+            "1. Add one or more .pak files using one of the following methods:\n"
+            '  - Clicking the "Add" button.\n'
+            "  - Copying them from Explorer and pressing CTRL+V while the list box is selected.\n"
             '2. Click the "Analyze" button.\n'
             "...the merging window will open..."
         ),
@@ -109,12 +117,13 @@ TRANSLATIONS = {
         "menu_file_exit": "Выход",
         "menu_preferences": "Параметры",
         "menu_preferences_hints": "Показывать подсказки",
-        "menu_preferences_settings": "Настройки путей",
+        "menu_preferences_settings": "Настройки",
         "menu_preferences_settings_path_tools": "Пути к инструментам",
         "menu_preferences_settings_path_game": "Пути к игровым папкам",
         "menu_preferences_settings_vanilla_unpacked": "Оригинальные файлы (распакованные)",
         "menu_preferences_settings_browse": "Обзор",
         "menu_preferences_settings_save": "Сохранить",
+        "menu_preferences_settings_aes_key": "Ключ AES",
         "menu_preferences_merging_engine": "Утилита сравнения",
         "menu_preferences_language": "Язык",
         "menu_preferences_theme": "Цветовая тема",
@@ -137,7 +146,9 @@ TRANSLATIONS = {
         "repak_screen_unpack_header": "Распаковать .pak файлы",
         "repak_screen_unpack_hints": (
             "Инструкция:\n"
-            "1. Добавьте один или несколько .pak файлов.\n"
+            "1. Добавьте один или несколько .pak файлов одним из следующих способов:\n"
+            '  - Нажмите кнопку "Добавить".\n'
+            "  - Скопируйте их из проводника и нажмите CTRL+V, когда выделен список.\n"
             '2. Нажмите кнопку "Распаковать" и выберите папку назначения.\n'
             "...каждый .pak файл будет распакован в отдельную папку по выбранному пути..."
         ),
@@ -148,19 +159,24 @@ TRANSLATIONS = {
         "repak_screen_repack_header": "Упаковать папки",
         "repak_screen_repack_hints": (
             "Инструкция:\n"
-            "1. Добавьте одну или несколько папок по очереди.\n"
+            "1. Добавьте одну или несколько папок одним из следующих способов:\n"
+            '  - Нажмите кнопку "Добавить".\n'
+            "  - Скопируйте их из проводника и нажмите CTRL+V, когда выделен список.\n"
             '2. Нажмите кнопку "Упаковать" и выберите папку назначения.\n'
             "...каждая папка будет упакована в отдельный .pak файл по выбранному пути..."
         ),
         "repak_screen_repack_button": "Упаковать",
         "repak_screen_repack_msg_empty_list": "Пожалуйста, выберите папки для упаковки.",
         "button_add": "Добавить",
+        "button_remove": "Убрать",
         "button_clear": "Очистить",
         "merge_screen_title": "Поиск конфликтов или слияние модов",
         "merge_screen_header": "Разрешение конфликтов между модами",
         "merge_screen_hints": (
             "Инструкция:\n"
-            "1. Добавьте один или несколько .pak файлов.\n"
+            "1. Добавьте один или несколько .pak файлов одним из следующих способов:\n"
+            '  - Нажмите кнопку "Добавить".\n'
+            "  - Скопируйте их из проводника и нажмите CTRL+V, когда выделен список.\n"
             '2. Нажмите кнопку "Анализировать".\n'
             "...откроется окно слияния..."
         ),

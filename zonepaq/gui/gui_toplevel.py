@@ -48,11 +48,8 @@ class GUI_SettingsMenu(GUI_Popup):
         log.info("Settings menu opened.")
 
     def _add_settings_groups(self):
-        # Configure columns to allow entry expansion
-        self.window.grid_columnconfigure(1, weight=1)  # Column 1 for entries expands
-        self.window.grid_columnconfigure(
-            2, weight=0
-        )  # Column 2 for buttons remains fixed
+        self.window.grid_columnconfigure(1, weight=1)
+        self.window.grid_columnconfigure(2, weight=0)
 
         header_label = ttk.Label(
             self.window,
@@ -81,6 +78,24 @@ class GUI_SettingsMenu(GUI_Popup):
         row_index = 1
         for group_name, paths in path_groups.items():
             row_index = self._add_path_group(group_name, paths, row_index)
+
+        self._create_group_label("AES Key", row_index)
+        aes_key_variable = tk.StringVar(value=settings.AES_KEY)
+        aes_key_entry = CustomEntry(
+            parent=self.window,
+            customization_manager=self.root.customization_manager,
+            textvariable=aes_key_variable,
+            width=85,
+            style="PathEntry.TEntry",
+        )
+        aes_key_entry.grid(
+            row=row_index,
+            column=1,
+            sticky="ew",
+            padx=(0, self.padding * 1.1),
+            pady=(self.padding, self.padding / 2),
+            columnspan=2,
+        )
 
     def _add_path_group(self, group_name, paths, starting_row):
         self._create_group_label(group_name, starting_row)
@@ -287,6 +302,7 @@ class GUI_ConflictsReport(GUI_Popup):
             columns=("PAK Sources", "PAK Sources Paths", "File Path"),
             show="tree headings",
             height=15,
+            selectmode="extended",
         )
         self._configure_treeview_headings()
         self._configure_treeview_columns()
@@ -629,7 +645,8 @@ class GUI_ConflictsReport(GUI_Popup):
 
                     formatted_time = datetime.now().strftime("%Y%m%d%H%M%S")
                     merged_mod_path = (
-                        folder_to_place_merged_mod / f"z_zonepaq_merged_{formatted_time}_P.pak"
+                        folder_to_place_merged_mod
+                        / f"z_zonepaq_merged_{formatted_time}_P.pak"
                     )
 
                     log.info(
@@ -748,7 +765,9 @@ class GUI_ConflictsReport(GUI_Popup):
             compare_success, compare_result = Merging._run_engine(
                 unpacked_files, save_path
             )
-            log.debug(f"{settings.MERGING_ENGINE} returned with code {compare_result.returncode}")
+            log.debug(
+                f"{settings.MERGING_ENGINE} returned with code {compare_result.returncode}"
+            )
 
             if compare_success and compare_result.returncode == 0:
                 log.info(f"Merging successful for {str(item_path)}")

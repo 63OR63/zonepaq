@@ -1,6 +1,10 @@
 import logging
+import sys
+import tkinter as tk
+import traceback
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
+from tkinter import messagebox
 
 
 class DeepDebug:
@@ -20,7 +24,7 @@ class LogConfig:
     @staticmethod
     def setup_logging(
         log_file="logs/zonepaq.log",
-        max_file_size=5 * 1024 * 1024,
+        max_file_size=0.5 * 1024 * 1024,
         backup_count=3,
         log_level=logging.DEBUG,
     ):
@@ -87,6 +91,24 @@ class log:
     def fatal(text):
         logging.fatal(text)
 
+
+def handle_exception(exc_type, exc_value, exc_traceback):
+
+    log.exception("An unhandled exception occurred:")
+
+    error_message = "".join(
+        traceback.format_exception(exc_type, exc_value, exc_traceback)
+    )
+    root = tk.Tk()
+    root.withdraw()
+    messagebox.showerror(
+        "Application Error", f"An unexpected error occurred:\n\n{error_message}"
+    )
+
+    sys.exit(1)
+
+
+sys.excepthook = handle_exception
 
 DeepDebug.add_method()
 LogConfig.setup_logging()

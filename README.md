@@ -48,13 +48,13 @@ You can compile an executable for your operating system by running `python build
 
 1. **Open ZonePaq Toolkit** and go to the **Settings** menu.
 
-2. Make sure the paths are set correctly. At a minimum, you need to set:
-    - **[repak_cli](https://github.com/trumank/repak)**
-    - Either **[kdiff3](https://kdiff3.sourceforge.net)** or **[WinMerge](https://winmerge.org)**
+2. Make sure the paths are set correctly. At a minimum, you need to set paths for:
+    - **repak_cli**
+    - Either **kdiff3** or **WinMerge**
 
 3. Once your settings are configured, click **Save** and follow the on-screen instructions.
 
-*Note:* Unpacking the vanilla game files is highly recommended for better mod comparison. Usually unpacking `pakchunk0-Windows.pak` is sufficient for this purpose. However, the **AES decryption key** is needed to do so, which isn't included in this release for now due to legal concern. I'll integrate [AESDumpster](https://github.com/GHFear/AESDumpster) in future releases to circumvent this, for now you can use other tools alongside correct AES decryption key to unpack vanilla files.
+**Note:** It’s highly recommended to unpack the vanilla game files for better merging experience. Unpacking `pakchunk0-Windows.pak` should be sufficient. Game file are encrypted, so **AES decryption key** is included for this purpose. If the key changes in the future, you can retrieve the working one using [AESDumpster](https://github.com/GHFear/AESDumpster) and update it in **ZonePaq Toolkit** settings.
 
 ## Troubleshooting
 

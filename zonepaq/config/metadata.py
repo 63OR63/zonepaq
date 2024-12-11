@@ -2,10 +2,11 @@ from config.settings import translate
 
 
 APP_NAME = "ZonePaq Toolkit"
-APP_VERSION = "1.1"
+APP_VERSION = "1.2"
 APP_AUTHOR = "63OR63"
 APP_LICENSE = "MIT"
 APP_DESCRIPTION = translate("meta_description")
+APP_DESCRIPTION_EN = translate("meta_description", "English")
 APP_URL = "https://github.com/63OR63/zonepaq"
 
 APP_ICONS = {

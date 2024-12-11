@@ -83,6 +83,7 @@ class Settings:
         self.LANG_NAME = self.config["SETTINGS"]["LANG_NAME"]
         self.THEME_NAME = self.config["SETTINGS"]["THEME_NAME"]
         self.SHOW_HINTS = self.config["SETTINGS"]["SHOW_HINTS"]
+        self.AES_KEY = self.config["SETTINGS"]["AES_KEY"]
         self.GAME_PATHS = self.config["GAME_PATHS"]
         self.TOOLS_PATHS = self.config["TOOLS_PATHS"]
         self.LANG_DICT = get_translation(self.LANG_NAME)
@@ -121,5 +122,12 @@ class Settings:
 settings = Settings()
 
 
-def translate(text):
+def translate(text, lang=None):
+    if lang:
+        try:
+            return get_translation(lang).get(text) or get_translation("English").get(
+                text
+            )
+        except:
+            return get_translation("English").get(text)
     return settings.LANG_DICT.get(text) or get_translation("English").get(text)
