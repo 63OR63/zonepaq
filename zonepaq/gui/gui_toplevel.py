@@ -650,8 +650,8 @@ class GUI_ConflictsReport(GUI_Popup):
                             messagebox.showinfo(
                                 translate("generic_success"),
                                 f'{translate("merge_screen_conflicts_final_report_1")}\n{repak_result}\n\n'
-                                f'{translate("merge_screen_conflicts_final_report_2")}\n{processed_str}\n\n'
-                                f'{translate("merge_screen_conflicts_final_report_3")}\n{not_processed_str}',
+                                f'{translate("merge_screen_conflicts_final_report_2")}\n{processed_str or translate("generic_none")}\n\n'
+                                f'{translate("merge_screen_conflicts_final_report_3")}\n{not_processed_str or translate("generic_none")}',
                                 parent=self.window,
                             )
                         else:
