@@ -629,7 +629,7 @@ class GUI_ConflictsReport(GUI_Popup):
 
                     formatted_time = datetime.now().strftime("%Y%m%d%H%M%S")
                     merged_mod_path = (
-                        folder_to_place_merged_mod / f"z_merged_{formatted_time}_P.pak"
+                        folder_to_place_merged_mod / f"z_zonepaq_merged_{formatted_time}_P.pak"
                     )
 
                     log.info(
@@ -748,6 +748,7 @@ class GUI_ConflictsReport(GUI_Popup):
             compare_success, compare_result = Merging._run_engine(
                 unpacked_files, save_path
             )
+            log.debug(f"{settings.MERGING_ENGINE} returned with code {compare_result.returncode}")
 
             if compare_success and compare_result.returncode == 0:
                 log.info(f"Merging successful for {str(item_path)}")

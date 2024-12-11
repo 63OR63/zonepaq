@@ -169,6 +169,7 @@ class Merging:
         elif merging_engine == "kdiff3":
             engine_path = Path(tool_paths.get("kdiff3"))
             if not engine_path.exists():
+                log.error(f"{merging_engine} doesn't exist at {engine_path}")
                 return False, None
             command = [
                 str(engine_path),
