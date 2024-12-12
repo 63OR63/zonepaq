@@ -6,7 +6,7 @@ from tkinter import filedialog, messagebox, ttk
 
 from backend.logger import handle_exception, log
 from backend.tools import Files, Repak
-from config.metadata import APP_NAME
+from config.metadata import APP_NAME, APP_VERSION
 from config.settings import settings, translate
 from gui.gui_toplevel import GUI_ConflictsReport
 from gui.menus import MenuRibbon
@@ -371,7 +371,7 @@ class GUI_Base(tk.Tk):
 
         self.report_callback_exception = handle_exception
 
-        self.title(f"{APP_NAME} - {title}")
+        self.title(f"{APP_NAME} v{APP_VERSION} - {title}")
         self.configure(bg=settings.THEME_DICT["color_background"])
         set_app_icon(self)
         self.customization_manager = CustomizationManager.get(settings.THEME_DICT)
@@ -504,6 +504,10 @@ class GUI_Secondary(GUI_Base):
     def __init__(self, title, resizable):
         super().__init__(title=title, resizable=resizable)
 
+    @property
+    def repak_cli(self):
+        return settings.TOOLS_PATHS["repak_cli"]
+
     def create_section(
         self,
         title,
@@ -609,7 +613,7 @@ class GUI_Secondary(GUI_Base):
             for item in paths:
                 path = Path(item.strip())
 
-                if mode == "pak" and path.is_file() and path.suffix == ".pak":
+                if mode == "pak" and path.is_file() and path.suffix.lower() == ".pak":
                     listbox.insert(tk.END, path)
                 elif mode == "folder" and path.is_dir():
                     listbox.insert(tk.END, path)
@@ -797,6 +801,14 @@ class GUI_RepakScreen(GUI_Secondary):
             self.create_section(**section)
 
     def _unpack_files(self):
+        if not Files.is_existing_file_type(self.repak_cli, ".exe"):
+            log.error(f"repak_cli executable isn't found at {str(self.repak_cli)}")
+            messagebox.showerror(
+                translate("generic_error"),
+                f'repak_cli executable {translate("error_executable_not_found_1")} {str(self.repak_cli)}\n{translate("error_executable_not_found_2")}',
+                parent=self,
+            )
+            return
         files = self.unpack_listbox.get(0, tk.END)
         if files:
             folder = filedialog.askdirectory()
@@ -848,6 +860,14 @@ class GUI_RepakScreen(GUI_Secondary):
             )
 
     def _repack_folders(self):
+        if not Files.is_existing_file_type(self.repak_cli, ".exe"):
+            log.error(f"repak_cli executable isn't found at {str(self.repak_cli)}")
+            messagebox.showerror(
+                translate("generic_error"),
+                f'repak_cli executable {translate("error_executable_not_found_1")} {str(self.repak_cli)}\n{translate("error_executable_not_found_2")}',
+                parent=self,
+            )
+            return
         folders = self.repack_listbox.get(0, tk.END)
         if folders:
             target_folder = filedialog.askdirectory()
@@ -912,6 +932,14 @@ class GUI_MergeScreen(GUI_Secondary):
             self.create_section(**section)
 
     def _find_conflicts(self):
+        if not Files.is_existing_file_type(self.repak_cli, ".exe"):
+            log.error(f"repak_cli executable isn't found at {str(self.repak_cli)}")
+            messagebox.showerror(
+                translate("generic_error"),
+                f'repak_cli executable {translate("error_executable_not_found_1")} {str(self.repak_cli)}\n{translate("error_executable_not_found_2")}',
+                parent=self,
+            )
+            return
         files = self.merge_listbox.get(0, tk.END)
         if files:
             results_ok = {}

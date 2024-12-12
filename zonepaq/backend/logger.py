@@ -24,7 +24,7 @@ class LogConfig:
     @staticmethod
     def setup_logging(
         log_file="logs/zonepaq.log",
-        max_file_size=0.5 * 1024 * 1024,
+        max_file_size=0.1 * 1024 * 1024,
         backup_count=3,
         log_level=logging.DEBUG,
     ):

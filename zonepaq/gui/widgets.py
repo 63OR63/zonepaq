@@ -3,6 +3,8 @@ import sys
 import tkinter as tk
 from pathlib import Path
 
+from backend.logger import log
+from backend.tools import Data
 from config.metadata import *
 from config.settings import settings
 
@@ -243,25 +245,20 @@ class CustomEntry(CustomWidget):
             font=self.customization_manager.style.lookup(style, "font"),
         )
 
-    def get_style(self):
-        path = self.get()
-        if Path(path).exists():
-            forced_style = "PathEntry.TEntry"
-        else:
-            forced_style = "PathInvalid.TEntry"
-        return forced_style
+    def get_style(self, entry_type):
+        path = Path(self.get())
+        if Data.is_valid_data(path, entry_type):
+            return "PathEntry.TEntry"
+        return "PathInvalid.TEntry"
 
     def grid(self, row, column, padx=0, pady=0, columnspan=1, **kwargs):
-        """
-        Updated grid method to accept sticky and other grid options.
-        """
         self.entry.grid(
             row=row,
             column=column,
             padx=padx,
             pady=pady,
             columnspan=columnspan,
-            **kwargs,  # Pass additional grid options
+            **kwargs,
         )
 
     def get(self):

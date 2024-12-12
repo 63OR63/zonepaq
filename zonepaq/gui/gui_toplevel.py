@@ -8,7 +8,7 @@ from tkinter import filedialog, messagebox, ttk
 
 from backend.logger import log
 from backend.tools import Files, Merging, Repak
-from config.metadata import APP_NAME
+from config.metadata import APP_NAME, APP_VERSION
 from config.settings import settings, translate
 from gui.widgets import CustomButton, CustomEntry
 
@@ -19,7 +19,7 @@ class GUI_Popup:
     def __init__(self, parent, title, geometry="800x400"):
         self.root = parent
         self.window = tk.Toplevel(self.root)
-        self.window.title(f"{APP_NAME} - {title}")
+        self.window.title(f"{APP_NAME} v{APP_VERSION} - {title}")
         self.window.geometry(geometry)
         self.window.resizable(False, False)
         self.window.configure(bg=settings.THEME_DICT["color_background"])
@@ -41,7 +41,7 @@ class GUI_SettingsMenu(GUI_Popup):
             geometry="800x400",
         )
         self.padding = self.root.padding
-        self.temp_paths = {}  # Temporary storage for paths
+        self.temp_storage = {}  # Temporary storage for entries values
         self._add_settings_groups()
         self._add_save_button()
         self.root.adjust_to_content(root=self.window, adjust_width=True)
@@ -61,48 +61,55 @@ class GUI_SettingsMenu(GUI_Popup):
         self.window.grid_rowconfigure(0, weight=1)
 
         path_groups = {
-            translate("menu_preferences_settings_path_tools"): [
-                (settings.TOOLS_PATHS, "repak_cli", "repak"),
-                (settings.TOOLS_PATHS, "winmerge", "WinMerge"),
-                (settings.TOOLS_PATHS, "kdiff3", "kdiff3"),
-            ],
-            translate("menu_preferences_settings_path_game"): [
-                (
-                    settings.GAME_PATHS,
-                    "vanilla_unpacked",
-                    translate("menu_preferences_settings_vanilla_unpacked"),
-                ),
-            ],
+            translate("menu_preferences_settings_path_tools"): {
+                "repak_cli": {
+                    "path_dict": settings.TOOLS_PATHS,
+                    "title": "repak",
+                    "type": ".exe",
+                },
+                "winmerge": {
+                    "path_dict": settings.TOOLS_PATHS,
+                    "title": "WinMerge",
+                    "type": ".exe",
+                },
+                "kdiff3": {
+                    "path_dict": settings.TOOLS_PATHS,
+                    "title": "kdiff3",
+                    "type": ".exe",
+                },
+            },
+            translate("menu_preferences_settings_path_game"): {
+                "vanilla_unpacked": {
+                    "path_dict": settings.GAME_PATHS,
+                    "title": translate("menu_preferences_settings_vanilla_unpacked"),
+                    "type": "folder",
+                },
+            },
+            "AES Key": {
+                "aes_key": {
+                    "path_dict": {"aes_key": settings.AES_KEY},  # Temporary key storage
+                    "title": "AES Key",
+                    "type": "aes",
+                },
+            },
         }
 
         row_index = 1
         for group_name, paths in path_groups.items():
             row_index = self._add_path_group(group_name, paths, row_index)
 
-        self._create_group_label("AES Key", row_index)
-        aes_key_variable = tk.StringVar(value=settings.AES_KEY)
-        aes_key_entry = CustomEntry(
-            parent=self.window,
-            customization_manager=self.root.customization_manager,
-            textvariable=aes_key_variable,
-            width=85,
-            style="PathEntry.TEntry",
-        )
-        aes_key_entry.grid(
-            row=row_index,
-            column=1,
-            sticky="ew",
-            padx=(0, self.padding * 1.1),
-            pady=(self.padding, self.padding / 2),
-            columnspan=2,
-        )
-
     def _add_path_group(self, group_name, paths, starting_row):
         self._create_group_label(group_name, starting_row)
-        for index, (path_dict, path_key, path_title) in enumerate(
-            paths, start=starting_row + 1
+        for index, (settings_key, path_data) in enumerate(
+            paths.items(), start=starting_row + 1
         ):
-            self._create_path_input(path_dict, path_key, path_title, index)
+            self._create_path_input(
+                path_data["path_dict"],
+                settings_key,
+                path_data["title"],
+                path_data["type"],
+                index,
+            )
         return starting_row + len(paths) + 1
 
     def _create_group_label(self, group_label, row):
@@ -117,61 +124,61 @@ class GUI_SettingsMenu(GUI_Popup):
             sticky="w",
         )
 
-    def _create_path_input(self, path_dict, path_key, path_title, row):
-        # Label for the path
+    def _create_path_input(self, path_dict, settings_key, path_title, entry_type, row):
         ttk.Label(
             self.window, text=f"{path_title}:", style="SettingsItem.TLabel", anchor="w"
         ).grid(row=row, column=0, sticky="w", padx=(self.padding, self.padding))
 
-        # Path variable and settings logic
-        path_variable = tk.StringVar(value=path_dict.get(path_key, ""))
+        entry_variable = tk.StringVar(value=path_dict.get(settings_key, ""))
 
-        # Configure column weights
-        self.window.grid_columnconfigure(1, weight=1)  # Entry column expands
-        self.window.grid_columnconfigure(2, weight=0)  # Button column fixed
+        self.window.grid_columnconfigure(1, weight=1)
+        self.window.grid_columnconfigure(2, weight=0)
 
-        # CustomEntry widget
         entry_widget = CustomEntry(
             parent=self.window,
             customization_manager=self.root.customization_manager,
-            textvariable=path_variable,
+            textvariable=entry_variable,
             width=85,
-            style=(
-                "PathEntry.TEntry"
-                if Path(path_dict.get(path_key, "").strip()).exists()
-                else "PathInvalid.TEntry"
-            ),
+            style="PathEntry.TEntry",
         )
         entry_widget.grid(row=row, column=1, sticky="ew", padx=(0, self.padding))
 
-        # Browse Button with fixed size
-        browse_button = CustomButton(
-            parent=self.window,
-            customization_manager=self.root.customization_manager,
-            text=translate("menu_preferences_settings_browse"),
-            command=lambda: self._open_path_browse_dialog(path_variable),
-            style="TButton",
-            width=100,  # Fixed width in pixels
-            height=30,  # Fixed height in pixels
-        )
-        browse_button.grid(
-            row=row, column=2, padx=(0, self.padding), pady=self.padding / 4, sticky="e"
+        self._store_temp_path_and_apply_style(
+            settings_key, entry_variable.get(), entry_type, entry_widget
         )
 
-        # Add trace for validation
-        path_variable.trace_add(
+        if entry_type != "aes":
+            browse_button = CustomButton(
+                parent=self.window,
+                customization_manager=self.root.customization_manager,
+                text=translate("menu_preferences_settings_browse"),
+                command=lambda: self._open_path_browse_dialog(
+                    entry_variable, entry_type
+                ),
+                style="TButton",
+                width=100,
+                height=30,
+            )
+            browse_button.grid(
+                row=row,
+                column=2,
+                padx=(0, self.padding),
+                pady=self.padding / 4,
+                sticky="e",
+            )
+
+        entry_variable.trace_add(
             "write",
-            lambda *args: self._update_temp_path(
-                path_key, path_variable.get(), entry_widget
+            lambda *args: self._store_temp_path_and_apply_style(
+                settings_key, entry_variable.get(), entry_type, entry_widget
             ),
         )
 
-    def _update_temp_path(self, path_key, new_path, entry_widget):
-        """Store temporary path changes in the temp_paths dictionary."""
-        self.temp_paths[path_key] = new_path
-        entry_widget.apply_style(
-            forced_style=entry_widget.get_style()
-        )  # Apply dynamic style change
+    def _store_temp_path_and_apply_style(
+        self, settings_key, new_value, entry_type, entry_widget
+    ):
+        self.temp_storage[settings_key] = new_value
+        entry_widget.apply_style(forced_style=entry_widget.get_style(entry_type))
 
     def _add_save_button(self):
         CustomButton(
@@ -193,29 +200,41 @@ class GUI_SettingsMenu(GUI_Popup):
         return max(widget.grid_info()["row"] for widget in self.window.grid_slaves())
 
     def _save_settings_and_close(self):
-        # Save updated paths from temp_paths back to the corresponding path dictionaries
-        path_groups = {
-            "game": settings.GAME_PATHS,
-            "tools": settings.TOOLS_PATHS,
-        }
-
-        # Loop through each group and update the paths
-        for group_name, paths in path_groups.items():
-            for path_key in paths.keys():
-                if path_key in self.temp_paths:
-                    # Update the path in the respective dictionary
-                    paths[path_key] = self.temp_paths[path_key]
-
-        # Save the updated settings to disk
+        for settings_key, new_value in self.temp_storage.items():
+            new_value = str(new_value).strip()
+            if settings_key == "aes_key":
+                settings.AES_KEY = new_value
+            elif settings_key in settings.GAME_PATHS:
+                settings.GAME_PATHS[settings_key] = new_value
+            elif settings_key in settings.TOOLS_PATHS:
+                settings.TOOLS_PATHS[settings_key] = new_value
         settings.save_settings()
-
-        # Close the settings window
         self.window.destroy()
 
-    def _open_path_browse_dialog(self, path_variable):
-        selected_path = filedialog.askdirectory()
+    def _open_path_browse_dialog(self, entry_variable, entry_type):
+        path = Path(entry_variable.get())
+        if path.is_file():
+            initial_dir = path.parent
+        elif path.is_dir():
+            initial_dir = path
+        else:
+            initial_dir = Path.cwd()
+
+        if entry_type == "folder":
+            selected_path = filedialog.askdirectory(
+                parent=self.window, initialdir=initial_dir
+            )
+        else:
+            selected_path = filedialog.askopenfilenames(
+                parent=self.window,
+                initialdir=initial_dir,
+                filetypes=[(f"*{entry_type}", f"*{entry_type}")],
+            )
+
         if selected_path:
-            path_variable.set(selected_path)
+            if isinstance(selected_path, tuple):
+                selected_path = ";".join(selected_path)
+            entry_variable.set(selected_path)
 
 
 class GUI_ConflictsReport(GUI_Popup):
@@ -515,10 +534,11 @@ class GUI_ConflictsReport(GUI_Popup):
             engine_path = Path(tool_paths.get("winmerge"))
         elif merging_engine == "kdiff3":
             engine_path = Path(tool_paths.get("kdiff3"))
-        if not engine_path.exists():
+        if not Files.is_existing_file_type(engine_path, ".exe"):
+            log.error(f"{merging_engine} executable isn't found at {str(engine_path)}")
             messagebox.showerror(
                 translate("generic_error"),
-                f'{merging_engine} {translate("merge_screen_conflicts_no_merging_engine_1")} {str(engine_path)}\n{translate("merge_screen_conflicts_no_merging_engine_2")}',
+                f'{merging_engine} executable {translate("error_executable_not_found_1")} {str(engine_path)}\n{translate("error_executable_not_found_2")}',
                 parent=self.window,
             )
             return
@@ -733,7 +753,7 @@ class GUI_ConflictsReport(GUI_Popup):
                 unpack_success, unpacked_folder = future.result()
                 if unpack_success:
                     unpacked_file = Path(unpacked_folder) / item_path
-                    if unpacked_file.exists():
+                    if unpacked_file.exists() and unpacked_file.is_file():
                         unpacked_files.append(unpacked_file)
                     else:
                         log.warning(f"Unpacked file does not exist: {unpacked_file}")
@@ -759,7 +779,7 @@ class GUI_ConflictsReport(GUI_Popup):
                 vanilla_file = (
                     Path(settings.GAME_PATHS.get("vanilla_unpacked")) / item_path
                 )
-                if vanilla_file.exists():
+                if vanilla_file.exists() and vanilla_file.is_file():
                     unpacked_files.appendleft(vanilla_file)
 
             compare_success, compare_result = Merging._run_engine(
@@ -768,7 +788,9 @@ class GUI_ConflictsReport(GUI_Popup):
             log.debug(
                 f"{settings.MERGING_ENGINE} returned with code {compare_result.returncode}"
             )
-
+            log.debug(
+                f"{compare_success} and {compare_result} and {compare_result.returncode}"
+            )
             if compare_success and compare_result.returncode == 0:
                 log.info(f"Merging successful for {str(item_path)}")
                 self.processed_conflicts.append(item_name)
@@ -925,4 +947,5 @@ class GUI_ConflictsReport(GUI_Popup):
             self.tree.column("PAK Sources Paths", width=0, stretch=tk.NO)
 
     def _has_vanilla_match(self, conflict):
-        return (Path(settings.GAME_PATHS.get("vanilla_unpacked")) / conflict).exists()
+        vanilla_path = Path(settings.GAME_PATHS.get("vanilla_unpacked")) / conflict
+        return vanilla_path.exists() and vanilla_path.is_file()

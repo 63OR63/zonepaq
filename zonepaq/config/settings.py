@@ -104,7 +104,7 @@ class Settings:
     def _load_config():
         # config = CaseSensitiveConfigParser()
         config = ConfigParser()
-        if Path(SETTINGS_FILE).exists():
+        if Path(SETTINGS_FILE).exists() and Path(SETTINGS_FILE).is_file():
             config.read(SETTINGS_FILE)
         config.setdefault("SETTINGS", DEFAULT_SETTINGS)
         config.setdefault("TOOLS_PATHS", DEFAULT_TOOLS_PATHS)
