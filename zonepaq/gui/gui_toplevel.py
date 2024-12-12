@@ -6,14 +6,16 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
+from backend.merging import Merging
+from backend.repak import Repak
 from backend.logger import log
-from backend.tools import Files, Merging, Repak
+from backend.tools import Files
 from config.metadata import APP_NAME, APP_VERSION
 from config.settings import settings, translate
 from gui.widgets import CustomButton, CustomEntry
 
 
-class GUI_Popup:
+class GUI_Toplevel:
     """Base class for creating popup windows with custom configurations."""
 
     def __init__(self, parent, title, geometry="800x400"):
@@ -31,7 +33,7 @@ class GUI_Popup:
         self.window.destroy()
 
 
-class GUI_SettingsMenu(GUI_Popup):
+class GUI_SettingsMenu(GUI_Toplevel):
     """Popup window for configuring and saving application settings."""
 
     def __init__(self, parent):
@@ -87,8 +89,8 @@ class GUI_SettingsMenu(GUI_Popup):
             },
             "AES Key": {
                 "aes_key": {
-                    "path_dict": {"aes_key": settings.AES_KEY},  # Temporary key storage
-                    "title": "AES Key",
+                    "path_dict": {"aes_key": settings.AES_KEY},
+                    "title": translate("menu_preferences_settings_aes_key"),
                     "type": "aes",
                 },
             },
@@ -208,7 +210,7 @@ class GUI_SettingsMenu(GUI_Popup):
                 settings.GAME_PATHS[settings_key] = new_value
             elif settings_key in settings.TOOLS_PATHS:
                 settings.TOOLS_PATHS[settings_key] = new_value
-        settings.save_settings()
+        settings.save()
         self.window.destroy()
 
     def _open_path_browse_dialog(self, entry_variable, entry_type):
@@ -237,7 +239,7 @@ class GUI_SettingsMenu(GUI_Popup):
             entry_variable.set(selected_path)
 
 
-class GUI_ConflictsReport(GUI_Popup):
+class GUI_ConflictsReport(GUI_Toplevel):
     """Displays conflict reports and provides tools to analyze and merge files."""
 
     def __init__(self, parent, content_tree):

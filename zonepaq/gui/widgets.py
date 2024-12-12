@@ -9,7 +9,6 @@ from config.metadata import *
 from config.settings import settings
 
 
-# get the resource path for the application icon and other resources
 def resource_path(relative_path):
     try:
         base_path = Path(sys._MEIPASS)

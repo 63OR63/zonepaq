@@ -134,6 +134,8 @@ dmypy.json
 /tests
 version.rc
 settings.ini
+settings.json
+settings.txt
 /.vscode
 /tmp
 /logs

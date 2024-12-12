@@ -1,5 +1,3 @@
-SETTINGS_FILE = "settings.ini"
-
 DEFAULT_TOOLS_PATHS = {
     "repak_cli": r"C:\Program Files\repak_cli\bin\repak.exe",
     "WinMerge": r"C:\Program Files\WinMerge\WinMergeU.exe",
@@ -7,17 +5,17 @@ DEFAULT_TOOLS_PATHS = {
 }
 
 DEFAULT_SETTINGS = {
-    "MERGING_ENGINE": "kdiff3",
-    "LANG_NAME": "English",
-    "THEME_NAME": "Stalker",
-    "SHOW_HINTS": "True",
-    "AES_KEY": "0x33A604DF49A07FFD4A4C919962161F5C35A134D37EFA98DB37A34F6450D7D386",
+    "merging_engine": "kdiff3",
+    "lang_name": "English",
+    "theme_name": "Stalker",
+    "show_hints": "True",
+    "aes_key": "0x33A604DF49A07FFD4A4C919962161F5C35A134D37EFA98DB37A34F6450D7D386",
 }
 
 TOOL_LINKS = {
-    "REPAK_LINK": "https://github.com/trumank/repak/releases",
-    "WINMERGE_LINK": "https://winmerge.org",
-    "KDIFF3_LINK": "https://kdiff3.sourceforge.io",
+    "repak_link": "https://github.com/trumank/repak/releases",
+    "winmerge_link": "https://winmerge.org",
+    "kdiff3_link": "https://kdiff3.sourceforge.io",
 }
 
 DEFAULT_GAME = "S.T.A.L.K.E.R. 2"

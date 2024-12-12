@@ -5,9 +5,11 @@ from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
 from backend.logger import handle_exception, log
-from backend.tools import Files, Repak
+from backend.repak import Repak
+from backend.tools import Files
 from config.metadata import APP_NAME, APP_VERSION
 from config.settings import settings, translate
+from config.styles import get_styles
 from gui.gui_toplevel import GUI_ConflictsReport
 from gui.menus import MenuRibbon
 from gui.widgets import CustomButton, set_app_icon
@@ -80,7 +82,7 @@ class CustomizationManager:
         CustomizationManager._instance = None
 
     def apply_theme(self, window, theme_name):
-        settings.update_config("SETTINGS", "THEME_NAME", theme_name)
+        settings.update_config("SETTINGS", "theme_name", theme_name)
 
         self._reload_styles(settings.THEME_DICT)
 
@@ -91,7 +93,7 @@ class CustomizationManager:
             self._apply_specific_styles(window)
 
     def apply_translation(self, window, lang_name):
-        settings.update_config("SETTINGS", "LANG_NAME", lang_name)
+        settings.update_config("SETTINGS", "lang_name", lang_name)
 
         self.reset()
 
@@ -101,7 +103,7 @@ class CustomizationManager:
 
     def apply_show_hints(self, window, show_hints):
         settings.SHOW_HINTS = str(show_hints)
-        settings.update_config("SETTINGS", "SHOW_HINTS", show_hints)
+        settings.update_config("SETTINGS", "show_hints", show_hints)
 
         self.reset()
 
@@ -110,196 +112,19 @@ class CustomizationManager:
         gui.run()
 
     def _reload_styles(self, theme_dict):
-        styles = {
-            "TFrame": {
-                "background": theme_dict["color_background"],
-            },
-            # "TFrame": {
-            #     "background": theme_dict["color_background"],
-            #     "borderwidth": 1, "relief": "solid",
-            # },  # Visual Debug
-            "TLabel": {
-                "font": (
-                    theme_dict["font_family_main"],
-                    theme_dict["font_size_normal"],
-                ),
-                "background": theme_dict["color_background"],
-                "foreground": theme_dict["color_foreground"],
-            },
-            "Small.TLabel": {
-                "font": (
-                    theme_dict["font_family_main"],
-                    theme_dict["font_size_small"],
-                ),
-                "background": theme_dict["color_background"],
-                "foreground": theme_dict["color_foreground"],
-            },
-            "Success.TLabel": {
-                "font": (
-                    theme_dict["font_family_main"],
-                    theme_dict["font_size_small"],
-                ),
-                "background": theme_dict["color_background"],
-                "foreground": theme_dict["color_success"],
-            },
-            "Attention.TLabel": {
-                "font": (
-                    theme_dict["font_family_main"],
-                    theme_dict["font_size_small"],
-                ),
-                "background": theme_dict["color_background"],
-                "foreground": theme_dict["color_attention"],
-            },
-            "Warning.TLabel": {
-                "font": (
-                    theme_dict["font_family_main"],
-                    theme_dict["font_size_small"],
-                ),
-                "background": theme_dict["color_background"],
-                "foreground": theme_dict["color_warning"],
-            },
-            "Error.TLabel": {
-                "font": (
-                    theme_dict["font_family_main"],
-                    theme_dict["font_size_small"],
-                ),
-                "background": theme_dict["color_background"],
-                "foreground": theme_dict["color_error"],
-            },
-            "Hints.TLabel": {
-                "font": (
-                    theme_dict["font_family_main"],
-                    theme_dict["font_size_small"],
-                ),
-                "background": theme_dict["color_background"],
-                "foreground": theme_dict["color_muted"],
-            },
-            "Header.TLabel": {
-                "font": (
-                    theme_dict["font_family_main"],
-                    theme_dict["font_size_header"],
-                    "bold",
-                ),
-                "background": theme_dict["color_highlight"],
-                "foreground": theme_dict["color_contrast"],
-                "anchor": "center",
-                "padding": (0, 15),
-            },
-            "SettingsItem.TLabel": {
-                "font": (
-                    theme_dict["font_family_code"],
-                    theme_dict["font_size_normal"],
-                ),
-                "background": theme_dict["color_background"],
-                "foreground": theme_dict["color_foreground"],
-                "anchor": "center",
-            },
-            "TButton": {
-                "font": (
-                    theme_dict["font_family_main"],
-                    theme_dict["font_size_normal"],
-                ),
-                "background": theme_dict["color_background_accent"],
-                "foreground": theme_dict["color_foreground"],
-                "relief": "flat",
-                "borderwidth": 0,
-                "padding": 10,
-            },
-            "Subtitle.TButton": {
-                "font": (
-                    theme_dict["font_family_main"],
-                    theme_dict["font_size_small"],
-                    "italic",
-                ),
-                "foreground": theme_dict["color_muted"],
-                "background": theme_dict["color_background_muted"],
-                "relief": "flat",
-                "borderwidth": 0,
-            },
-            "Accent.TButton": {
-                "font": (
-                    theme_dict["font_family_main"],
-                    theme_dict["font_size_normal"],
-                    "bold",
-                ),
-                "background": theme_dict["color_accent"],
-                "foreground": theme_dict["color_contrast"],
-                "relief": "flat",
-                "borderwidth": 0,
-            },
-            "SettingsGroup.TLabel": {
-                "font": (
-                    theme_dict["font_family_main"],
-                    theme_dict["font_size_normal"],
-                    "bold",
-                ),
-                "background": theme_dict["color_background"],
-                "foreground": theme_dict["color_contrast"],
-            },
-            "PathEntry.TEntry": {
-                "font": (theme_dict["font_family_code"], theme_dict["font_size_small"]),
-                "background": theme_dict["color_background_highlight"],
-                "foreground": theme_dict["color_foreground"],
-            },
-            "PathInvalid.TEntry": {
-                "font": (theme_dict["font_family_code"], theme_dict["font_size_small"]),
-                "background": theme_dict["color_error"],
-                "foreground": theme_dict["color_contrast"],
-            },
-            "Treeview": {
-                "font": (
-                    theme_dict["font_family_code"],
-                    theme_dict["font_size_small"],
-                ),
-                "background": theme_dict["color_background"],
-                "foreground": theme_dict["color_foreground"],
-                "fieldbackground": theme_dict["color_background"],
-            },
-            "Muted.Treeview": {
-                "font": (
-                    theme_dict["font_family_code"],
-                    theme_dict["font_size_small"],
-                ),
-                "background": theme_dict["color_background"],
-                "foreground": theme_dict["color_muted"],
-                "fieldbackground": theme_dict["color_background"],
-            },
-            "Treeview.Heading": {
-                "font": (
-                    theme_dict["font_family_code"],
-                    theme_dict["font_size_small"],
-                ),
-                "background": theme_dict["color_background"],
-                "foreground": theme_dict["color_foreground"],
-            },
-            "Vertical.TScrollbar": {
-                "background": theme_dict["color_background"],
-                "troughcolor": theme_dict["color_background_muted"],
-            },
-            "TCheckbutton": {
-                "font": (
-                    theme_dict["font_family_main"],
-                    theme_dict["font_size_small"],
-                ),
-                "background": theme_dict["color_background"],
-                "foreground": theme_dict["color_foreground"],
-            },
-        }
+        styles = get_styles(theme_dict)
         for widget, config in styles.items():
             self.style.configure(widget, **config)
 
+        self._map_style("TCheckbutton", theme_dict["color_background"])
+        self._map_style("Treeview.Heading", theme_dict["color_background"])
+
+    def _map_style(self, widget, color):
         self.style.map(
-            "TCheckbutton",
+            widget,
             background=[
-                ("active", theme_dict["color_background"]),
-                ("!active", theme_dict["color_background"]),
-            ],
-        )
-        self.style.map(
-            "Treeview.Heading",
-            background=[
-                ("active", theme_dict["color_background"]),
-                ("!active", theme_dict["color_background"]),
+                ("active", color),
+                ("!active", color),
             ],
         )
 

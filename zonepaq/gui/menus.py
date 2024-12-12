@@ -84,7 +84,7 @@ class MenuRibbon:
             options=["WinMerge", "kdiff3"],
             selected_option=self.selected_engine,
             apply_function=lambda engine_name, window=None: settings.update_config(
-                "SETTINGS", "MERGING_ENGINE", engine_name
+                "SETTINGS", "merging_engine", engine_name
             ),
             apply_param_name="engine_name",
         )
@@ -123,7 +123,7 @@ class MenuRibbon:
         menu_bar.add_cascade(label=translate("menu_help"), menu=help_menu)
 
     def exit_app(self):
-        settings.save_settings()
+        settings.save()
         sys.exit(0)
 
     def open_settings_window(self):
