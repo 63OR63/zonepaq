@@ -268,9 +268,47 @@ class GUI_Base(ctk.CTk):
         root.update_idletasks()
         width = root.winfo_reqwidth()
         height = root.winfo_reqheight()
+
+        # log.debug(width)
+        # log.debug(height)
+        # # log.debug(root._current_width)
+        # # log.debug(root._current_height)
+        # # log.debug(root._min_width)
+        # # log.debug(root._min_height)
+        # # log.debug(root._max_width)
+        # # log.debug(root._max_height)
+        # root.after(500, lambda: print(f".height() -> {root._min_width}"))
+        # root.after(500, lambda: print(f".height() -> {root._min_height}"))
+        # root.after(500, lambda: print(f".height() -> {root._current_width}"))
+        # root.after(500, lambda: print(f".height() -> {root._current_height}"))
+
+        # log.debug(root.winfo_width())
+        # log.debug(root.winfo_height())
+        # root.after(
+        #     500,
+        #     lambda: (
+        #         root.update_idletasks(),
+        #         print(f".height() -> {root.winfo_width()}"),
+        #     ),
+        # )
+        # root.after(
+        #     500,
+        #     lambda: (
+        #         root.update_idletasks(),
+        #         print(f".height() -> {root.winfo_height()}"),
+        #     ),
+        # )
+
+        # root.after(1500, lambda: (root.update_idletasks(), root.minsize(root.winfo_width(), root.winfo_height())))
+
+        root.after(
+            1009, lambda: root.minsize(root._current_width, root._current_height)
+        )
+
+        # root.minsize(0, 0)
         # log.debug(height)
         # root.after(500, lambda: print(f".height() -> {root.winfo_reqheight()}"))
-        root.minsize(width, height)
+        # root.minsize(width, height)
         root.resizable(adjust_width, adjust_height)
 
     def on_closing(self):
@@ -369,6 +407,7 @@ class GUI_LaunchScreen(GUI_Base):
         super().__init__(title=translate("launch_screen_title"))
         self._setup()
         self.adjust_to_content()
+
         log.info("Launch screen opened.")
 
     def _setup(self):
@@ -693,6 +732,7 @@ class GUI_RepakScreen(GUI_Secondary):
         super().__init__(title=translate("repak_screen_title"), resizable=(True, False))
         self._create_sections()
         self.adjust_to_content(adjust_width=True)
+
         log.info("Repak screen opened.")
 
     def _create_sections(self):
