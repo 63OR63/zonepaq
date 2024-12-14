@@ -24,6 +24,13 @@ from CTkListbox import *
 from unittest.mock import mock_open, patch
 
 
+# ctk.CTk._block_update_dimensions_event = False
+
+import ctypes
+
+ctypes.windll.shcore.SetProcessDpiAwareness(0)
+
+
 class InstanceManager:
     """Manages registration and cleanup of windows and widgets."""
 
@@ -203,7 +210,7 @@ class GUI_Base(ctk.CTk):
 
     def __init__(self, title, width=800, height=350, resizable=(False, False)):
         super().__init__()  # Initialize the tk.Tk class
-
+        log.debug(self._block_update_dimensions_event)
         self.report_callback_exception = handle_exception
 
         self.title(f"{APP_NAME} v{APP_VERSION} - {title}")
@@ -261,8 +268,8 @@ class GUI_Base(ctk.CTk):
         root.update_idletasks()
         width = root.winfo_reqwidth()
         height = root.winfo_reqheight()
-        log.debug(height)
-        root.after(500, lambda: print(f".height() -> {root.winfo_reqheight()}"))
+        # log.debug(height)
+        # root.after(500, lambda: print(f".height() -> {root.winfo_reqheight()}"))
         root.minsize(width, height)
         root.resizable(adjust_width, adjust_height)
 
