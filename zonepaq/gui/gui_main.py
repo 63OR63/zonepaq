@@ -1,3 +1,6 @@
+import io
+import json
+import tempfile
 import tkinter as tk
 from collections import deque
 from concurrent.futures import as_completed
@@ -7,12 +10,18 @@ from tkinter import filedialog, messagebox, ttk
 from backend.logger import handle_exception, log
 from backend.repak import Repak
 from backend.tools import Files
+from config.ctk_themes import ctk_color_theme
+from config.ctk_styles import StyleManager
 from config.metadata import APP_NAME, APP_VERSION
 from config.settings import settings, translate
 from config.styles import get_styles
 from gui.gui_toplevel import GUI_ConflictsReport
 from gui.menus import MenuRibbon
 from gui.widgets import CustomButton, set_app_icon
+
+import customtkinter as ctk
+from CTkListbox import *
+from unittest.mock import mock_open, patch
 
 
 class InstanceManager:
@@ -169,26 +178,27 @@ class CustomizationManager:
                         try:
                             if hasattr(current_widget, "configure"):
                                 current_widget.configure({key: value})
-                        except tk.TclError:
+                        except:
                             pass
                 elif isinstance(current_widget, ttk.Treeview):
                     for tag, style in treeview_tags.items():
                         try:
                             current_widget.tag_configure(tag, **style)
-                        except tk.TclError:
+                        except:
                             pass
                 else:
                     for key, value in generic.items():
                         try:
                             if hasattr(current_widget, "configure"):
                                 current_widget.configure({key: value})
-                        except tk.TclError:
+                        except:
                             pass
 
             queue.extend(current_widget.winfo_children())
 
 
-class GUI_Base(tk.Tk):
+# class GUI_Base(tk.Tk):
+class GUI_Base(ctk.CTk):
     """Base class for all GUI windows with common functionalities."""
 
     def __init__(self, title, width=800, height=350, resizable=(False, False)):
@@ -207,14 +217,52 @@ class GUI_Base(tk.Tk):
 
         self.padding = 30
 
-    def __del__(self):
-        self.customization_manager.instances.unregister_window(self)
+        theme_str = json.dumps(ctk_color_theme)
+        mocked_file = mock_open(read_data=theme_str)
+        with patch("builtins.open", mocked_file):
+            ctk.set_default_color_theme("mocked_theme")
+
+        StyleManager.define_style(
+            "Header.CTkLabel",
+            fg_color=ctk_color_theme["CTkOptionMenu"]["fg_color"],
+            text_color=ctk_color_theme["CTkOptionMenu"]["text_color"],
+            font=ctk.CTkFont(
+                family=ctk.ThemeManager.theme["Header.CustomFont"]["family"],
+                size=ctk.ThemeManager.theme["Header.CustomFont"]["size"],
+                weight=ctk.ThemeManager.theme["Header.CustomFont"]["weight"],
+            ),
+        )
+        StyleManager.define_style(
+            "Transparent.CTkFrame",
+            fg_color="transparent",
+            border_color="red",
+            border_width=1,
+        )
+        StyleManager.define_style(
+            "Large.CTkButton",
+            font=ctk.CTkFont(
+                family=ctk.ThemeManager.theme["Button.CustomFont"]["family"],
+                size=ctk.ThemeManager.theme["Button.CustomFont"]["size"],
+                weight=ctk.ThemeManager.theme["Button.CustomFont"]["weight"],
+            ),
+        )
+
+        # with tempfile.NamedTemporaryFile(
+        #     mode="w", delete=False, suffix=".json"
+        # ) as tmp_file:
+        #     json.dump(ctk_color_theme, tmp_file)  # Write the JSON data
+        #     tmp_file.close()  # Close the file to release the lock
+        #     ctk.set_default_color_theme(tmp_file.name)
+
+        # ctk.set_default_color_theme(Path("zonepaq/config/themes2/Nord.json"))
 
     def adjust_to_content(self, root=None, adjust_width=False, adjust_height=False):
         root = root or self
         root.update_idletasks()
         width = root.winfo_reqwidth()
         height = root.winfo_reqheight()
+        log.debug(height)
+        root.after(500, lambda: print(f".height() -> {root.winfo_reqheight()}"))
         root.minsize(width, height)
         root.resizable(adjust_width, adjust_height)
 
@@ -223,16 +271,26 @@ class GUI_Base(tk.Tk):
         self.destroy()
 
     def _create_header(self, text):
-        header_label = ttk.Label(self, text=text, style="Header.TLabel")
+        # header_label = ctk.Label(self, text=text, style="Header.TLabel")
+        header_label = ctk.CTkLabel(
+            self,
+            text=text,
+            anchor="center",
+            pady=self.padding / 1.5,
+        )
         header_label.grid(row=0, column=0, sticky="nsew")
+        StyleManager.apply_style(header_label, "Header.CTkLabel")
 
     def _create_hints(self, text):
-        hints_label = ttk.Label(self, text=text, style="Hints.TLabel")
+        # hints_label = ttk.Label(self, text=text, style="Hints.TLabel")
+        hints_label = ctk.CTkLabel(self, text=text)
         hints_label.grid(row=1, column=0, sticky="nsew")
 
-    def _create_buttons(self, buttons, parent, frame_grid=None, row_weights=None):
+    def _create_buttons(
+        self, buttons, parent, frame_grid=None, row_weights=None, column_weights=None
+    ):
         # Create a button frame using grid
-        button_frame = ttk.Frame(parent, style="TFrame")
+        button_frame = ctk.CTkFrame(parent)
         grid_kwargs = {
             "padx": buttons["frame"].get("padx", 0),
             "pady": buttons["frame"].get("pady", 0),
@@ -240,29 +298,52 @@ class GUI_Base(tk.Tk):
         }
         grid_kwargs.update(frame_grid or {})
         button_frame.grid(**grid_kwargs)
+        StyleManager.apply_style(button_frame, "Transparent.CTkFrame")
 
         if row_weights:
             for row_index, weight in row_weights:
                 button_frame.grid_rowconfigure(row_index, weight=weight)
+        if column_weights:
+            for column_index, weight in column_weights:
+                button_frame.grid_columnconfigure(column_index, weight=weight)
 
         for button_config in buttons["custom"]:
-            CustomButton(
-                parent=button_frame,
-                customization_manager=self.customization_manager,
+            button = ctk.CTkButton(
+                button_frame,
                 text=button_config.get("text", "test"),
-                subtitle_text=button_config.get("subtitle_text", ""),
-                style=button_config.get("style", "TButton"),
-                width=button_config.get("width", 350),
-                height=button_config.get("height", 70),
+                width=button_config.get("width", 200),
+                height=button_config.get("height", 40),
                 command=button_config.get("command", None),
-                accent=button_config.get("accent", False),
-            ).grid(
+            )
+            button.grid(
                 row=button_config.get("row", 0),
                 column=button_config.get("column", 0),
                 columnspan=button_config.get("columnspan", 1),
                 padx=buttons["grid"].get("padx", 0),
                 pady=buttons["grid"].get("pady", 0),
             )
+
+            StyleManager.apply_style(button, button_config.get("style", ""))
+
+            # CustomButton(
+            #     parent=button_frame,
+            #     customization_manager=self.customization_manager,
+            #     text=button_config.get("text", "test"),
+            #     subtitle_text=button_config.get("subtitle_text", ""),
+            #     style=button_config.get("style", "TButton"),
+            #     width=button_config.get("width", 350),
+            #     height=button_config.get("height", 70),
+            #     command=button_config.get("command", None),
+            #     accent=button_config.get("accent", False),
+            # ).grid(
+            #     row=button_config.get("row", 0),
+            #     column=button_config.get("column", 0),
+            #     columnspan=button_config.get("columnspan", 1),
+            #     padx=buttons["grid"].get("padx", 0),
+            #     pady=buttons["grid"].get("pady", 0),
+            # )
+
+    ctk.set_default_color_theme
 
     def open_gui(self, gui_class):
         self.customization_manager.reset()
@@ -286,29 +367,41 @@ class GUI_LaunchScreen(GUI_Base):
     def _setup(self):
         # Place the header in row 0
         self._create_header(text=translate("launch_screen_header"))
-        self.grid_rowconfigure(0, weight=0)  # Header row does not expand
+        # self.grid_rowconfigure(0, weight=0)  # Header row does not expand
 
         buttons = {
             "custom": [
                 {
                     "text": translate("launch_screen_button_repak"),
+                    "style": "Large.CTkButton",
+                    "width": 320,
+                    "height": 60,
                     "command": self._open_repak_gui,
                     "row": 0,
                     "column": 0,
                 },
                 {
                     "text": translate("launch_screen_button_merge"),
+                    "style": "Large.CTkButton",
+                    "width": 320,
+                    "height": 60,
                     "command": self._open_merge_gui,
                     "row": 0,
                     "column": 1,
                 },
             ],
-            "frame": {"padx": self.padding // 2, "pady": self.padding // 2},
-            "grid": {"padx": self.padding // 2, "pady": self.padding // 2},
+            "frame": {"padx": 0, "pady": 0},
+            "grid": {"padx": 0, "pady": 0},
+            # "frame": {"padx": self.padding // 2, "pady": self.padding // 2},
+            # "grid": {"padx": self.padding // 2, "pady": self.padding // 2},
         }
 
         self._create_buttons(
-            buttons, self, frame_grid={"row": 1, "column": 0, "sticky": "nsew"}
+            buttons,
+            self,
+            frame_grid={"row": 1, "column": 0, "sticky": "nsew"},
+            row_weights=[(0, 1)],
+            column_weights=[(0, 1), (1, 1)],
         )
 
         self.grid_rowconfigure(1, weight=1)
@@ -348,8 +441,10 @@ class GUI_Secondary(GUI_Base):
     ):
         self._create_header(title)
         section_frame = self._create_section_frame()
-        hints_frame = ttk.Frame(section_frame, style="TFrame")
+        # hints_frame = ttk.Frame(section_frame, style="TFrame")
+        hints_frame = ctk.CTkFrame(section_frame)
         hints_frame.grid(row=0, column=0, sticky="w", pady=(self.padding, 0))
+        StyleManager.apply_style(hints_frame, "Transparent.CTkFrame")
         self._create_hints(hints_frame, hints)
         content_frame = self._create_content_frame(
             section_frame, listbox_name, scroll_name, listbox_mode
@@ -359,16 +454,19 @@ class GUI_Secondary(GUI_Base):
         )
         self._create_action_button(section_frame, action_name, action_command)
 
-    def _create_header(self, title):
-        """Creates the section header."""
-        header_label = ttk.Label(self, text=title, style="Header.TLabel")
-        header_label.grid(
-            row=self._get_next_row(), column=0, sticky="ew", padx=0, pady=(0, 0)
-        )
+    # def _create_header(self, title):
+    #     """Creates the section header."""
+    #     header_label = ttk.Label(self, text=title, style="Header.TLabel")
+    #     header_label.grid(
+    #         row=self._get_next_row(), column=0, sticky="ew", padx=0, pady=(0, 0)
+    #     )
 
     def _create_section_frame(self):
         """Creates the main section frame."""
-        section_frame = ttk.Frame(self, style="TFrame")
+        # section_frame = ttk.Frame(self, style="TFrame")
+        section_frame = ctk.CTkFrame(
+            self,
+        )
         section_frame.grid(
             row=self._get_next_row(),
             column=0,
@@ -378,37 +476,43 @@ class GUI_Secondary(GUI_Base):
         )
         self.grid_columnconfigure(0, weight=1)
         section_frame.grid_columnconfigure(0, weight=1)
+        StyleManager.apply_style(section_frame, "Transparent.CTkFrame")
         return section_frame
 
     def _create_hints(self, section_frame, hints):
         """Adds hints to the section if hints are enabled."""
         if eval(settings.SHOW_HINTS) and hints:
-            hints_label = ttk.Label(section_frame, text=hints, style="Hints.TLabel")
+            # hints_label = ttk.Label(section_frame, text=hints, style="Hints.TLabel")
+            hints_label = ctk.CTkLabel(section_frame, text=hints)
             hints_label.grid(row=0, column=0, columnspan=3, sticky="ew")
 
     def _create_content_frame(
         self, section_frame, listbox_name, scroll_name, listbox_mode
     ):
         """Creates the content frame containing the listbox and scrollbar."""
-        content_frame = ttk.Frame(section_frame, style="TFrame")
+        # content_frame = ttk.Frame(section_frame, style="TFrame")
+        content_frame = ctk.CTkFrame(section_frame)
         content_frame.grid(row=1, column=0, columnspan=3, sticky="nsew")
         content_frame.grid_columnconfigure(0, weight=1)
         content_frame.grid_columnconfigure(1, weight=0)
         content_frame.grid_columnconfigure(2, weight=0)
+        StyleManager.apply_style(content_frame, "Transparent.CTkFrame")
 
-        listbox = tk.Listbox(
+        # listbox = tk.Listbox(
+        listbox = CTkListbox(
             content_frame,
             width=70,
             height=10,
-            bg=settings.THEME_DICT["color_background_highlight"],
-            fg=settings.THEME_DICT["color_foreground"],
-            selectbackground=settings.THEME_DICT["color_highlight"],
-            font=(
-                settings.THEME_DICT["font_family_code"],
-                settings.THEME_DICT["font_size_small"],
-                "normal",
-            ),
-            selectmode=tk.EXTENDED,
+            # bg=settings.THEME_DICT["color_background_highlight"],
+            # fg=settings.THEME_DICT["color_foreground"],
+            # selectbackground=settings.THEME_DICT["color_highlight"],
+            # font=(
+            #     settings.THEME_DICT["font_family_code"],
+            #     settings.THEME_DICT["font_size_small"],
+            #     "normal",
+            # ),
+            # selectmode=tk.EXTENDED,
+            multiple_selection=True,
         )
         listbox.grid(row=0, column=0, sticky="nsew", pady=(self.padding, 0))
         setattr(self, listbox_name, listbox)
@@ -421,13 +525,6 @@ class GUI_Secondary(GUI_Base):
             "<Delete>", lambda event: self._remove_from_listbox(listbox=listbox)
         )
 
-        scrollbar = ttk.Scrollbar(
-            content_frame, orient=tk.VERTICAL, command=listbox.yview
-        )
-        scrollbar.grid(row=0, column=1, sticky="ns", pady=(self.padding, 0))
-        listbox.config(yscrollcommand=scrollbar.set)
-        setattr(self, scroll_name, scrollbar)
-
         return content_frame
 
     def _paste_clipboard(self, listbox, mode):
@@ -439,9 +536,9 @@ class GUI_Secondary(GUI_Base):
                 path = Path(item.strip())
 
                 if mode == "pak" and path.is_file() and path.suffix.lower() == ".pak":
-                    listbox.insert(tk.END, path)
+                    listbox.insert(path)
                 elif mode == "folder" and path.is_dir():
-                    listbox.insert(tk.END, path)
+                    listbox.insert(path)
                 else:
                     log.debug(f"Invalid path: {path} (Mode: {mode})")
         except Exception as e:
@@ -531,15 +628,15 @@ class GUI_Secondary(GUI_Base):
             filetypes=[(translate("dialogue_pak_files"), "*.pak")]
         )
         for file in files:
-            if file not in listbox.get(0, tk.END):
-                listbox.insert(tk.END, file)
-                log.debug(f"Added {file} to {listbox}")
+            # if file not in listbox.get(0, "END"):
+            listbox.insert("END", file)
+            log.debug(f"Added {file} to {listbox}")
 
     @staticmethod
     def _add_folder_to_listbox(listbox):
         folder = filedialog.askdirectory()
         if folder:
-            listbox.insert(tk.END, folder)
+            listbox.insert(folder)
             log.debug(f"Added {folder} to {listbox}")
 
     @staticmethod
@@ -558,7 +655,7 @@ class GUI_Secondary(GUI_Base):
 
     @staticmethod
     def _clear_listbox(listbox):
-        listbox.delete(0, tk.END)
+        listbox.delete("all")
         log.debug(f"Cleared {listbox}")
 
     def show_results(self, results_ok, results_ko):
@@ -634,7 +731,7 @@ class GUI_RepakScreen(GUI_Secondary):
                 parent=self,
             )
             return
-        files = self.unpack_listbox.get(0, tk.END)
+        files = self.unpack_listbox.get()
         if files:
             folder = filedialog.askdirectory()
             if folder:
@@ -693,7 +790,7 @@ class GUI_RepakScreen(GUI_Secondary):
                 parent=self,
             )
             return
-        folders = self.repack_listbox.get(0, tk.END)
+        folders = self.repack_listbox.get()
         if folders:
             target_folder = filedialog.askdirectory()
             if target_folder:
@@ -765,7 +862,7 @@ class GUI_MergeScreen(GUI_Secondary):
                 parent=self,
             )
             return
-        files = self.merge_listbox.get(0, tk.END)
+        files = self.merge_listbox.get()
         if files:
             results_ok = {}
             results_ko = {}
