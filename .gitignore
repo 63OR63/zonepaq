@@ -139,3 +139,5 @@ settings.txt
 /.vscode
 /tmp
 /logs
+*.dot
+/*.png
