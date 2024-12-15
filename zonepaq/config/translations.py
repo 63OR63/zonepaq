@@ -41,7 +41,7 @@ TRANSLATIONS = {
             '2. Click the "Unpack" button and choose a destination folder\n'
             "...each .pak file will be unpacked into a separate folder at the selected destination..."
         ),
-        "repak_screen_unpack_button": "Unpack",
+        "repak_screen_unpack_button": "Unpack all",
         "repak_screen_unpack_msg_empty_list": "Please, select some files to unpack.",
         "repak_screen_unpack_msg_overwrite_1": "The following folders already exist:",
         "repak_screen_unpack_msg_overwrite_2": "Do you want to overwrite them all?",
@@ -54,7 +54,7 @@ TRANSLATIONS = {
             '2. Click the "Repack" button and choose a destination folder\n'
             "...each folder will be repacked into a separate .pak file at the selected destination..."
         ),
-        "repak_screen_repack_button": "Repack",
+        "repak_screen_repack_button": "Repack all",
         "repak_screen_repack_msg_empty_list": "Please, select some folders to repack.",
         "button_add": "Add",
         "button_remove": "Remove",
@@ -69,7 +69,7 @@ TRANSLATIONS = {
             '2. Click the "Analyze" button.\n'
             "...the merging window will open..."
         ),
-        "merge_screen_analyze_button": "Analyze",
+        "merge_screen_analyze_button": "Analyze all",
         "merge_screen_conflicts_title": "Find conflicts or merge mods",
         "merge_screen_conflicts_show_path": "Show full path",
         "merge_screen_conflicts_file_structure": "File Tree",
@@ -152,7 +152,7 @@ TRANSLATIONS = {
             '2. Нажмите кнопку "Распаковать" и выберите папку назначения.\n'
             "...каждый .pak файл будет распакован в отдельную папку по выбранному пути..."
         ),
-        "repak_screen_unpack_button": "Распаковать",
+        "repak_screen_unpack_button": "Распаковать все",
         "repak_screen_unpack_msg_empty_list": "Пожалуйста, выберите файлы для распаковки.",
         "repak_screen_unpack_msg_overwrite_1": "Следующие папки уже существуют:",
         "repak_screen_unpack_msg_overwrite_2": "Хотите их перезаписать?",
@@ -165,7 +165,7 @@ TRANSLATIONS = {
             '2. Нажмите кнопку "Упаковать" и выберите папку назначения.\n'
             "...каждая папка будет упакована в отдельный .pak файл по выбранному пути..."
         ),
-        "repak_screen_repack_button": "Упаковать",
+        "repak_screen_repack_button": "Упаковать все",
         "repak_screen_repack_msg_empty_list": "Пожалуйста, выберите папки для упаковки.",
         "button_add": "Добавить",
         "button_remove": "Убрать",
@@ -180,7 +180,7 @@ TRANSLATIONS = {
             '2. Нажмите кнопку "Анализировать".\n'
             "...откроется окно слияния..."
         ),
-        "merge_screen_analyze_button": "Анализировать",
+        "merge_screen_analyze_button": "Анализировать все",
         "merge_screen_conflicts_title": "Поиск конфликтов или слияние модов",
         "merge_screen_conflicts_show_path": "Показать полный путь",
         "merge_screen_conflicts_file_structure": "Дерево файлов",
