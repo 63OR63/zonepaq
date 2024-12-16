@@ -405,6 +405,11 @@ font_definitions = {
         "Windows": {"family": "Arial", "size": 13, "weight": "normal"},
         "Linux": {"family": "Roboto", "size": 13, "weight": "normal"},
     },
+    "Dnd.CustomFont": {
+        "macOS": {"family": "SF Display", "size": 18, "weight": "normal"},
+        "Windows": {"family": "Consolas", "size": 18, "weight": "normal"},
+        "Linux": {"family": "Roboto", "size": 18, "weight": "normal"},
+    },
     "Generic.Button.CustomFont": {
         "macOS": {"family": "SF Display", "size": 15, "weight": "normal"},
         "Windows": {"family": "Arial", "size": 15, "weight": "normal"},

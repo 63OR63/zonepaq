@@ -105,7 +105,7 @@ def handle_exception(exc_type, exc_value, exc_traceback):
         "Application Error", f"An unexpected error occurred:\n\n{error_message}"
     )
 
-    sys.exit(1)
+    sys.exit(0)
 
 
 sys.excepthook = handle_exception

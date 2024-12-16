@@ -9,19 +9,6 @@ from config.metadata import *
 from config.settings import settings
 
 
-def resource_path(relative_path):
-    try:
-        base_path = Path(sys._MEIPASS)
-    except Exception:
-        base_path = Path(".")
-
-    return base_path / relative_path
-
-
-def set_app_icon(root):
-    root.iconphoto(True, tk.PhotoImage(file=resource_path(APP_ICONS["png"])))
-
-
 class CustomWidget:
     def __init__(self, parent, customization_manager, style, **kwargs):
         self.root = parent

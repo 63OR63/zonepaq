@@ -1,40 +1,29 @@
+import ctypes
 import io
 import json
+import sys
 import tempfile
 import tkinter as tk
 from collections import deque
 from concurrent.futures import as_completed
 from pathlib import Path
-from tkinter import filedialog, messagebox, ttk
+from time import sleep
+from tkinter import PhotoImage, filedialog, messagebox, ttk
+from unittest.mock import mock_open, patch
 
+import customtkinter as ctk
 from backend.logger import handle_exception, log
 from backend.repak import Repak
 from backend.tools import Files
-from config.ctk_themes import ctk_color_theme, CtkStyleManager, get_colors
-from config.metadata import APP_NAME, APP_VERSION
+from config.ctk_themes import CtkStyleManager, ctk_color_theme, get_colors
+from config.metadata import APP_ICONS, APP_NAME, APP_VERSION
 from config.settings import settings, translate
 from config.styles import get_styles
+from CTkListbox import *
 from gui.gui_toplevel import GUI_ConflictsReport
 from gui.menus import MenuRibbon
-from gui.widgets import CustomButton, set_app_icon
 
-import customtkinter as ctk
-from CTkListbox import *
-from unittest.mock import mock_open, patch
-
-from tkinterdnd2 import TkinterDnD, DND_FILES, DND_ALL
-
-# ctk.CTk._block_update_dimensions_event = False
-
-import ctypes
-
-ctypes.windll.shcore.SetProcessDpiAwareness(0)
-
-
-class CTk(ctk.CTk, TkinterDnD.DnDWrapper):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.TkdndVersion = TkinterDnD._require(self)
+from tkinterdnd2 import DND_FILES, TkinterDnD
 
 
 class InstanceManager:
@@ -210,21 +199,92 @@ class CustomizationManager:
             queue.extend(current_widget.winfo_children())
 
 
-# class GUI_Base(tk.Tk):
+class WindowManager:
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __init__(self, parent):
+        if not hasattr(self, "initialized"):
+            self.open_windows = {type(parent): parent}
+            # set_app_icon(parent)
+            # self.iconpath = tk.PhotoImage(file=resource_path(APP_ICONS["png"]))
+
+            self.initialized = True
+
+    def open_window(self, parent, new_window):
+        print(self.open_windows)
+        if new_window in self.open_windows:
+            window = self.open_windows[new_window]
+            parent.withdraw()
+            window.deiconify()
+        else:
+            parent.withdraw()
+            window = new_window()
+            self.open_windows[new_window] = window
+            window.run()
+
+    def close_window(self, parent):
+        """Close the current window."""
+        if isinstance(parent, GUI_LaunchScreen):
+            parent.destroy()
+            sys.exit(0)
+            # parent.quit()
+        else:
+            parent.withdraw()
+            self.open_windows[type(parent)] = parent
+
+
+def custom_set_titlebar_icon(self):
+    try:
+        base_path = Path(sys._MEIPASS)
+    except Exception:
+        base_path = Path(".")
+    try:
+        resource_path = base_path / APP_ICONS["png"]
+        self.iconphoto(True, tk.PhotoImage(file=resource_path))
+    except Exception:
+        pass
+
+
+_CTk = ctk.CTk
+if hasattr(_CTk, "_windows_set_titlebar_icon"):
+    _CTk._windows_set_titlebar_icon = custom_set_titlebar_icon
+
+
+class CTk(_CTk, TkinterDnD.DnDWrapper):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.TkdndVersion = TkinterDnD._require(self)
+
+
+class App(CTk):
+    def __init__(self):
+        super().__init__()
+        gui = GUI_LaunchScreen()
+        gui.run()
+
+
 class GUI_Base(CTk):
     """Base class for all GUI windows with common functionalities."""
 
     def __init__(self, title):
         super().__init__()  # Initialize the ctk.CTk class
+        self.window_manager = WindowManager(self)
+
         self.configure(fg_color=get_colors("color_background_primary"))
 
         self.report_callback_exception = handle_exception
 
         self.title(f"{APP_NAME} v{APP_VERSION} - {title}")
         self.configure(bg=settings.THEME_DICT["color_background"])
-        set_app_icon(self)
+        # set_app_icon(self, self.window_manager.iconpath)
+
         self.customization_manager = CustomizationManager.get(settings.THEME_DICT)
-        self.customization_manager.instances.register_window(self)
+        # self.customization_manager.instances.register_window(self)
 
         self.menu = MenuRibbon(self)
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
@@ -266,6 +326,18 @@ class GUI_Base(CTk):
                 family=ctk.ThemeManager.theme["Hints.CustomFont"]["family"],
                 size=ctk.ThemeManager.theme["Hints.CustomFont"]["size"],
                 weight=ctk.ThemeManager.theme["Hints.CustomFont"]["weight"],
+            ),
+        )
+
+        CtkStyleManager.define_style(
+            "Dnd.CTkLabel",
+            fg_color="transparent",
+            text_color=get_colors("color_background_tertiary"),
+            # text_color=get_colors("color_text_muted"),
+            font=ctk.CTkFont(
+                family=ctk.ThemeManager.theme["Dnd.CustomFont"]["family"],
+                size=ctk.ThemeManager.theme["Dnd.CustomFont"]["size"],
+                weight=ctk.ThemeManager.theme["Dnd.CustomFont"]["weight"],
             ),
         )
 
@@ -330,8 +402,8 @@ class GUI_Base(CTk):
         root.resizable(adjust_width, adjust_height)
 
     def on_closing(self):
-        self.customization_manager.reset()
-        self.destroy()
+        # self.customization_manager.reset()
+        self.window_manager.close_window(self)
 
     @staticmethod
     def _create_ctk_widget(
@@ -411,10 +483,9 @@ class GUI_Base(CTk):
             )
 
     def open_gui(self, gui_class):
-        self.customization_manager.reset()
-        self.destroy()
-        gui = gui_class()
-        gui.run()
+        # self.customization_manager.reset()
+        log.debug(f"Opening {gui_class}...")
+        self.window_manager.open_window(self, gui_class)
 
     def run(self):
         self.mainloop()
@@ -425,12 +496,12 @@ class GUI_LaunchScreen(GUI_Base):
 
     def __init__(self):
         super().__init__(title=translate("launch_screen_title"))
-        self._setup()
+        self._setup2()
         self.adjust_to_content()
 
         log.info("Launch screen opened.")
 
-    def _setup(self):
+    def _setup2(self):
         self._create_header(text=translate("launch_screen_header"))
 
         buttons = {
@@ -472,11 +543,9 @@ class GUI_LaunchScreen(GUI_Base):
         self.grid_columnconfigure(0, weight=1)
 
     def _open_repak_gui(self):
-        log.debug("Opening repak screen...")
         self.open_gui(GUI_RepakScreen)
 
     def _open_merge_gui(self):
-        log.debug("Opening merge screen...")
         self.open_gui(GUI_MergeScreen)
 
 
@@ -495,6 +564,7 @@ class GUI_Secondary(GUI_Base):
         self,
         title,
         listbox_name,
+        listbox_mode,
         add_command,
         remove_command,
         clear_command,
@@ -508,7 +578,7 @@ class GUI_Secondary(GUI_Base):
         section_frame = self._create_section_frame()
 
         listbox_frame = self._create_listbox_frame(section_frame)
-        self._create_listbox(listbox_frame, listbox_name)
+        self._create_listbox(listbox_frame, listbox_name, listbox_mode)
         self._create_side_buttons(
             listbox_frame, add_command, remove_command, clear_command
         )
@@ -597,7 +667,7 @@ class GUI_Secondary(GUI_Base):
         )
         return listbox_frame
 
-    def _create_listbox(self, root, listbox_name):
+    def _create_listbox(self, root, listbox_name, listbox_mode):
         listbox = self._create_ctk_widget(
             ctk_widget=CTkListbox,
             widget_args={
@@ -612,14 +682,40 @@ class GUI_Secondary(GUI_Base):
                 "column": 0,
                 "sticky": "nsew",
             },
-            row_weights=[(0, 1)],
             column_weights=None,
         )
         setattr(self, listbox_name, listbox)
+
+        dnd = self._create_ctk_widget(
+            ctk_widget=ctk.CTkLabel,
+            widget_args={
+                "master": root,
+                "text": f'{translate("generic_dnd")} {translate(listbox_mode)} {translate("generic_here")}',
+                "justify": "center",
+            },
+            widget_style="Dnd.CTkLabel",
+            grid_args={
+                "row": 0,
+                "column": 0,
+            },
+            column_weights=None,
+        )
+        setattr(self, f"{listbox_name}_dnd", dnd)
+
         listbox.master.drop_target_register(DND_FILES)
-        # ctklistbox.master.dnd_bind("<<Drop>>", lambda e: ctklistbox.insert("END", e.data.replace("{","").replace("}", "")))
         listbox.master.dnd_bind(
-            "<<Drop>>", lambda e: self._add_dnd_files_to_listbox(e, listbox)
+            "<<Drop>>",
+            lambda e: self._add_dnd_files_to_listbox(e, listbox, listbox_mode, dnd),
+        )
+        # listbox.bind(
+        #     "<Delete>",
+        #     lambda e: self._remove_from_listbox(listbox, f"{listbox_name}_dnd"),
+        # )
+
+        dnd.drop_target_register(DND_FILES)
+        dnd.dnd_bind(
+            "<<Drop>>",
+            lambda e: self._add_dnd_files_to_listbox(e, listbox, listbox_mode, dnd),
         )
 
         return listbox
@@ -703,37 +799,54 @@ class GUI_Secondary(GUI_Base):
         root = root or self
         return len(root.grid_slaves())
 
-    @staticmethod
-    def _add_dnd_files_to_listbox(event, listbox):
-        dropped_files_raw = event.data
-        files = [
-            Path(path.strip("{}")) for path in dropped_files_raw.split("}") if path
-        ]
-        for file in files:
-            if file not in listbox.get("all"):
-                listbox.insert("END", file)
-                log.debug(f"Added {file} to {listbox}")
+    def _add_dnd_files_to_listbox(self, event, listbox, mode, dnd):
+        try:
+            dropped_files_raw = event.data
+            files = [path for path in dropped_files_raw.split("}") if path]
+            for path in files:
+                path = path.replace("{", "").replace("}", "")
+                path = Path(path.strip())
+                if str(path) not in listbox.get("all"):
+                    if (
+                        mode == "pak"
+                        and path.is_file()
+                        and path.suffix.lower() == ".pak"
+                    ):
+                        listbox.insert("END", str(path))
+                        log.debug(f"Added {str(path)} to {listbox}")
+                    elif mode == "folder" and path.is_dir():
+                        listbox.insert("END", str(path))
+                        log.debug(f"Added {str(path)} to {listbox}")
+                    else:
+                        log.debug(f"Invalid path: {str(path)} (Mode: {mode})")
+        except Exception as e:
+            log.error(f"DnD error: {e}")
+        if listbox.get("all"):
+            dnd.grid_forget()
 
-    @staticmethod
-    def _add_file_to_listbox(listbox):
+    def _add_file_to_listbox(self, listbox, dnd):
         files = filedialog.askopenfilenames(
             filetypes=[(translate("dialogue_pak_files"), "*.pak")]
         )
         for file in files:
-            if file not in listbox.get("all"):
-                listbox.insert("END", file)
-                log.debug(f"Added {file} to {listbox}")
+            file = Path(file.strip())
+            if str(file) not in listbox.get("all"):
+                listbox.insert("END", str(file))
+                log.debug(f"Added {str(file)} to {listbox}")
+        if listbox.get("all"):
+            dnd.grid_forget()
 
-    @staticmethod
-    def _add_folder_to_listbox(listbox):
+    def _add_folder_to_listbox(self, listbox, dnd):
         folder = filedialog.askdirectory()
         if folder:
-            if folder not in listbox.get("all"):
-                listbox.insert("END", folder)
-                log.debug(f"Added {folder} to {listbox}")
+            folder = Path(folder.strip())
+            if str(folder) not in listbox.get("all"):
+                listbox.insert("END", str(folder))
+                log.debug(f"Added {str(folder)} to {listbox}")
+        if listbox.get("all"):
+            dnd.grid_forget()
 
-    @staticmethod
-    def _remove_from_listbox(listbox):
+    def _remove_from_listbox(self, listbox, dnd):
         try:
             selected_indices = listbox.curselection()
             if not selected_indices:
@@ -745,11 +858,20 @@ class GUI_Secondary(GUI_Base):
             log.debug(f"Removed items at indices {selected_indices} from {listbox}")
         except Exception as e:
             log.error(f"Error removing selected items: {e}")
+        if not listbox.get("all"):
+            dnd.grid(
+                row=0,
+                column=0,
+            )
 
-    @staticmethod
-    def _clear_listbox(listbox):
+    def _clear_listbox(self, listbox, dnd):
         listbox.delete("all")
         log.debug(f"Cleared {listbox}")
+
+        dnd.grid(
+            row=0,
+            column=0,
+        )
 
     def show_results(self, results_ok, results_ko):
         message_ok = "\n".join(results_ok) if results_ok else ""
@@ -765,11 +887,12 @@ class GUI_Secondary(GUI_Base):
             messagebox.showinfo(translate("generic_results"), message)
 
     def on_closing(self):
-        self.open_launch_screen()
+        self.window_manager.open_window(self, GUI_LaunchScreen)
+        # self.open_launch_screen()
 
-    def open_launch_screen(self):
-        log.debug("Opening launch screen...")
-        self.open_gui(GUI_LaunchScreen)
+    # def open_launch_screen(self):
+    #     log.debug("Opening launch screen...")
+    #     self.open_gui(GUI_LaunchScreen)
 
 
 class GUI_RepakScreen(GUI_Secondary):
@@ -787,11 +910,16 @@ class GUI_RepakScreen(GUI_Secondary):
             {
                 "title": translate("repak_screen_unpack_header"),
                 "listbox_name": "unpack_listbox",
-                "add_command": lambda: self._add_file_to_listbox(self.unpack_listbox),
-                "remove_command": lambda: self._remove_from_listbox(
-                    self.unpack_listbox
+                "listbox_mode": "pak",
+                "add_command": lambda: self._add_file_to_listbox(
+                    self.unpack_listbox, self.unpack_listbox_dnd
                 ),
-                "clear_command": lambda: self._clear_listbox(self.unpack_listbox),
+                "remove_command": lambda: self._remove_from_listbox(
+                    self.unpack_listbox, self.unpack_listbox_dnd
+                ),
+                "clear_command": lambda: self._clear_listbox(
+                    self.unpack_listbox, self.unpack_listbox_dnd
+                ),
                 "action_name": translate("repak_screen_unpack_button"),
                 "action_command": self._unpack_files,
                 "hints": translate("repak_screen_unpack_hints"),
@@ -799,11 +927,16 @@ class GUI_RepakScreen(GUI_Secondary):
             {
                 "title": translate("repak_screen_repack_header"),
                 "listbox_name": "repack_listbox",
-                "add_command": lambda: self._add_folder_to_listbox(self.repack_listbox),
-                "remove_command": lambda: self._remove_from_listbox(
-                    self.repack_listbox
+                "listbox_mode": "folders",
+                "add_command": lambda: self._add_folder_to_listbox(
+                    self.repack_listbox, self.repack_listbox_dnd
                 ),
-                "clear_command": lambda: self._clear_listbox(self.repack_listbox),
+                "remove_command": lambda: self._remove_from_listbox(
+                    self.repack_listbox, self.repack_listbox_dnd
+                ),
+                "clear_command": lambda: self._clear_listbox(
+                    self.repack_listbox, self.repack_listbox_dnd
+                ),
                 "action_name": translate("repak_screen_repack_button"),
                 "action_command": self._repack_folders,
                 "hints": translate("repak_screen_repack_hints"),
@@ -930,9 +1063,16 @@ class GUI_MergeScreen(GUI_Secondary):
             {
                 "title": translate("merge_screen_header"),
                 "listbox_name": "merge_listbox",
-                "add_command": lambda: self._add_file_to_listbox(self.merge_listbox),
-                "remove_command": lambda: self._remove_from_listbox(self.merge_listbox),
-                "clear_command": lambda: self._clear_listbox(self.merge_listbox),
+                "listbox_mode": "pak",
+                "add_command": lambda: self._add_file_to_listbox(
+                    self.merge_listbox, self.merge_listbox_dnd
+                ),
+                "remove_command": lambda: self._remove_from_listbox(
+                    self.merge_listbox, self.merge_listbox_dnd
+                ),
+                "clear_command": lambda: self._clear_listbox(
+                    self.merge_listbox, self.merge_listbox_dnd
+                ),
                 "action_name": translate("merge_screen_analyze_button"),
                 "action_command": self._find_conflicts,
                 "hints": translate("merge_screen_hints"),
