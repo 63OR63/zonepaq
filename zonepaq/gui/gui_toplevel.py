@@ -29,6 +29,7 @@ class GUI_Toplevel:
 
 
 class GUI_SettingsMenu(GUI_Toplevel):
+    # class GUI_SettingsMenu(GUI_Base):
     """Popup window for configuring and saving application settings."""
 
     def __init__(self, parent):

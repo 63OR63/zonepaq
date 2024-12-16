@@ -199,6 +199,7 @@ class CustomizationManager:
             queue.extend(current_widget.winfo_children())
 
 
+# !WORKAROUND for CTk going crazy with destroying windows
 class WindowManager:
     _instance = None
 
@@ -345,8 +346,8 @@ class GUI_Base(CTk):
         CtkStyleManager.define_style(
             "Transparent.CTkFrame",
             fg_color="transparent",
-            border_color="red",
-            border_width=1,
+            # border_color="red",
+            # border_width=1,
         )
 
         CtkStyleManager.define_style(
@@ -816,7 +817,9 @@ class GUI_Secondary(GUI_Base):
                         list(listbox.buttons.values())[-1]._text_label.configure(
                             anchor="w"
                         )
-                        list(listbox.buttons.values())[-1].configure(anchor="w")
+                        list(listbox.buttons.values())[-1].configure(
+                            anchor="w", height=0
+                        )
                         log.debug(f"Added {str(path)} to {listbox}")
                     elif mode == "folder" and path.is_dir():
                         listbox.insert("END", str(path))
@@ -824,7 +827,9 @@ class GUI_Secondary(GUI_Base):
                         list(listbox.buttons.values())[-1]._text_label.configure(
                             anchor="w"
                         )
-                        list(listbox.buttons.values())[-1].configure(anchor="w")
+                        list(listbox.buttons.values())[-1].configure(
+                            anchor="w", height=0
+                        )
                         log.debug(f"Added {str(path)} to {listbox}")
                     else:
                         log.debug(f"Invalid path: {str(path)} (Mode: {mode})")
@@ -844,7 +849,7 @@ class GUI_Secondary(GUI_Base):
                 listbox.insert("END", str(file))
                 # !WORKAROUND for lacking anchor option in the text Label
                 list(listbox.buttons.values())[-1]._text_label.configure(anchor="w")
-                list(listbox.buttons.values())[-1].configure(anchor="w")
+                list(listbox.buttons.values())[-1].configure(anchor="w", height=0)
                 log.debug(f"Added {str(file)} to {listbox}")
         if listbox.get("all"):
             dnd.grid_forget()
@@ -857,7 +862,7 @@ class GUI_Secondary(GUI_Base):
                 listbox.insert("END", str(folder))
                 # !WORKAROUND for lacking anchor option in the text Label
                 list(listbox.buttons.values())[-1]._text_label.configure(anchor="w")
-                list(listbox.buttons.values())[-1].configure(anchor="w")
+                list(listbox.buttons.values())[-1].configure(anchor="w", height=0)
                 log.debug(f"Added {str(folder)} to {listbox}")
         if listbox.get("all"):
             dnd.grid_forget()
