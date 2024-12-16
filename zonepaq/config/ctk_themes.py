@@ -456,6 +456,7 @@ ctk_color_theme = merge_dicts(
 )
 
 
+# !WORKAROUND for lacking styling option as in Ttk
 class CtkStyleManager:
     _styles = {}  # Dictionary to store custom styles
 

@@ -250,6 +250,7 @@ def custom_set_titlebar_icon(self):
         pass
 
 
+# !WORKAROUND for CTk overwriting changes in app icon
 _CTk = ctk.CTk
 if hasattr(_CTk, "_windows_set_titlebar_icon"):
     _CTk._windows_set_titlebar_icon = custom_set_titlebar_icon
@@ -344,8 +345,8 @@ class GUI_Base(CTk):
         CtkStyleManager.define_style(
             "Transparent.CTkFrame",
             fg_color="transparent",
-            # border_color="red",
-            # border_width=1,
+            border_color="red",
+            border_width=1,
         )
 
         CtkStyleManager.define_style(
@@ -677,9 +678,9 @@ class GUI_Secondary(GUI_Base):
                 "multiple_selection": True,
             },
             widget_style="Custom.CTkListbox",
-            grid_args={"row": 0, "column": 0, "sticky": "nsew", "columnspan": 9},
+            grid_args={"row": 0, "column": 0, "sticky": "nsew"},
             # row_weights=[(0, 0)],
-            column_weights=[(0, 0)],
+            # column_weights=[(0, 0)],
         )
         setattr(self, listbox_name, listbox)
 
@@ -811,21 +812,23 @@ class GUI_Secondary(GUI_Base):
                         and path.suffix.lower() == ".pak"
                     ):
                         listbox.insert("END", str(path))
+                        # !WORKAROUND for lacking anchor option in the text Label
                         list(listbox.buttons.values())[-1]._text_label.configure(
                             anchor="w"
                         )
+                        list(listbox.buttons.values())[-1].configure(anchor="w")
                         log.debug(f"Added {str(path)} to {listbox}")
                     elif mode == "folder" and path.is_dir():
                         listbox.insert("END", str(path))
+                        # !WORKAROUND for lacking anchor option in the text Label
                         list(listbox.buttons.values())[-1]._text_label.configure(
                             anchor="w"
                         )
+                        list(listbox.buttons.values())[-1].configure(anchor="w")
                         log.debug(f"Added {str(path)} to {listbox}")
                     else:
                         log.debug(f"Invalid path: {str(path)} (Mode: {mode})")
 
-            for btn in listbox.buttons.values():
-                btn._text_label.configure(anchor="w")
         except Exception as e:
             log.error(f"DnD error: {e}")
         if listbox.get("all"):
@@ -839,7 +842,9 @@ class GUI_Secondary(GUI_Base):
             file = Path(file.strip())
             if str(file) not in listbox.get("all"):
                 listbox.insert("END", str(file))
+                # !WORKAROUND for lacking anchor option in the text Label
                 list(listbox.buttons.values())[-1]._text_label.configure(anchor="w")
+                list(listbox.buttons.values())[-1].configure(anchor="w")
                 log.debug(f"Added {str(file)} to {listbox}")
         if listbox.get("all"):
             dnd.grid_forget()
@@ -850,7 +855,9 @@ class GUI_Secondary(GUI_Base):
             folder = Path(folder.strip())
             if str(folder) not in listbox.get("all"):
                 listbox.insert("END", str(folder))
+                # !WORKAROUND for lacking anchor option in the text Label
                 list(listbox.buttons.values())[-1]._text_label.configure(anchor="w")
+                list(listbox.buttons.values())[-1].configure(anchor="w")
                 log.debug(f"Added {str(folder)} to {listbox}")
         if listbox.get("all"):
             dnd.grid_forget()
