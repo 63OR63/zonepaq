@@ -677,12 +677,9 @@ class GUI_Secondary(GUI_Base):
                 "multiple_selection": True,
             },
             widget_style="Custom.CTkListbox",
-            grid_args={
-                "row": 0,
-                "column": 0,
-                "sticky": "nsew",
-            },
-            column_weights=None,
+            grid_args={"row": 0, "column": 0, "sticky": "nsew", "columnspan": 9},
+            # row_weights=[(0, 0)],
+            column_weights=[(0, 0)],
         )
         setattr(self, listbox_name, listbox)
 
@@ -698,6 +695,7 @@ class GUI_Secondary(GUI_Base):
                 "row": 0,
                 "column": 0,
             },
+            row_weights=None,
             column_weights=None,
         )
         setattr(self, f"{listbox_name}_dnd", dnd)
@@ -813,12 +811,21 @@ class GUI_Secondary(GUI_Base):
                         and path.suffix.lower() == ".pak"
                     ):
                         listbox.insert("END", str(path))
+                        list(listbox.buttons.values())[-1]._text_label.configure(
+                            anchor="w"
+                        )
                         log.debug(f"Added {str(path)} to {listbox}")
                     elif mode == "folder" and path.is_dir():
                         listbox.insert("END", str(path))
+                        list(listbox.buttons.values())[-1]._text_label.configure(
+                            anchor="w"
+                        )
                         log.debug(f"Added {str(path)} to {listbox}")
                     else:
                         log.debug(f"Invalid path: {str(path)} (Mode: {mode})")
+
+            for btn in listbox.buttons.values():
+                btn._text_label.configure(anchor="w")
         except Exception as e:
             log.error(f"DnD error: {e}")
         if listbox.get("all"):
@@ -832,6 +839,7 @@ class GUI_Secondary(GUI_Base):
             file = Path(file.strip())
             if str(file) not in listbox.get("all"):
                 listbox.insert("END", str(file))
+                list(listbox.buttons.values())[-1]._text_label.configure(anchor="w")
                 log.debug(f"Added {str(file)} to {listbox}")
         if listbox.get("all"):
             dnd.grid_forget()
@@ -842,6 +850,7 @@ class GUI_Secondary(GUI_Base):
             folder = Path(folder.strip())
             if str(folder) not in listbox.get("all"):
                 listbox.insert("END", str(folder))
+                list(listbox.buttons.values())[-1]._text_label.configure(anchor="w")
                 log.debug(f"Added {str(folder)} to {listbox}")
         if listbox.get("all"):
             dnd.grid_forget()
