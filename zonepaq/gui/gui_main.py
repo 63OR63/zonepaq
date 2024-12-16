@@ -22,12 +22,19 @@ import customtkinter as ctk
 from CTkListbox import *
 from unittest.mock import mock_open, patch
 
+from tkinterdnd2 import TkinterDnD, DND_FILES, DND_ALL
 
 # ctk.CTk._block_update_dimensions_event = False
 
 import ctypes
 
 ctypes.windll.shcore.SetProcessDpiAwareness(0)
+
+
+class CTk(ctk.CTk, TkinterDnD.DnDWrapper):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.TkdndVersion = TkinterDnD._require(self)
 
 
 class InstanceManager:
@@ -204,10 +211,10 @@ class CustomizationManager:
 
 
 # class GUI_Base(tk.Tk):
-class GUI_Base(ctk.CTk):
+class GUI_Base(CTk):
     """Base class for all GUI windows with common functionalities."""
 
-    def __init__(self, title, width=800, height=350, resizable=(False, False)):
+    def __init__(self, title):
         super().__init__()  # Initialize the ctk.CTk class
         self.configure(fg_color=get_colors("color_background_primary"))
 
@@ -250,22 +257,25 @@ class GUI_Base(ctk.CTk):
                 weight=ctk.ThemeManager.theme["Header.CustomFont"]["weight"],
             ),
         )
+
         CtkStyleManager.define_style(
             "Hints.CTkLabel",
             fg_color="transparent",
-            text_color=get_colors("color_muted"),
+            text_color=get_colors("color_text_muted"),
             font=ctk.CTkFont(
                 family=ctk.ThemeManager.theme["Hints.CustomFont"]["family"],
                 size=ctk.ThemeManager.theme["Hints.CustomFont"]["size"],
                 weight=ctk.ThemeManager.theme["Hints.CustomFont"]["weight"],
             ),
         )
+
         CtkStyleManager.define_style(
             "Transparent.CTkFrame",
             fg_color="transparent",
             # border_color="red",
             # border_width=1,
         )
+
         CtkStyleManager.define_style(
             "Generic.CTkButton",
             font=ctk.CTkFont(
@@ -274,6 +284,7 @@ class GUI_Base(ctk.CTk):
                 weight=ctk.ThemeManager.theme["Generic.Button.CustomFont"]["weight"],
             ),
         )
+
         CtkStyleManager.define_style(
             "Action.CTkButton",
             fg_color=get_colors("color_accent_primary"),
@@ -289,7 +300,7 @@ class GUI_Base(ctk.CTk):
         CtkStyleManager.define_style(
             "Custom.CTkListbox",
             fg_color="transparent",
-            border_color=get_colors("color_muted"),
+            border_color=get_colors("color_background_tertiary"),
             text_color=get_colors("color_text_primary"),
             button_color="transparent",
             hover_color=get_colors("color_accent_tertiary", True),
@@ -304,9 +315,17 @@ class GUI_Base(ctk.CTk):
     def adjust_to_content(self, root=None, adjust_width=False, adjust_height=False):
         root = root or self
 
-        root.after(
-            1009, lambda: root.minsize(root._current_width, root._current_height)
-        )
+        root.update_idletasks()
+        current_width = root.winfo_reqwidth()
+        current_height = root.winfo_reqheight()
+
+        def set_minsize(previous_width, previous_height):
+            root.minsize(
+                min(previous_width, root._current_width),
+                min(previous_height, root._current_height),
+            )
+
+        root.after(1009, lambda: set_minsize(current_width, current_height))
 
         root.resizable(adjust_width, adjust_height)
 
@@ -412,9 +431,7 @@ class GUI_LaunchScreen(GUI_Base):
         log.info("Launch screen opened.")
 
     def _setup(self):
-        # Place the header in row 0
         self._create_header(text=translate("launch_screen_header"))
-        # self.grid_rowconfigure(0, weight=0)  # Header row does not expand
 
         buttons = {
             "custom": [
@@ -466,8 +483,8 @@ class GUI_LaunchScreen(GUI_Base):
 class GUI_Secondary(GUI_Base):
     """Secondary GUI window with reusable section-building utilities."""
 
-    def __init__(self, title, resizable):
-        super().__init__(title=title, resizable=resizable)
+    def __init__(self, title):
+        super().__init__(title=title)
         self.grid_columnconfigure(0, weight=1)
 
     @property
@@ -486,10 +503,9 @@ class GUI_Secondary(GUI_Base):
         hints=None,
     ):
         self._create_header(title)
+        self._create_hints(hints)
 
         section_frame = self._create_section_frame()
-
-        self._create_hints(section_frame, hints)
 
         listbox_frame = self._create_listbox_frame(section_frame)
         self._create_listbox(listbox_frame, listbox_name)
@@ -520,6 +536,27 @@ class GUI_Secondary(GUI_Base):
             column_weights=None,
         )
 
+    def _create_hints(self, hints):
+        if eval(settings.SHOW_HINTS) and hints:
+            self._create_ctk_widget(
+                ctk_widget=ctk.CTkLabel,
+                widget_args={
+                    "master": self,
+                    "text": hints,
+                    "justify": "left",
+                },
+                widget_style="Hints.CTkLabel",
+                grid_args={
+                    "row": self._get_next_row(),
+                    "column": 0,
+                    "sticky": "nw",
+                    "padx": (self.padding, 0),
+                    "pady": (self.padding, 0),
+                },
+                row_weights=[(0, 0)],
+                column_weights=None,
+            )
+
     def _create_section_frame(self):
         row = self._get_next_row()
         self.grid_rowconfigure(row, weight=1)
@@ -541,26 +578,6 @@ class GUI_Secondary(GUI_Base):
         )
 
         return section_frame
-
-    def _create_hints(self, root, hints):
-        if eval(settings.SHOW_HINTS) and hints:
-            self._create_ctk_widget(
-                ctk_widget=ctk.CTkLabel,
-                widget_args={
-                    "master": root,
-                    "text": hints,
-                    "justify": "left",
-                },
-                widget_style="Hints.CTkLabel",
-                grid_args={
-                    "row": self._get_next_row(root),
-                    "column": 0,
-                    "sticky": "nw",
-                    "pady": (self.padding, 0),
-                },
-                row_weights=None,
-                column_weights=None,
-            )
 
     def _create_listbox_frame(self, root):
         listbox_frame = self._create_ctk_widget(
@@ -599,6 +616,11 @@ class GUI_Secondary(GUI_Base):
             column_weights=None,
         )
         setattr(self, listbox_name, listbox)
+        listbox.master.drop_target_register(DND_FILES)
+        # ctklistbox.master.dnd_bind("<<Drop>>", lambda e: ctklistbox.insert("END", e.data.replace("{","").replace("}", "")))
+        listbox.master.dnd_bind(
+            "<<Drop>>", lambda e: self._add_dnd_files_to_listbox(e, listbox)
+        )
 
         return listbox
 
@@ -682,6 +704,17 @@ class GUI_Secondary(GUI_Base):
         return len(root.grid_slaves())
 
     @staticmethod
+    def _add_dnd_files_to_listbox(event, listbox):
+        dropped_files_raw = event.data
+        files = [
+            Path(path.strip("{}")) for path in dropped_files_raw.split("}") if path
+        ]
+        for file in files:
+            if file not in listbox.get("all"):
+                listbox.insert("END", file)
+                log.debug(f"Added {file} to {listbox}")
+
+    @staticmethod
     def _add_file_to_listbox(listbox):
         files = filedialog.askopenfilenames(
             filetypes=[(translate("dialogue_pak_files"), "*.pak")]
@@ -743,7 +776,7 @@ class GUI_RepakScreen(GUI_Secondary):
     """GUI for unpacking and repacking files."""
 
     def __init__(self):
-        super().__init__(title=translate("repak_screen_title"), resizable=(True, False))
+        super().__init__(title=translate("repak_screen_title"))
         self._create_sections()
         self.adjust_to_content(adjust_width=True, adjust_height=True)
 
@@ -788,7 +821,7 @@ class GUI_RepakScreen(GUI_Secondary):
                 parent=self,
             )
             return
-        files = self.unpack_listbox.get()
+        files = self.unpack_listbox.get("all")
         if files:
             folder = filedialog.askdirectory()
             if folder:
@@ -847,7 +880,7 @@ class GUI_RepakScreen(GUI_Secondary):
                 parent=self,
             )
             return
-        folders = self.repack_listbox.get()
+        folders = self.repack_listbox.get("all")
         if folders:
             target_folder = filedialog.askdirectory()
             if target_folder:
@@ -886,7 +919,7 @@ class GUI_MergeScreen(GUI_Secondary):
     """GUI for analyzing and reporting file conflicts during merging."""
 
     def __init__(self):
-        super().__init__(title=translate("merge_screen_title"), resizable=(True, False))
+        super().__init__(title=translate("merge_screen_title"))
         self._create_sections()
 
         self.adjust_to_content(adjust_width=True)
@@ -917,7 +950,7 @@ class GUI_MergeScreen(GUI_Secondary):
                 parent=self,
             )
             return
-        files = self.merge_listbox.get()
+        files = self.merge_listbox.get("all")
         if files:
             results_ok = {}
             results_ko = {}
