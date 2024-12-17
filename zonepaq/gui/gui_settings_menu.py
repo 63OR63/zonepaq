@@ -1,7 +1,7 @@
 from backend.logger import log
 from backend.tools import Data
 from config.settings import settings, translate
-from gui.GUI_Base import GUI_Base
+from gui.gui_base import GUI_Base
 
 import customtkinter as ctk
 
@@ -169,6 +169,10 @@ class GUI_SettingsMenu(GUI_Base):
                 "master": group_frame,
                 "variable": self.selected_theme,
                 "values": settings.ALL_THEME_NAMES,
+                "command": lambda selected_theme=self.selected_theme: (
+                    self.restyle(selected_theme),
+                    # self.after_idle(self.relaunch_app),
+                ),
                 "anchor": "w",
             },
             grid_args={

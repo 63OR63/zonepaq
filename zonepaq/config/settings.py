@@ -10,7 +10,7 @@ from config.defaults import (
     DEFAULT_VANILLA_FOLDER_SUFFIX,
     GAMES,
 )
-from config.ctk_themes import ThemeManager
+from config.themes import ThemeManager
 from config.translations import get_available_languages, get_translation
 
 

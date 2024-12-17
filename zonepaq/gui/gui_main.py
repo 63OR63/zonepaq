@@ -13,7 +13,7 @@ from backend.tools import Files
 from config.settings import settings, translate
 from CTkListbox import *
 from gui.custom_set_titlebar_icon import custom_set_titlebar_icon
-from gui.GUI_Base import GUI_Base
+from gui.gui_base import GUI_Base
 from gui.gui_toplevel import GUI_ConflictsReport
 from tkinterdnd2 import DND_FILES
 

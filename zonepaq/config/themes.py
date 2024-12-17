@@ -1,340 +1,627 @@
-THEMES = {
-    "Stalker": {
-        "color_background": "#1b1e22",
-        "color_background_accent": "#14161a",
-        "color_background_muted": "#2c3137",
-        "color_background_highlight": "#353c42",
-        "color_contrast": "#ffffff",
-        "color_contrast2": "#000000",
-        "color_foreground": "#a0a0a0",
-        "color_accent": "#a8c8a5",
-        "color_error": "#b75f6e",
-        "color_success": "#7c9a2f",
-        "color_muted": "#5a636c",
-        "color_highlight": "#5d705e",
-        "color_attention": "#d7a84e",
-        "color_warning": "#c07a2d",
-        "color_info": "#5f9ea3",
-        "font_family_main": "Arial",
-        "font_family_code": "Consolas",
-        "font_size_header": 16,
-        "font_size_normal": 12,
-        "font_size_small": 10,
-    },
-    "Half-Life": {
-        "color_background": "#1e1e1e",
-        "color_background_accent": "#232323",
-        "color_background_muted": "#3e3e3e",
-        "color_background_highlight": "#4a4a4a",
-        "color_contrast": "#ffffff",
-        "color_contrast2": "#000000",
-        "color_foreground": "#c7c7c7",
-        "color_accent": "#a1c454",
-        "color_error": "#F7392E",
-        "color_success": "#47A5A0",
-        "color_muted": "#707070",
-        "color_highlight": "#F88225",
-        "color_attention": "#f39c12",
-        "color_warning": "#e67e22",
-        "color_info": "#324C5D",
-        "font_family_main": "Arial",
-        "font_family_code": "Consolas",
-        "font_size_header": 16,
-        "font_size_normal": 12,
-        "font_size_small": 10,
-    },
-    "One Dark": {
-        "color_background": "#282c34",
-        "color_background_accent": "#21252b",
-        "color_background_muted": "#3e4451",
-        "color_background_highlight": "#3e4954",
-        "color_contrast": "#ffffff",
-        "color_contrast2": "#000000",
-        "color_foreground": "#abb2bf",
-        "color_accent": "#61afef",
-        "color_error": "#e06c75",
-        "color_success": "#98c379",
-        "color_muted": "#5c6370",
-        "color_highlight": "#c678dd",
-        "color_attention": "#e5c07b",
-        "color_warning": "#d19a66",
-        "color_info": "#56b6c2",
-        "font_family_main": "Arial",
-        "font_family_code": "Consolas",
-        "font_size_header": 16,
-        "font_size_normal": 12,
-        "font_size_small": 10,
-    },
-    "Nord": {
-        "color_background": "#2e3440",
-        "color_background_accent": "#3b4252",
-        "color_background_muted": "#434c5e",
-        "color_background_highlight": "#4c566a",
-        "color_contrast": "#ffffff",
-        "color_contrast2": "#000000",
-        "color_foreground": "#d8dee9",
-        "color_accent": "#88c0d0",
-        "color_error": "#bf616a",
-        "color_success": "#a3be8c",
-        "color_muted": "#616e7c",
-        "color_highlight": "#b48ead",
-        "color_attention": "#ebcb8b",
-        "color_warning": "#d08770",
-        "color_info": "#81a1c1",
-        "font_family_main": "Arial",
-        "font_family_code": "Consolas",
-        "font_size_header": 16,
-        "font_size_normal": 12,
-        "font_size_small": 10,
-    },
-    "Github Dark": {
-        "color_background": "#181818",
-        "color_background_accent": "#0d0d0d",
-        "color_background_muted": "#3e3e3e",
-        "color_background_highlight": "#484848",
-        "color_contrast": "#ffffff",
-        "color_contrast2": "#000000",
-        "color_foreground": "#b9bbbe",
-        "color_accent": "#58a6ff",
-        "color_error": "#e06c75",
-        "color_success": "#98c379",
-        "color_muted": "#6a737d",
-        "color_highlight": "#8b5cf6",
-        "color_attention": "#e2c08d",
-        "color_warning": "#d19a66",
-        "color_info": "#56b6c2",
-        "font_family_main": "Arial",
-        "font_family_code": "Consolas",
-        "font_size_header": 16,
-        "font_size_normal": 12,
-        "font_size_small": 10,
-    },
-    "Dracula": {
-        "color_background": "#282a36",
-        "color_background_accent": "#21222c",
-        "color_background_muted": "#44475a",
-        "color_background_highlight": "#6272a4",
-        "color_contrast": "#ffffff",
-        "color_contrast2": "#000000",
-        "color_foreground": "#f8f8f2",
-        "color_accent": "#8be9fd",
-        "color_error": "#ff5555",
-        "color_success": "#50fa7b",
-        "color_muted": "#6272a4",
-        "color_highlight": "#ff79c6",
-        "color_attention": "#f1fa8c",
-        "color_warning": "#ffb86c",
-        "color_info": "#8be9fd",
-        "font_family_main": "Arial",
-        "font_family_code": "Consolas",
-        "font_size_header": 16,
-        "font_size_normal": 12,
-        "font_size_small": 10,
-    },
-    "Solarized Dark": {
-        "color_background": "#062B36",
-        "color_background_accent": "#0A3642",
-        "color_background_muted": "#586E74",
-        "color_background_highlight": "#657B83",
-        "color_contrast": "#FDF6E3",
-        "color_contrast2": "#000000",
-        "color_foreground": "#93A1A1",
-        "color_accent": "#268bd2",
-        "color_error": "#dc322f",
-        "color_success": "#859900",
-        "color_muted": "#93a1a1",
-        "color_highlight": "#d33682",
-        "color_attention": "#b58900",
-        "color_warning": "#cb4b16",
-        "color_info": "#2aa198",
-        "font_family_main": "Arial",
-        "font_family_code": "Consolas",
-        "font_size_header": 16,
-        "font_size_normal": 12,
-        "font_size_small": 10,
-    },
-    "Palenight": {
-        "color_background": "#292d3e",
-        "color_background_accent": "#1c1e2e",
-        "color_background_muted": "#4d4f5c",
-        "color_background_highlight": "#5f5f78",
-        "color_contrast": "#ffffff",
-        "color_contrast2": "#000000",
-        "color_foreground": "#c8ccd4",
-        "color_accent": "#82aaff",
-        "color_error": "#ff6c6b",
-        "color_success": "#98e44e",
-        "color_muted": "#777d95",
-        "color_highlight": "#c792ea",
-        "color_attention": "#fddc4f",
-        "color_warning": "#ffcc00",
-        "color_info": "#7fdaf2",
-        "font_family_main": "Arial",
-        "font_family_code": "Consolas",
-        "font_size_header": 16,
-        "font_size_normal": 12,
-        "font_size_small": 10,
-    },
-    "Monokai": {
-        "color_background": "#272822",
-        "color_background_accent": "#1e1e1e",
-        "color_background_muted": "#3e3d32",
-        "color_background_highlight": "#49483e",
-        "color_contrast": "#ffffff",
-        "color_contrast2": "#000000",
-        "color_foreground": "#f8f8f2",
-        "color_accent": "#66d9ef",
-        "color_error": "#f92672",
-        "color_success": "#a6e22e",
-        "color_muted": "#75715e",
-        "color_highlight": "#f4bf75",
-        "color_attention": "#fd971f",
-        "color_warning": "#ae81ff",
-        "color_info": "#66d9ef",
-        "font_family_main": "Arial",
-        "font_family_code": "Consolas",
-        "font_size_header": 16,
-        "font_size_normal": 12,
-        "font_size_small": 10,
-    },
-    "Forest Mist": {
-        "color_background": "#1f2d27",
-        "color_background_accent": "#2c3b35",
-        "color_background_muted": "#354a42",
-        "color_background_highlight": "#4c635a",
-        "color_contrast": "#f5f5f5",
-        "color_contrast2": "#000000",
-        "color_foreground": "#b5c5b8",
-        "color_accent": "#88b885",
-        "color_error": "#9b6f6f",
-        "color_success": "#6fae68",
-        "color_muted": "#78897a",
-        "color_highlight": "#a6c4a2",
-        "color_attention": "#d3e5c6",
-        "color_warning": "#e6d8b8",
-        "color_info": "#a8c5c8",
-        "font_family_main": "Arial",
-        "font_family_code": "Consolas",
-        "font_size_header": 16,
-        "font_size_normal": 12,
-        "font_size_small": 10,
-    },
-    "Desert Sunset": {
-        "color_background": "#362222",
-        "color_background_accent": "#4e3434",
-        "color_background_muted": "#6a4c4c",
-        "color_background_highlight": "#a15c3e",
-        "color_contrast": "#ffffff",
-        "color_contrast2": "#000000",
-        "color_foreground": "#d9b59c",
-        "color_accent": "#e3b448",
-        "color_error": "#c94c4c",
-        "color_success": "#a4b494",
-        "color_muted": "#9a8c7e",
-        "color_highlight": "#f18d35",
-        "color_attention": "#ffae42",
-        "color_warning": "#e67c26",
-        "color_info": "#b58d74",
-        "font_family_main": "Arial",
-        "font_family_code": "Consolas",
-        "font_size_header": 16,
-        "font_size_normal": 12,
-        "font_size_small": 10,
-    },
-    "Greyscale": {
-        "color_background": "#1e1e1e",
-        "color_background_accent": "#222222",
-        "color_background_muted": "#4e4e4e",
-        "color_background_highlight": "#676767",
-        "color_contrast": "#ffffff",
-        "color_contrast2": "#000000",
-        "color_foreground": "#cccccc",
-        "color_accent": "#888888",
-        "color_error": "#a98b8b",
-        "color_success": "#96aa96",
-        "color_muted": "#999999",
-        "color_highlight": "#aaaaaa",
-        "color_attention": "#d1c69e",
-        "color_warning": "#c1ada3",
-        "color_info": "#a4b8c2",
-        "font_family_main": "Arial",
-        "font_family_code": "Consolas",
-        "font_size_header": 16,
-        "font_size_normal": 12,
-        "font_size_small": 10,
-    },
-    "Mint": {
-        "color_background": "#f4f4f9",
-        "color_background_accent": "#e2e6ef",
-        "color_background_muted": "#d0d5e0",
-        "color_background_highlight": "#c0c7d3",
-        "color_contrast": "#2e4e47",
-        "color_contrast2": "#ffffff",
-        "color_foreground": "#495057",
-        "color_accent": "#7db7ac",
-        "color_error": "#e03e36",
-        "color_success": "#28a745",
-        "color_muted": "#868e96",
-        "color_highlight": "#46a69a",
-        "color_attention": "#ffc107",
-        "color_warning": "#fd7e14",
-        "color_info": "#17a2b8",
-        "font_family_main": "Arial",
-        "font_family_code": "Consolas",
-        "font_size_header": 16,
-        "font_size_normal": 12,
-        "font_size_small": 10,
-    },
-    "Pastel Dream": {
-        "color_background": "#f3f4f6",
-        "color_background_accent": "#e9ecef",
-        "color_background_muted": "#dae0e5",
-        "color_background_highlight": "#ced4da",
-        "color_contrast": "#343a40",
-        "color_contrast2": "#ffffff",
-        "color_foreground": "#495057",
-        "color_accent": "#a29bfe",
-        "color_error": "#ff6b6b",
-        "color_success": "#1dd1a1",
-        "color_muted": "#adb5bd",
-        "color_highlight": "#fd79a8",
-        "color_attention": "#feca57",
-        "color_warning": "#ff6348",
-        "color_info": "#00b894",
-        "font_family_main": "Arial",
-        "font_family_code": "Consolas",
-        "font_size_header": 16,
-        "font_size_normal": 12,
-        "font_size_small": 10,
-    },
-    "Soft Peach": {
-        "color_background": "#fff4f1",
-        "color_background_accent": "#f9e0d6",
-        "color_background_muted": "#f0d4b6",
-        "color_background_highlight": "#f1c4a5",
-        "color_contrast": "#5f3d39",
-        "color_contrast2": "#000000",
-        "color_foreground": "#9e8e7a",
-        "color_accent": "#f8a39d",
-        "color_error": "#e85a60",
-        "color_success": "#b9d88d",
-        "color_muted": "#d0a89d",
-        "color_highlight": "#ff8f77",
-        "color_attention": "#f3c24a",
-        "color_warning": "#f9a14e",
-        "color_info": "#eb9a9a",
-        "font_family_main": "Arial",
-        "font_family_code": "Consolas",
-        "font_size_header": 16,
-        "font_size_normal": 12,
-        "font_size_small": 10,
-    },
-}
+import colorsys
+from logging import log
+import customtkinter as ctk
 
 
-def get_theme_dict(theme_name):
-    return THEMES.get(theme_name, THEMES["Stalker"])
+class ThemeManager:
+    # First color in a list is for light mode, second one is for dark mode
+    color_palettes = {
+        "Nord": {
+            "color_text_primary": ["#3b4252", "#e5e9f0"],
+            "color_text_secondary": ["#434c5e", "#d8dee9"],
+            "color_text_accent": ["#2e3440", "#eceff4"],
+            "color_text_muted": ["#b2bdd3", "#616e7c"],
+            "color_background_primary": ["#eceff4", "#2e3440"],
+            "color_background_secondary": ["#e5e9f0", "#3b4252"],
+            "color_background_tertiary": ["#d8dee9", "#434c5e"],
+            "color_accent_primary": "#88c0d0",
+            "color_accent_secondary": "#8fbcbb",
+            "color_accent_tertiary": ["#81a1c1", "#5e81ac"],
+            "color_error": "#bf616a",
+            "color_warning": "#d08770",
+            "color_attention": "#ebcb8b",
+            "color_success": "#a3be8c",
+            "color_highlight": "#b48ead",
+        },
+        "STALKER": {
+            "color_text_primary": ["#c8c8c8", "#d1d1d1"],
+            "color_text_secondary": ["#a0a0a0", "#b3b3b3"],
+            "color_text_accent": ["#8b8b8b", "#8f8f8f"],
+            "color_text_muted": ["#6a6a6a", "#4e4e4e"],
+            "color_background_primary": ["#1c1c1c", "#0a0a0a"],
+            "color_background_secondary": ["#282828", "#1f1f1f"],
+            "color_background_tertiary": ["#3d3d3d", "#2c2c2c"],
+            "color_accent_primary": "#4e6b34",  # Muted olive green
+            "color_accent_secondary": "#7b9a2d",  # Vibrant green
+            "color_accent_tertiary": ["#9e9e9e", "#666666"],  # Dusty grey
+            "color_error": "#a33737",  # Rusty red
+            "color_warning": "#ff7b00",  # Yellowish warning
+            "color_attention": "#e2b34b",  # Bright orange
+            "color_success": "#4caf50",  # Muted green success
+            "color_highlight": "#daaa00",  # Faded yellow
+        },
+    }
+
+    borders_definitions = {
+        "CTkFrame": {
+            "corner_radius": 6,
+            "border_width": 0,
+        },
+        "CTkButton": {
+            "corner_radius": 6,
+            "border_width": 0,
+        },
+        "CTkLabel": {
+            "corner_radius": 0,
+        },
+        "CTkEntry": {
+            "corner_radius": 6,
+            "border_width": 2,
+        },
+        "CTkCheckBox": {
+            "corner_radius": 6,
+            "border_width": 3,
+        },
+        "CTkSwitch": {
+            "corner_radius": 1000,
+            "border_width": 3,
+            "button_length": 0,
+        },
+        "CTkRadioButton": {
+            "corner_radius": 1000,
+            "border_width_checked": 6,
+            "border_width_unchecked": 3,
+        },
+        "CTkProgressBar": {
+            "corner_radius": 1000,
+            "border_width": 0,
+        },
+        "CTkSlider": {
+            "corner_radius": 1000,
+            "button_corner_radius": 1000,
+            "border_width": 6,
+            "button_length": 0,
+        },
+        "CTkOptionMenu": {
+            "corner_radius": 6,
+        },
+        "CTkComboBox": {
+            "corner_radius": 6,
+            "border_width": 2,
+        },
+        "CTkScrollbar": {
+            "corner_radius": 1000,
+            "border_spacing": 4,
+        },
+        "CTkSegmentedButton": {
+            "corner_radius": 6,
+            "border_width": 2,
+        },
+        "CTkTextbox": {
+            "corner_radius": 6,
+            "border_width": 0,
+        },
+    }
+
+    font_definitions = {
+        "CTkFont": {
+            "macOS": {"family": "SF Display", "size": 14, "weight": "normal"},
+            "Windows": {"family": "Arial", "size": 14, "weight": "normal"},
+            "Linux": {"family": "Roboto", "size": 14, "weight": "normal"},
+        },
+        "Header.CustomFont": {
+            "macOS": {"family": "SF Display", "size": 20, "weight": "bold"},
+            "Windows": {"family": "Arial", "size": 20, "weight": "bold"},
+            "Linux": {"family": "Roboto", "size": 20, "weight": "bold"},
+        },
+        "SubHeader.CustomFont": {
+            "macOS": {"family": "SF Display", "size": 15, "weight": "bold"},
+            "Windows": {"family": "Arial", "size": 15, "weight": "bold"},
+            "Linux": {"family": "Roboto", "size": 15, "weight": "bold"},
+        },
+        "Hints.CustomFont": {
+            "macOS": {"family": "SF Display", "size": 13, "weight": "normal"},
+            "Windows": {"family": "Arial", "size": 13, "weight": "normal"},
+            "Linux": {"family": "Roboto", "size": 13, "weight": "normal"},
+        },
+        "Dnd.CustomFont": {
+            "macOS": {"family": "SF Display", "size": 18, "weight": "normal"},
+            "Windows": {"family": "Consolas", "size": 18, "weight": "normal"},
+            "Linux": {"family": "Roboto", "size": 18, "weight": "normal"},
+        },
+        "Generic.Button.CustomFont": {
+            "macOS": {"family": "SF Display", "size": 15, "weight": "normal"},
+            "Windows": {"family": "Arial", "size": 15, "weight": "normal"},
+            "Linux": {"family": "Roboto", "size": 15, "weight": "normal"},
+        },
+        "Action.Button.CustomFont": {
+            "macOS": {"family": "SF Display", "size": 16, "weight": "normal"},
+            "Windows": {"family": "Arial", "size": 16, "weight": "normal"},
+            "Linux": {"family": "Roboto", "size": 16, "weight": "normal"},
+        },
+        "List.CustomFont": {
+            "macOS": {"family": "SF Display", "size": 14, "weight": "normal"},
+            "Windows": {"family": "Consolas", "size": 14, "weight": "normal"},
+            "Linux": {"family": "Roboto", "size": 14, "weight": "normal"},
+        },
+        "Entry.CustomFont": {
+            "macOS": {"family": "SF Display", "size": 14, "weight": "normal"},
+            "Windows": {"family": "Consolas", "size": 14, "weight": "normal"},
+            "Linux": {"family": "Roboto", "size": 14, "weight": "normal"},
+        },
+    }
+
+    dimensions_definitions = {
+        "Large.CTkButton": {
+            "width": 300,
+            "height": 50,
+        },
+    }
+
+    @classmethod
+    def get_available_theme_names(cls):
+        return list(cls.color_palettes.keys())
+
+    @classmethod
+    def construct_color_theme(cls, color_palette):
+        ctk_color_theme = {
+            "CTk": {
+                "fg_color": cls.get_colors("color_background_primary", color_palette)
+            },
+            "CTkToplevel": {
+                "fg_color": cls.get_colors("color_background_primary", color_palette)
+            },
+            "CTkButton": {
+                "fg_color": cls.get_colors("color_accent_tertiary", color_palette),
+                "hover_color": cls.get_colors(
+                    "color_accent_tertiary", color_palette, True
+                ),
+                "border_color": cls.get_colors(
+                    "color_accent_tertiary", color_palette, True
+                ),
+                "text_color": cls.get_colors("color_text_primary", color_palette),
+                "text_color_disabled": cls.get_colors(
+                    "color_text_secondary", color_palette
+                ),
+            },
+            "CTkCheckBox": {
+                "fg_color": cls.get_colors("color_accent_tertiary", color_palette),
+                "border_color": cls.get_colors(
+                    "color_background_tertiary", color_palette
+                ),
+                "hover_color": cls.get_colors(
+                    "color_background_tertiary", color_palette
+                ),
+                "checkmark_color": cls.get_colors("color_text_accent", color_palette),
+                "text_color": cls.get_colors("color_text_primary", color_palette),
+                "text_color_disabled": cls.get_colors(
+                    "color_text_secondary", color_palette
+                ),
+            },
+            "CTkComboBox": {
+                "fg_color": cls.get_colors("color_background_secondary", color_palette),
+                "border_color": cls.get_colors(
+                    "color_background_secondary", color_palette
+                ),
+                "button_color": cls.get_colors(
+                    "color_background_tertiary", color_palette
+                ),
+                "button_hover_color": cls.get_colors(
+                    "color_accent_tertiary", color_palette
+                ),
+                "text_color": cls.get_colors("color_text_primary", color_palette),
+                "text_color_disabled": cls.get_colors(
+                    "color_text_secondary", color_palette
+                ),
+            },
+            "CTkEntry": {
+                "fg_color": cls.get_colors("color_background_secondary", color_palette),
+                "border_color": cls.get_colors(
+                    "color_background_secondary", color_palette
+                ),
+                "text_color": cls.get_colors("color_text_primary", color_palette),
+                "placeholder_text_color": cls.get_colors(
+                    "color_text_muted", color_palette
+                ),
+            },
+            "CTkFrame": {
+                "fg_color": cls.get_colors("color_background_secondary", color_palette),
+                "top_fg_color": cls.get_colors(
+                    "color_background_tertiary", color_palette
+                ),
+                "border_color": cls.get_colors(
+                    "color_background_tertiary", color_palette
+                ),
+            },
+            "CTkLabel": {
+                "fg_color": "transparent",
+                "text_color": cls.get_colors("color_text_primary", color_palette),
+            },
+            "CTkOptionMenu": {
+                "fg_color": cls.get_colors("color_background_secondary", color_palette),
+                "button_color": cls.get_colors(
+                    "color_background_tertiary", color_palette
+                ),
+                "button_hover_color": cls.get_colors(
+                    "color_accent_tertiary", color_palette
+                ),
+                "text_color": cls.get_colors("color_text_primary", color_palette),
+                "text_color_disabled": cls.get_colors(
+                    "color_text_secondary", color_palette
+                ),
+            },
+            "CTkProgressBar": {
+                "fg_color": cls.get_colors("color_background_secondary", color_palette),
+                "progress_color": cls.get_colors(
+                    "color_accent_tertiary", color_palette
+                ),
+                "border_color": cls.get_colors(
+                    "color_background_tertiary", color_palette
+                ),
+            },
+            "CTkRadioButton": {
+                "fg_color": cls.get_colors("color_accent_tertiary", color_palette),
+                "border_color": cls.get_colors(
+                    "color_background_tertiary", color_palette
+                ),
+                "hover_color": cls.get_colors("color_accent_tertiary", color_palette),
+                "text_color": cls.get_colors("color_text_primary", color_palette),
+                "text_color_disabled": cls.get_colors(
+                    "color_text_secondary", color_palette
+                ),
+            },
+            "CTkScrollableFrame": {
+                "label_fg_color": cls.get_colors(
+                    "color_background_secondary", color_palette
+                )
+            },
+            "CTkScrollbar": {
+                "fg_color": "transparent",
+                "button_color": cls.get_colors("color_accent_tertiary", color_palette),
+                "button_hover_color": cls.get_colors(
+                    "color_accent_tertiary", color_palette, True
+                ),
+            },
+            "CTkSegmentedButton": {
+                "fg_color": cls.get_colors("color_background_secondary", color_palette),
+                "selected_color": cls.get_colors(
+                    "color_accent_tertiary", color_palette
+                ),
+                "selected_hover_color": cls.get_colors(
+                    "color_accent_tertiary", color_palette, True
+                ),
+                "unselected_color": cls.get_colors(
+                    "color_background_secondary", color_palette
+                ),
+                "unselected_hover_color": cls.get_colors(
+                    "color_background_tertiary", color_palette
+                ),
+                "text_color": cls.get_colors("color_text_primary", color_palette),
+                "text_color_disabled": cls.get_colors(
+                    "color_text_secondary", color_palette
+                ),
+            },
+            "CTkSlider": {
+                "fg_color": cls.get_colors("color_background_tertiary", color_palette),
+                "progress_color": cls.get_colors(
+                    "color_accent_tertiary", color_palette
+                ),
+                "button_color": cls.get_colors("color_accent_tertiary", color_palette),
+                "button_hover_color": cls.get_colors(
+                    "color_accent_tertiary", color_palette, True
+                ),
+            },
+            "CTkSwitch": {
+                "fg_color": cls.get_colors("color_background_secondary", color_palette),
+                "progress_color": cls.get_colors(
+                    "color_background_tertiary", color_palette
+                ),
+                "button_color": cls.get_colors("color_accent_tertiary", color_palette),
+                "button_hover_color": cls.get_colors(
+                    "color_accent_tertiary", color_palette, True
+                ),
+                "text_color": cls.get_colors("color_text_primary", color_palette),
+                "text_color_disabled": cls.get_colors(
+                    "color_text_secondary", color_palette
+                ),
+            },
+            "CTkTextbox": {
+                "fg_color": cls.get_colors("color_background_secondary", color_palette),
+                "border_color": cls.get_colors(
+                    "color_background_tertiary", color_palette
+                ),
+                "text_color": cls.get_colors("color_text_primary", color_palette),
+                "scrollbar_button_color": cls.get_colors(
+                    "color_accent_tertiary", color_palette
+                ),
+                "scrollbar_button_hover_color": cls.get_colors(
+                    "color_accent_tertiary", color_palette
+                ),
+            },
+            "DropdownMenu": {
+                "fg_color": cls.get_colors("color_background_secondary", color_palette),
+                "hover_color": cls.get_colors("color_accent_tertiary", color_palette),
+                "text_color": cls.get_colors("color_text_primary", color_palette),
+            },
+        }
+        return ctk_color_theme
+
+    @classmethod
+    def _hex_to_rgb(cls, hex_color):
+        hex_color = hex_color.lstrip("#")
+        r, g, b = (
+            int(hex_color[0:2], 16),
+            int(hex_color[2:4], 16),
+            int(hex_color[4:6], 16),
+        )
+        return r, g, b
+
+    @classmethod
+    def _rgb_to_hex(cls, r, g, b):
+        return f"#{r:02x}{g:02x}{b:02x}"
+
+    @classmethod
+    def _adjust_color_for_mode(cls, hex_color, mode="dark", saturation_factor=1.1):
+        # Convert HEX to RGB
+        r, g, b = cls._hex_to_rgb(hex_color)
+
+        # Normalize RGB values to [0, 1] range
+        r, g, b = r / 255.0, g / 255.0, b / 255.0
+
+        # Convert RGB to HSL
+        h, l, s = colorsys.rgb_to_hls(r, g, b)
+
+        l = max(0, 1 - l)  # Invert lightness
+
+        # Adjust saturation based on mode
+        if mode == "dark":
+            s = min(1, s * saturation_factor)  # Increase saturation
+        elif mode == "light":
+            s = max(0, s / saturation_factor)  # Decrease saturation
+
+        # Convert HSL back to RGB
+        r, g, b = colorsys.hls_to_rgb(h, l, s)
+
+        # Convert back to 0-255 range
+        r, g, b = int(r * 255), int(g * 255), int(b * 255)
+
+        # Return the resulting color as a HEX string
+        return cls._rgb_to_hex(r, g, b)
+
+    @classmethod
+    def get_colors(cls, color, color_palette, reverse=False):
+        color_dict = cls.color_palettes[color_palette]
+        if isinstance(color_dict[color], list):
+            color_list = color_dict[color]
+        elif isinstance(color_dict[color], str):
+            color_list = [color_dict[color], color_dict[color]]
+        else:
+            raise Exception
+        if reverse:
+            color_list = color_list[::-1]
+        return color_list
+
+    @classmethod
+    def merge_dicts(cls, base, *updates):
+        for update in updates:
+            for key, value in update.items():
+                if (
+                    isinstance(value, dict)
+                    and key in base
+                    and isinstance(base[key], dict)
+                ):
+                    cls.merge_dicts(base[key], value)
+                else:
+                    base[key] = value
+        return base
 
 
-def get_available_theme_names():
-    return list(THEMES.keys())
+# !WORKAROUND for lacking styling option as in Ttk
+class StyleManager:
+    _styles = {}  # Dictionary to store custom styles
+
+    @classmethod
+    def define_style(cls, style_name, **options):
+        cls._styles[style_name] = options
+
+    @classmethod
+    def apply_style(cls, widget, style_name):
+        if style_name in cls._styles:
+            style = cls._styles[style_name]
+            for key, value in style.items():
+                if hasattr(
+                    widget, "configure"
+                ):  # Check if widget has method to configure
+                    widget.configure(**{key: value})
+                else:
+                    # If it's a direct attribute, set it directly
+                    if hasattr(widget, f"_{key}"):
+                        setattr(widget, f"_{key}", value)
+        else:
+            log.error(f"Style '{style_name}' not defined!")
+
+    @classmethod
+    def define_custom_styles(cls, color_palette):
+
+        cls.define_style(
+            "Header.CTkLabel",
+            fg_color=ThemeManager.get_colors(
+                "color_background_tertiary", color_palette
+            ),
+            text_color=ThemeManager.get_colors("color_text_primary", color_palette),
+            font=ctk.CTkFont(
+                family=ctk.ThemeManager.theme["Header.CustomFont"]["family"],
+                size=ctk.ThemeManager.theme["Header.CustomFont"]["size"],
+                weight=ctk.ThemeManager.theme["Header.CustomFont"]["weight"],
+            ),
+        )
+
+        cls.define_style(
+            "SubHeader.CTkLabel",
+            fg_color=ThemeManager.get_colors(
+                "color_background_secondary", color_palette
+            ),
+            text_color=ThemeManager.get_colors("color_text_primary", color_palette),
+            font=ctk.CTkFont(
+                family=ctk.ThemeManager.theme["SubHeader.CustomFont"]["family"],
+                size=ctk.ThemeManager.theme["SubHeader.CustomFont"]["size"],
+                weight=ctk.ThemeManager.theme["SubHeader.CustomFont"]["weight"],
+            ),
+        )
+
+        cls.define_style(
+            "Hints.CTkLabel",
+            fg_color="transparent",
+            text_color=ThemeManager.get_colors("color_text_muted", color_palette),
+            font=ctk.CTkFont(
+                family=ctk.ThemeManager.theme["Hints.CustomFont"]["family"],
+                size=ctk.ThemeManager.theme["Hints.CustomFont"]["size"],
+                weight=ctk.ThemeManager.theme["Hints.CustomFont"]["weight"],
+            ),
+        )
+
+        cls.define_style(
+            "Dnd.CTkLabel",
+            fg_color="transparent",
+            text_color=ThemeManager.get_colors(
+                "color_background_tertiary", color_palette
+            ),
+            # text_color=ThemeManager.get_colors("color_text_muted", color_palette),
+            font=ctk.CTkFont(
+                family=ctk.ThemeManager.theme["Dnd.CustomFont"]["family"],
+                size=ctk.ThemeManager.theme["Dnd.CustomFont"]["size"],
+                weight=ctk.ThemeManager.theme["Dnd.CustomFont"]["weight"],
+            ),
+        )
+
+        cls.define_style(
+            "Transparent.CTkFrame",
+            fg_color="transparent",
+            # border_color="red",
+            # border_width=1,
+        )
+
+        cls.define_style(
+            "Primary.CTkFrame",
+            fg_color=ThemeManager.get_colors("color_background_primary", color_palette),
+            # border_color="red",
+            # border_width=1,
+        )
+
+        cls.define_style(
+            "Secondary.CTkFrame",
+            fg_color=ThemeManager.get_colors(
+                "color_background_secondary", color_palette
+            ),
+            # border_color="red",
+            # border_width=1,
+        )
+
+        cls.define_style(
+            "Tertiary.CTkFrame",
+            fg_color=ThemeManager.get_colors(
+                "color_background_tertiary", color_palette
+            ),
+            # border_color="red",
+            # border_width=1,
+        )
+
+        cls.define_style(
+            "Generic.CTkButton",
+            font=ctk.CTkFont(
+                family=ctk.ThemeManager.theme["Generic.Button.CustomFont"]["family"],
+                size=ctk.ThemeManager.theme["Generic.Button.CustomFont"]["size"],
+                weight=ctk.ThemeManager.theme["Generic.Button.CustomFont"]["weight"],
+            ),
+        )
+
+        cls.define_style(
+            "Action.CTkButton",
+            fg_color=ThemeManager.get_colors("color_accent_primary", color_palette),
+            hover_color=ThemeManager.get_colors(
+                "color_accent_secondary", color_palette
+            ),
+            border_color=ThemeManager.get_colors(
+                "color_accent_secondary", color_palette
+            ),
+            font=ctk.CTkFont(
+                family=ctk.ThemeManager.theme["Action.Button.CustomFont"]["family"],
+                size=ctk.ThemeManager.theme["Action.Button.CustomFont"]["size"],
+                weight=ctk.ThemeManager.theme["Action.Button.CustomFont"]["weight"],
+            ),
+        )
+
+        cls.define_style(
+            "Muted.CTkButton",
+            fg_color=ThemeManager.get_colors(
+                "color_background_secondary", color_palette
+            ),
+            hover_color=ThemeManager.get_colors(
+                "color_background_tertiary", color_palette
+            ),
+            border_color=ThemeManager.get_colors(
+                "color_background_tertiary", color_palette
+            ),
+            font=ctk.CTkFont(
+                family=ctk.ThemeManager.theme["Generic.Button.CustomFont"]["family"],
+                size=ctk.ThemeManager.theme["Generic.Button.CustomFont"]["size"],
+                weight=ctk.ThemeManager.theme["Generic.Button.CustomFont"]["weight"],
+            ),
+        )
+
+        cls.define_style(
+            "Alt.CTkEntry",
+            fg_color=ThemeManager.get_colors(
+                "color_background_secondary", color_palette
+            ),
+            border_color=ThemeManager.get_colors(
+                "color_background_secondary", color_palette
+            ),
+            text_color=ThemeManager.get_colors("color_text_primary", color_palette),
+            placeholder_text_color=ThemeManager.get_colors(
+                "color_text_muted", color_palette
+            ),
+            font=ctk.CTkFont(
+                family=ctk.ThemeManager.theme["Entry.CustomFont"]["family"],
+                size=ctk.ThemeManager.theme["Entry.CustomFont"]["size"],
+                weight=ctk.ThemeManager.theme["Entry.CustomFont"]["weight"],
+            ),
+        )
+
+        cls.define_style(
+            "AltError.CTkEntry",
+            fg_color=ThemeManager.get_colors(
+                "color_background_secondary", color_palette
+            ),
+            border_color=ThemeManager.get_colors("color_error", color_palette),
+            text_color=ThemeManager.get_colors("color_text_primary", color_palette),
+            placeholder_text_color=ThemeManager.get_colors(
+                "color_text_muted", color_palette
+            ),
+            font=ctk.CTkFont(
+                family=ctk.ThemeManager.theme["Entry.CustomFont"]["family"],
+                size=ctk.ThemeManager.theme["Entry.CustomFont"]["size"],
+                weight=ctk.ThemeManager.theme["Entry.CustomFont"]["weight"],
+            ),
+        )
+
+        cls.define_style(
+            "Custom.CTkListbox",
+            fg_color="transparent",
+            border_color=ThemeManager.get_colors(
+                "color_background_tertiary", color_palette
+            ),
+            text_color=ThemeManager.get_colors("color_text_primary", color_palette),
+            button_color="transparent",
+            hover_color=ThemeManager.get_colors(
+                "color_accent_tertiary", color_palette, True
+            ),
+            highlight_color=ThemeManager.get_colors(
+                "color_accent_tertiary", color_palette
+            ),
+            font=ctk.CTkFont(
+                family=ctk.ThemeManager.theme["List.CustomFont"]["family"],
+                size=ctk.ThemeManager.theme["List.CustomFont"]["size"],
+                weight=ctk.ThemeManager.theme["List.CustomFont"]["weight"],
+            ),
+        )

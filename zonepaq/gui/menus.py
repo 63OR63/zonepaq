@@ -13,7 +13,7 @@ from config.metadata import (
     LEGAL_NOTICE,
 )
 from config.settings import settings, translate
-from gui.GUI_SettingsMenu import GUI_SettingsMenu
+from gui.gui_settings_menu import GUI_SettingsMenu
 
 
 class MenuRibbon:
