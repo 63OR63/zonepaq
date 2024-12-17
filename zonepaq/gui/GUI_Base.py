@@ -66,6 +66,17 @@ class GUI_Base(CTk):
         )
 
         CtkStyleManager.define_style(
+            "SubHeader.CTkLabel",
+            fg_color=get_colors("color_background_primary"),
+            text_color=get_colors("color_text_primary"),
+            font=ctk.CTkFont(
+                family=ctk.ThemeManager.theme["SubHeader.CustomFont"]["family"],
+                size=ctk.ThemeManager.theme["SubHeader.CustomFont"]["size"],
+                weight=ctk.ThemeManager.theme["SubHeader.CustomFont"]["weight"],
+            ),
+        )
+
+        CtkStyleManager.define_style(
             "Hints.CTkLabel",
             fg_color="transparent",
             text_color=get_colors("color_text_muted"),
@@ -91,8 +102,29 @@ class GUI_Base(CTk):
         CtkStyleManager.define_style(
             "Transparent.CTkFrame",
             fg_color="transparent",
-            border_color="red",
-            border_width=1,
+            # border_color="red",
+            # border_width=1,
+        )
+
+        CtkStyleManager.define_style(
+            "Primary.CTkFrame",
+            fg_color=get_colors("color_background_primary"),
+            # border_color="red",
+            # border_width=1,
+        )
+
+        CtkStyleManager.define_style(
+            "Secondary.CTkFrame",
+            fg_color=get_colors("color_background_secondary"),
+            # border_color="red",
+            # border_width=1,
+        )
+
+        CtkStyleManager.define_style(
+            "Tertiary.CTkFrame",
+            fg_color=get_colors("color_background_tertiary"),
+            # border_color="red",
+            # border_width=1,
         )
 
         CtkStyleManager.define_style(
@@ -113,6 +145,31 @@ class GUI_Base(CTk):
                 family=ctk.ThemeManager.theme["Action.Button.CustomFont"]["family"],
                 size=ctk.ThemeManager.theme["Action.Button.CustomFont"]["size"],
                 weight=ctk.ThemeManager.theme["Action.Button.CustomFont"]["weight"],
+            ),
+        )
+
+        CtkStyleManager.define_style(
+            "Muted.CTkButton",
+            fg_color=get_colors("color_background_secondary"),
+            hover_color=get_colors("color_background_tertiary"),
+            border_color=get_colors("color_background_tertiary"),
+            font=ctk.CTkFont(
+                family=ctk.ThemeManager.theme["Action.Button.CustomFont"]["family"],
+                size=ctk.ThemeManager.theme["Action.Button.CustomFont"]["size"],
+                weight=ctk.ThemeManager.theme["Action.Button.CustomFont"]["weight"],
+            ),
+        )
+
+        CtkStyleManager.define_style(
+            "Alt.CTkEntry",
+            fg_color=get_colors("color_background_primary"),
+            border_color=get_colors("color_background_primary"),
+            text_color=get_colors("color_text_primary"),
+            placeholder_text_color=get_colors("color_text_muted"),
+            font=ctk.CTkFont(
+                family=ctk.ThemeManager.theme["Entry.CustomFont"]["family"],
+                size=ctk.ThemeManager.theme["Entry.CustomFont"]["size"],
+                weight=ctk.ThemeManager.theme["Entry.CustomFont"]["weight"],
             ),
         )
 
@@ -152,8 +209,8 @@ class GUI_Base(CTk):
         # self.customization_manager.reset()
         self.window_manager.close_window(self)
 
-    @staticmethod
-    def _create_ctk_widget(
+    def create_ctk_widget(
+        self,
         ctk_widget,
         widget_args,
         widget_style=None,
@@ -173,22 +230,213 @@ class GUI_Base(CTk):
                 widget.grid_columnconfigure(column_index, weight=weight)
         return widget
 
-    def _create_header(self, text):
-        self._create_ctk_widget(
+    def create_header(self, master, text=""):
+        return self.create_ctk_widget(
             ctk_widget=ctk.CTkLabel,
             widget_args={
-                "master": self,
+                "master": master,
                 "text": text,
                 "anchor": "center",
                 "pady": self.padding,
             },
             widget_style="Header.CTkLabel",
-            grid_args={"row": 0, "column": 0, "columnspan": 999, "sticky": "nsew"},
+            grid_args={
+                "row": self._get_next_row(master),
+                "column": 0,
+                "columnspan": 999,
+                "sticky": "nsew",
+            },
             row_weights=None,
             column_weights=None,
         )
 
-    def _create_buttons(
+    def create_subheader(self, master, text="", row="+1", column="current"):
+        if row is "current":
+            row = self._get_current_row(master)
+        elif isinstance(row, str) and row.startswith(("+", "-")):
+            row = max(eval(f"{self._get_current_row(master)} {row}"), 0)
+
+        if column is "current":
+            column = self._get_current_column(master)
+        elif isinstance(row, str) and row.startswith(("+", "-")):
+            column = max(eval(f"{self._get_current_column(master)} {column}"), 0)
+
+        return self.create_ctk_widget(
+            ctk_widget=ctk.CTkLabel,
+            widget_args={
+                "master": master,
+                "text": text,
+                "anchor": "w",
+                "padx": self.padding,
+                "pady": self.padding / 2,
+            },
+            widget_style="SubHeader.CTkLabel",
+            grid_args={
+                "row": row,
+                "column": column,
+                "columnspan": 999,
+                "sticky": "nsew",
+            },
+            row_weights=None,
+            column_weights=None,
+        )
+
+    def create_frame(
+        self,
+        master,
+        style="Transparent.CTkFrame",
+        row="+1",
+        column="current",
+        rowspan=1,
+        columnspan=999,
+        sticky="nsew",
+        padx=0,
+        pady=0,
+        row_weights=None,
+        column_weights=None,
+        **kwargs,
+    ):
+        if row is "current":
+            row = self._get_current_row(master)
+        elif isinstance(row, str) and row.startswith(("+", "-")):
+            row = max(eval(f"{self._get_current_row(master)} {row}"), 0)
+
+        if column is "current":
+            column = self._get_current_column(master)
+        elif isinstance(row, str) and row.startswith(("+", "-")):
+            column = max(eval(f"{self._get_current_column(master)} {column}"), 0)
+
+        widget_args = {"master": master}
+
+        widget_args.update(kwargs)
+
+        return self.create_ctk_widget(
+            ctk_widget=ctk.CTkFrame,
+            widget_args=widget_args,
+            widget_style=style,
+            grid_args={
+                "row": row,
+                "column": column,
+                "rowspan": rowspan,
+                "columnspan": columnspan,
+                "sticky": sticky,
+                "padx": padx,
+                "pady": pady,
+            },
+            row_weights=row_weights,
+            column_weights=column_weights,
+        )
+
+    def create_hints(self, master, hints, row="next", column=0):
+        if eval(settings.SHOW_HINTS) and hints:
+            if row is "next":
+                row = self._get_next_row(master)
+            if column is "next":
+                column = self._get_next_column(master)
+            self.create_ctk_widget(
+                ctk_widget=ctk.CTkLabel,
+                widget_args={
+                    "master": master,
+                    "text": hints,
+                    "justify": "left",
+                },
+                widget_style="Hints.CTkLabel",
+                grid_args={
+                    "row": row,
+                    "column": column,
+                    "sticky": "nw",
+                    "padx": self.padding,
+                    "pady": (self.padding, 0),
+                },
+                row_weights=[(0, 0)],
+                column_weights=None,
+            )
+
+    def _get_current_row(self, root=None):
+        root = root or self
+        return len(root.grid_slaves()) - 1
+
+    def _get_current_column(self, root=None):
+        root = root or self
+        columns = set()
+        for widget in root.grid_slaves():
+            col = widget.grid_info().get("column")
+            if col is not None:
+                columns.add(int(col))
+        return max(columns, default=0)
+
+    def _get_next_row(self, root=None):
+        root = root or self
+        return len(root.grid_slaves())
+
+    def _get_next_column(self, root=None):
+        root = root or self
+        columns = set()
+        for widget in root.grid_slaves():
+            col = widget.grid_info().get("column")
+            if col is not None:
+                columns.add(int(col))
+        return max(columns, default=-1) + 1
+
+    def create_button(
+        self,
+        master,
+        text="",
+        width=None,
+        height=None,
+        command=None,
+        style="Generic.CTkButton",
+        row="next",
+        column="current",
+        rowspan=1,
+        columnspan=1,
+        sticky="",
+        padx=0,
+        pady=0,
+        row_weights=None,
+        column_weights=None,
+        **kwargs,
+    ):
+        if row is "current":
+            row = max(self._get_next_row(master) - 1, 0)
+        elif row is "next":
+            row = self._get_next_row(master)
+        if column is "current":
+            column = max(self._get_next_column(master) - 1, 0)
+        elif column is "next":
+            column = self._get_next_column(master)
+
+        widget_args = {
+            "master": master,
+            "text": text,
+            "command": command,
+        }
+
+        if width:
+            widget_args[width] = width
+        if height:
+            widget_args[height] = height
+
+        widget_args.update(kwargs)
+
+        self.create_ctk_widget(
+            ctk_widget=ctk.CTkButton,
+            widget_args=widget_args,
+            widget_style=style,
+            grid_args={
+                "row": row,
+                "column": column,
+                "rowspan": rowspan,
+                "columnspan": columnspan,
+                "sticky": sticky,
+                "padx": padx,
+                "pady": pady,
+            },
+            row_weights=row_weights,
+            column_weights=column_weights,
+        )
+
+    def create_buttons(
         self,
         buttons,
         parent,
@@ -196,7 +444,7 @@ class GUI_Base(CTk):
         row_weights=None,
         column_weights=None,
     ):
-        button_frame = self._create_ctk_widget(
+        button_frame = self.create_ctk_widget(
             ctk_widget=ctk.CTkFrame,
             widget_args={"master": parent},
             widget_style="Transparent.CTkFrame",
@@ -206,7 +454,7 @@ class GUI_Base(CTk):
         )
 
         for button_config in buttons["custom"]:
-            self._create_ctk_widget(
+            self.create_ctk_widget(
                 ctk_widget=ctk.CTkButton,
                 widget_args={
                     "master": button_frame,

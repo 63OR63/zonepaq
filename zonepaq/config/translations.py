@@ -124,7 +124,7 @@ TRANSLATIONS = {
         "menu_preferences_settings": "Настройки",
         "menu_preferences_settings_path_tools": "Пути к исполняемым файлам",
         "menu_preferences_settings_path_game": "Пути к игровым папкам",
-        "menu_preferences_settings_vanilla_unpacked": "Оригинальные файлы (распакованные)",
+        "menu_preferences_settings_vanilla_unpacked": "Оригинальные файлы",
         "menu_preferences_settings_browse": "Обзор",
         "menu_preferences_settings_save": "Сохранить",
         "menu_preferences_settings_aes_key": "Ключ AES",

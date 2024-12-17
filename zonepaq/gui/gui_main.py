@@ -30,7 +30,7 @@ class GUI_LaunchScreen(GUI_Base):
 
     # !RENAME method
     def _setup2(self):
-        self._create_header(text=translate("launch_screen_header"))
+        self.create_header(self, text=translate("launch_screen_header"))
 
         buttons = {
             "custom": [
@@ -54,7 +54,7 @@ class GUI_LaunchScreen(GUI_Base):
             "grid": {"padx": self.padding // 2, "pady": self.padding // 2},
         }
 
-        self._create_buttons(
+        self.create_buttons(
             buttons,
             self,
             frame_grid_args={
@@ -106,12 +106,20 @@ class GUI_Secondary(GUI_Base):
         action_command,
         hints=None,
     ):
-        self._create_header(title)
-        self._create_hints(hints)
+        self.create_header(self, title)
+        self.create_hints(self, hints)
 
-        section_frame = self._create_section_frame()
+        section_frame = self.create_frame(
+            self,
+            pady=self.padding,
+            column_weights=[(0, 1)],
+        )
 
-        listbox_frame = self._create_listbox_frame(section_frame)
+        listbox_frame = self.create_frame(
+            section_frame,
+            pady=(self.padding, 0),
+            column_weights=[(0, 1), (1, 0)],
+        )
         self._create_listbox(listbox_frame, listbox_name, listbox_mode)
         self._create_side_buttons(
             listbox_frame, add_command, remove_command, clear_command
@@ -119,90 +127,8 @@ class GUI_Secondary(GUI_Base):
 
         self._create_action_button(section_frame, action_name, action_command)
 
-    def _create_header(self, text):
-        self._create_ctk_widget(
-            ctk_widget=ctk.CTkLabel,
-            widget_args={
-                "master": self,
-                "text": text,
-                "anchor": "center",
-                "pady": self.padding,
-            },
-            widget_style="Header.CTkLabel",
-            grid_args={
-                "row": self._get_next_row(),
-                "column": 0,
-                "sticky": "nsew",
-                "padx": 0,
-                "pady": (0, 0),
-            },
-            row_weights=None,
-            column_weights=None,
-        )
-
-    def _create_hints(self, hints):
-        if eval(settings.SHOW_HINTS) and hints:
-            self._create_ctk_widget(
-                ctk_widget=ctk.CTkLabel,
-                widget_args={
-                    "master": self,
-                    "text": hints,
-                    "justify": "left",
-                },
-                widget_style="Hints.CTkLabel",
-                grid_args={
-                    "row": self._get_next_row(),
-                    "column": 0,
-                    "sticky": "nw",
-                    "padx": (self.padding, 0),
-                    "pady": (self.padding, 0),
-                },
-                row_weights=[(0, 0)],
-                column_weights=None,
-            )
-
-    def _create_section_frame(self):
-        row = self._get_next_row()
-        self.grid_rowconfigure(row, weight=1)
-
-        section_frame = self._create_ctk_widget(
-            ctk_widget=ctk.CTkFrame,
-            widget_args={"master": self},
-            widget_style="Transparent.CTkFrame",
-            grid_args={
-                "row": row,
-                "column": 0,
-                "sticky": "nsew",
-                "padx": self.padding,
-                "pady": 0,
-                # "pady": (0, self.padding // 2),
-            },
-            row_weights=[(0, 1)],
-            column_weights=[(0, 1)],
-        )
-
-        return section_frame
-
-    def _create_listbox_frame(self, root):
-        listbox_frame = self._create_ctk_widget(
-            ctk_widget=ctk.CTkFrame,
-            widget_args={
-                "master": root,
-            },
-            widget_style="Transparent.CTkFrame",
-            grid_args={
-                "row": self._get_next_row(root),
-                "column": 0,
-                "sticky": "nsew",
-                "pady": (self.padding, 0),
-            },
-            row_weights=[(0, 1)],
-            column_weights=[(0, 1), (1, 0)],
-        )
-        return listbox_frame
-
     def _create_listbox(self, root, listbox_name, listbox_mode):
-        listbox = self._create_ctk_widget(
+        listbox = self.create_ctk_widget(
             ctk_widget=CTkListbox,
             widget_args={
                 "master": root,
@@ -217,7 +143,7 @@ class GUI_Secondary(GUI_Base):
         )
         setattr(self, listbox_name, listbox)
 
-        dnd = self._create_ctk_widget(
+        dnd = self.create_ctk_widget(
             ctk_widget=ctk.CTkLabel,
             widget_args={
                 "master": root,
@@ -282,7 +208,7 @@ class GUI_Secondary(GUI_Base):
             ],
             "grid": {},
         }
-        self._create_buttons(
+        self.create_buttons(
             buttons,
             parent=root,
             frame_grid_args={
@@ -314,7 +240,7 @@ class GUI_Secondary(GUI_Base):
                 "pady": self.padding,
             },
         }
-        self._create_buttons(
+        self.create_buttons(
             buttons,
             parent=section_frame,
             frame_grid_args={
@@ -325,10 +251,6 @@ class GUI_Secondary(GUI_Base):
                 "pady": 0,
             },
         )
-
-    def _get_next_row(self, root=None):
-        root = root or self
-        return len(root.grid_slaves())
 
     def _add_dnd_files_to_listbox(self, event, listbox, mode, dnd):
         try:

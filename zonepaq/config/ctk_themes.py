@@ -400,6 +400,11 @@ font_definitions = {
         "Windows": {"family": "Arial", "size": 20, "weight": "bold"},
         "Linux": {"family": "Roboto", "size": 20, "weight": "bold"},
     },
+    "SubHeader.CustomFont": {
+        "macOS": {"family": "SF Display", "size": 15, "weight": "bold"},
+        "Windows": {"family": "Arial", "size": 15, "weight": "bold"},
+        "Linux": {"family": "Roboto", "size": 15, "weight": "bold"},
+    },
     "Hints.CustomFont": {
         "macOS": {"family": "SF Display", "size": 13, "weight": "normal"},
         "Windows": {"family": "Arial", "size": 13, "weight": "normal"},
@@ -421,6 +426,11 @@ font_definitions = {
         "Linux": {"family": "Roboto", "size": 16, "weight": "normal"},
     },
     "List.CustomFont": {
+        "macOS": {"family": "SF Display", "size": 14, "weight": "normal"},
+        "Windows": {"family": "Consolas", "size": 14, "weight": "normal"},
+        "Linux": {"family": "Roboto", "size": 14, "weight": "normal"},
+    },
+    "Entry.CustomFont": {
         "macOS": {"family": "SF Display", "size": 14, "weight": "normal"},
         "Windows": {"family": "Consolas", "size": 14, "weight": "normal"},
         "Linux": {"family": "Roboto", "size": 14, "weight": "normal"},
