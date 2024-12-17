@@ -50,9 +50,10 @@ class MenuRibbon:
         preferences_menu.add_checkbutton(
             label=translate("menu_preferences_hints"),
             variable=self.show_hints,
-            command=lambda: self.root.customization_manager.apply_show_hints(
-                window=self.root, show_hints=self.show_hints.get()
-            ),
+            # command=lambda: self.root.customization_manager.apply_show_hints(
+            #     window=self.root, show_hints=self.show_hints.get()
+            # ),
+            command=None,  #!fixme
         )
 
     def _add_option_menu(
@@ -100,7 +101,8 @@ class MenuRibbon:
             menu_label=translate("menu_preferences_language"),
             options=settings.ALL_LANG_NAMES,
             selected_option=self.selected_language,
-            apply_function=self.root.customization_manager.apply_translation,
+            # apply_function=self.root.customization_manager.apply_translation,
+            apply_function=None,  #!Fixme
             apply_param_name="lang_name",
         )
 
@@ -111,7 +113,7 @@ class MenuRibbon:
             menu_label=translate("menu_preferences_theme"),
             options=settings.ALL_THEME_NAMES,
             selected_option=self.selected_theme,
-            apply_function=self.root.customization_manager.apply_theme,
+            apply_function=self.root.apply_color_theme,
             apply_param_name="theme_name",
         )
 

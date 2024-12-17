@@ -32,9 +32,11 @@ class WindowManager:
             window.iconify()  # reduces flashing
             window.after_idle(window.deiconify)
 
-    def close_window(self, parent, forced=False):
+    def close_window(self, parent, forced=False, exit_app=False):
         """Close the current window."""
         if forced:
+            parent.destroy()
+        if exit_app:
             parent.destroy()
             sys.exit(0)
         else:

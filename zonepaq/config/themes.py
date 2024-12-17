@@ -337,4 +337,4 @@ def get_theme_dict(theme_name):
 
 
 def get_available_theme_names():
-    return THEMES.keys()
+    return list(THEMES.keys())

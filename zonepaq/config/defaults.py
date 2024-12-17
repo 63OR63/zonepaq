@@ -7,7 +7,7 @@ DEFAULT_TOOLS_PATHS = {
 DEFAULT_SETTINGS = {
     "merging_engine": "kdiff3",
     "lang_name": "English",
-    "theme_name": "Stalker",
+    "theme_name": "Nord",
     "show_hints": "True",
     "aes_key": "0x33A604DF49A07FFD4A4C919962161F5C35A134D37EFA98DB37A34F6450D7D386",
 }

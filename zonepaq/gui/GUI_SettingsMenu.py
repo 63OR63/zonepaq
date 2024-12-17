@@ -19,7 +19,6 @@ class GUI_SettingsMenu(GUI_Base):
         self.padding = self.padding
         self.temp_storage = {}  # Temporary storage for entries values
         self._add_settings_groups()
-        # self._add_save_button()
         self.adjust_to_content(root=self, adjust_width=True)
         log.info("Settings menu opened.")
 
@@ -30,7 +29,7 @@ class GUI_SettingsMenu(GUI_Base):
 
         sidebar_frame = self.create_frame(
             self,
-            style="Primary.CTkFrame",
+            style="Secondary.CTkFrame",
             row=1,
             column=0,
             columnspan=1,
@@ -38,14 +37,14 @@ class GUI_SettingsMenu(GUI_Base):
 
         general_tabview_frame = self.create_frame(
             self,
-            style="Secondary.CTkFrame",
+            style="Primary.CTkFrame",
             row=1,
             column=1,
             column_weights=[(0, 1)],
         )
         appearance_tabview_frame = self.create_frame(
             self,
-            style="Secondary.CTkFrame",
+            style="Primary.CTkFrame",
             row=1,
             column=1,
             column_weights=[(0, 1)],
@@ -125,18 +124,95 @@ class GUI_SettingsMenu(GUI_Base):
         }
 
         for group_name, paths in path_group.items():
-            self._add_path_group(general_tabview_frame, group_name, paths)
+            self._create_entry_group(general_tabview_frame, group_name, paths)
 
         for group_name, paths in vanilla_group.items():
-            self._add_path_group(general_tabview_frame, group_name, paths)
+            self._create_entry_group(general_tabview_frame, group_name, paths)
 
         for group_name, paths in aes_group.items():
-            self._add_path_group(general_tabview_frame, group_name, paths)
+            self._create_entry_group(general_tabview_frame, group_name, paths)
+
+        ####################################################################
+
+        self.create_subheader(appearance_tabview_frame, text="test")
+
+        group_frame = self.create_frame(
+            appearance_tabview_frame,
+            pady=self.padding / 2,
+            column_weights=[(0, 0), (1, 0), (2, 0)],
+        )
+        current_row = self._get_next_row(group_frame)
+
+        self.create_ctk_widget(
+            ctk_widget=ctk.CTkLabel,
+            widget_args={
+                "master": group_frame,
+                "text": f"{'test'}:",
+                "anchor": "w",
+                "pady": self.padding / 5,
+            },
+            grid_args={
+                "row": current_row,
+                "column": 0,
+                "sticky": "w",
+                "padx": self.padding,
+            },
+            row_weights=None,
+            column_weights=None,
+        )
+
+        self.selected_theme = ctk.StringVar(master=self, value=settings.THEME_NAME)
+
+        color_theme_widget = self.create_ctk_widget(
+            ctk_widget=ctk.CTkOptionMenu,
+            widget_args={
+                "master": group_frame,
+                "variable": self.selected_theme,
+                "values": settings.ALL_THEME_NAMES,
+                "anchor": "w",
+            },
+            grid_args={
+                "row": current_row,
+                "column": 1,
+                "sticky": "w",
+                "padx": (0, self.padding),
+                "pady": self.padding / 5,
+            },
+            row_weights=None,
+            column_weights=None,
+        )
+
+        self.dark_mode_widget = self.create_ctk_widget(
+            ctk_widget=ctk.CTkSwitch,
+            widget_args={
+                "master": group_frame,
+                "text": "Dark Mode",
+                "onvalue": True,
+                "offvalue": False,
+                "command": self.switch_dark_mode,
+            },
+            grid_args={
+                "row": current_row,
+                "column": 2,
+                "sticky": "w",
+                "padx": (0, self.padding),
+                "pady": self.padding / 5,
+            },
+            row_weights=None,
+            column_weights=None,
+        )
+
+    def switch_dark_mode(self):
+        if self.dark_mode_widget.get():
+            ctk.set_appearance_mode("dark")
+        else:
+            ctk.set_appearance_mode("light")
 
     def show_frame(self, frame):
         frame.tkraise()
+        # self.adjust_to_content(root=self, adjust_width=True)  # !FIXME
 
-    def _add_path_group(self, master, group_name, paths):
+    def _create_entry_group(self, master, group_name, paths):
 
         self.create_subheader(master, text=group_name)
         group_frame = self.create_frame(
@@ -144,7 +220,7 @@ class GUI_SettingsMenu(GUI_Base):
         )
 
         for settings_key, path_data in paths.items():
-            self._create_path_input(
+            self._create_entry_line(
                 group_frame,
                 path_data["path_dict"],
                 settings_key,
@@ -152,7 +228,7 @@ class GUI_SettingsMenu(GUI_Base):
                 path_data["type"],
             )
 
-    def _create_path_input(
+    def _create_entry_line(
         self, master, path_dict, settings_key, path_title, entry_type
     ):
         current_row = self._get_next_row(master)
@@ -261,7 +337,8 @@ class GUI_SettingsMenu(GUI_Base):
             elif settings_key in settings.TOOLS_PATHS:
                 settings.TOOLS_PATHS[settings_key] = new_value
         settings.save()
-        self.destroy()
+        self.window_manager.close_window(self)
+        # self.destroy()
 
     def _open_path_browse_dialog(self, entry_variable, entry_type):
         path = Path(entry_variable.get())

@@ -79,7 +79,7 @@ class GUI_LaunchScreen(GUI_Base):
     def on_closing(self):
         # self.customization_manager.reset()
         self.window_manager.close_window(
-            self, forced=True
+            self, exit_app=True
         )  # !FIXME need to refactor window_manager.close_window
 
 
@@ -111,13 +111,13 @@ class GUI_Secondary(GUI_Base):
 
         section_frame = self.create_frame(
             self,
+            padx=self.padding,
             pady=self.padding,
             column_weights=[(0, 1)],
         )
 
         listbox_frame = self.create_frame(
             section_frame,
-            pady=(self.padding, 0),
             column_weights=[(0, 1), (1, 0)],
         )
         self._create_listbox(listbox_frame, listbox_name, listbox_mode)
@@ -237,7 +237,7 @@ class GUI_Secondary(GUI_Base):
             ],
             "grid": {
                 "padx": 0,
-                "pady": self.padding,
+                "pady": (self.padding, 0),
             },
         }
         self.create_buttons(

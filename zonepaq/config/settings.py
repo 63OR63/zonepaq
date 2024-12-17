@@ -10,7 +10,7 @@ from config.defaults import (
     DEFAULT_VANILLA_FOLDER_SUFFIX,
     GAMES,
 )
-from config.themes import get_available_theme_names, get_theme_dict
+from config.ctk_themes import ThemeManager
 from config.translations import get_available_languages, get_translation
 
 
@@ -89,9 +89,9 @@ class Settings:
         self.TOOLS_PATHS = self.get("TOOLS_PATHS")
         self.GAME_PATHS = self.get("GAME_PATHS")
         self.LANG_DICT = get_translation(self.LANG_NAME)
-        self.THEME_DICT = get_theme_dict(self.THEME_NAME)
+        # self.THEME_DICT = get_theme_dict(self.THEME_NAME)  #!delme
         self.ALL_LANG_NAMES = get_available_languages()
-        self.ALL_THEME_NAMES = get_available_theme_names()
+        self.ALL_THEME_NAMES = ThemeManager.get_available_theme_names()
 
     def update_config(self, section, key, value):
         self.set(section, key, value)

@@ -3,11 +3,12 @@ from unittest.mock import mock_open, patch
 
 import customtkinter as ctk
 from backend.logger import handle_exception, log
-from config.ctk_themes import CtkStyleManager, ctk_color_theme, get_colors
+from config.ctk_themes import ThemeManager, StyleManager
 from config.metadata import APP_NAME, APP_VERSION
 from config.settings import settings
 from gui.custom_set_titlebar_icon import CTk
-from gui.CustomizationManager import CustomizationManager
+
+# from gui.CustomizationManager import CustomizationManager
 from gui.WindowManager import WindowManager
 
 
@@ -18,18 +19,33 @@ class GUI_Base(CTk):
         super().__init__()  # Initialize the ctk.CTk class
 
         self.window_manager = WindowManager(self)
+        self.theme_manager = ThemeManager
+        self.style_manager = StyleManager
 
-        self.configure(fg_color=get_colors("color_background_primary"))
+        # self.customization_manager = CustomizationManager.get(
+        #     settings.THEME_DICT
+        # )  # !DELETEME
+        # self.customization_manager.instances.register_window(self)
+
+        self.color_palette = settings.THEME_NAME
+        self.color_theme = self.theme_manager.merge_dicts(
+            self.theme_manager.construct_color_theme(self.color_palette),
+            self.theme_manager.borders_definitions,
+            self.theme_manager.font_definitions,
+            self.theme_manager.dimensions_definitions,
+        )
+
+        self.configure(
+            fg_color=self.theme_manager.get_colors(
+                "color_background_primary", self.color_palette
+            )
+        )
 
         self.report_callback_exception = handle_exception
 
         self.title(f"{APP_NAME} v{APP_VERSION} - {title}")
-        self.configure(bg=settings.THEME_DICT["color_background"])
+        # self.configure(bg=settings.THEME_DICT["color_background"])
         # set_app_icon(self, self.window_manager.iconpath)
-
-        self.style_manager = CtkStyleManager
-        self.customization_manager = CustomizationManager.get(settings.THEME_DICT)
-        # self.customization_manager.instances.register_window(self)
 
         from gui.menus import MenuRibbon
 
@@ -39,26 +55,16 @@ class GUI_Base(CTk):
 
         self.padding = 20
 
-        theme_str = json.dumps(ctk_color_theme)
-        mocked_file = mock_open(read_data=theme_str)
-        with patch("builtins.open", mocked_file):
-            ctk.set_default_color_theme("mocked_theme")
-
-        ### Alternative ways to load theme:
-        ### 1.
-        # with tempfile.NamedTemporaryFile(
-        #     mode="w", delete=False, suffix=".json"
-        # ) as tmp_file:
-        #     json.dump(ctk_color_theme, tmp_file)  # Write the JSON data
-        #     tmp_file.close()  # Close the file to release the lock
-        #     ctk.set_default_color_theme(tmp_file.name)
-        ### 2.
-        # ctk.set_default_color_theme(Path("zonepaq/config/themes2/Nord.json"))
+        self.apply_color_theme()
 
         self.style_manager.define_style(
             "Header.CTkLabel",
-            fg_color=get_colors("color_background_tertiary"),
-            text_color=get_colors("color_text_accent"),
+            fg_color=self.theme_manager.get_colors(
+                "color_background_tertiary", self.color_palette
+            ),
+            text_color=self.theme_manager.get_colors(
+                "color_text_primary", self.color_palette
+            ),
             font=ctk.CTkFont(
                 family=ctk.ThemeManager.theme["Header.CustomFont"]["family"],
                 size=ctk.ThemeManager.theme["Header.CustomFont"]["size"],
@@ -68,8 +74,12 @@ class GUI_Base(CTk):
 
         self.style_manager.define_style(
             "SubHeader.CTkLabel",
-            fg_color=get_colors("color_background_primary"),
-            text_color=get_colors("color_text_primary"),
+            fg_color=self.theme_manager.get_colors(
+                "color_background_secondary", self.color_palette
+            ),
+            text_color=self.theme_manager.get_colors(
+                "color_text_primary", self.color_palette
+            ),
             font=ctk.CTkFont(
                 family=ctk.ThemeManager.theme["SubHeader.CustomFont"]["family"],
                 size=ctk.ThemeManager.theme["SubHeader.CustomFont"]["size"],
@@ -80,7 +90,9 @@ class GUI_Base(CTk):
         self.style_manager.define_style(
             "Hints.CTkLabel",
             fg_color="transparent",
-            text_color=get_colors("color_text_muted"),
+            text_color=self.theme_manager.get_colors(
+                "color_text_muted", self.color_palette
+            ),
             font=ctk.CTkFont(
                 family=ctk.ThemeManager.theme["Hints.CustomFont"]["family"],
                 size=ctk.ThemeManager.theme["Hints.CustomFont"]["size"],
@@ -91,8 +103,10 @@ class GUI_Base(CTk):
         self.style_manager.define_style(
             "Dnd.CTkLabel",
             fg_color="transparent",
-            text_color=get_colors("color_background_tertiary"),
-            # text_color=get_colors("color_text_muted"),
+            text_color=self.theme_manager.get_colors(
+                "color_background_tertiary", self.color_palette
+            ),
+            # text_color=self.theme_manager.get_colors("color_text_muted", self.color_palette),
             font=ctk.CTkFont(
                 family=ctk.ThemeManager.theme["Dnd.CustomFont"]["family"],
                 size=ctk.ThemeManager.theme["Dnd.CustomFont"]["size"],
@@ -109,21 +123,27 @@ class GUI_Base(CTk):
 
         self.style_manager.define_style(
             "Primary.CTkFrame",
-            fg_color=get_colors("color_background_primary"),
+            fg_color=self.theme_manager.get_colors(
+                "color_background_primary", self.color_palette
+            ),
             # border_color="red",
             # border_width=1,
         )
 
         self.style_manager.define_style(
             "Secondary.CTkFrame",
-            fg_color=get_colors("color_background_secondary"),
+            fg_color=self.theme_manager.get_colors(
+                "color_background_secondary", self.color_palette
+            ),
             # border_color="red",
             # border_width=1,
         )
 
         self.style_manager.define_style(
             "Tertiary.CTkFrame",
-            fg_color=get_colors("color_background_tertiary"),
+            fg_color=self.theme_manager.get_colors(
+                "color_background_tertiary", self.color_palette
+            ),
             # border_color="red",
             # border_width=1,
         )
@@ -139,9 +159,15 @@ class GUI_Base(CTk):
 
         self.style_manager.define_style(
             "Action.CTkButton",
-            fg_color=get_colors("color_accent_primary"),
-            hover_color=get_colors("color_accent_secondary"),
-            border_color=get_colors("color_accent_secondary"),
+            fg_color=self.theme_manager.get_colors(
+                "color_accent_primary", self.color_palette
+            ),
+            hover_color=self.theme_manager.get_colors(
+                "color_accent_secondary", self.color_palette
+            ),
+            border_color=self.theme_manager.get_colors(
+                "color_accent_secondary", self.color_palette
+            ),
             font=ctk.CTkFont(
                 family=ctk.ThemeManager.theme["Action.Button.CustomFont"]["family"],
                 size=ctk.ThemeManager.theme["Action.Button.CustomFont"]["size"],
@@ -151,22 +177,36 @@ class GUI_Base(CTk):
 
         self.style_manager.define_style(
             "Muted.CTkButton",
-            fg_color=get_colors("color_background_secondary"),
-            hover_color=get_colors("color_background_tertiary"),
-            border_color=get_colors("color_background_tertiary"),
+            fg_color=self.theme_manager.get_colors(
+                "color_background_secondary", self.color_palette
+            ),
+            hover_color=self.theme_manager.get_colors(
+                "color_background_tertiary", self.color_palette
+            ),
+            border_color=self.theme_manager.get_colors(
+                "color_background_tertiary", self.color_palette
+            ),
             font=ctk.CTkFont(
-                family=ctk.ThemeManager.theme["Action.Button.CustomFont"]["family"],
-                size=ctk.ThemeManager.theme["Action.Button.CustomFont"]["size"],
-                weight=ctk.ThemeManager.theme["Action.Button.CustomFont"]["weight"],
+                family=ctk.ThemeManager.theme["Generic.Button.CustomFont"]["family"],
+                size=ctk.ThemeManager.theme["Generic.Button.CustomFont"]["size"],
+                weight=ctk.ThemeManager.theme["Generic.Button.CustomFont"]["weight"],
             ),
         )
 
         self.style_manager.define_style(
             "Alt.CTkEntry",
-            fg_color=get_colors("color_background_primary"),
-            border_color=get_colors("color_background_primary"),
-            text_color=get_colors("color_text_primary"),
-            placeholder_text_color=get_colors("color_text_muted"),
+            fg_color=self.theme_manager.get_colors(
+                "color_background_secondary", self.color_palette
+            ),
+            border_color=self.theme_manager.get_colors(
+                "color_background_secondary", self.color_palette
+            ),
+            text_color=self.theme_manager.get_colors(
+                "color_text_primary", self.color_palette
+            ),
+            placeholder_text_color=self.theme_manager.get_colors(
+                "color_text_muted", self.color_palette
+            ),
             font=ctk.CTkFont(
                 family=ctk.ThemeManager.theme["Entry.CustomFont"]["family"],
                 size=ctk.ThemeManager.theme["Entry.CustomFont"]["size"],
@@ -176,10 +216,18 @@ class GUI_Base(CTk):
 
         self.style_manager.define_style(
             "AltError.CTkEntry",
-            fg_color=get_colors("color_background_primary"),
-            border_color=get_colors("color_error"),
-            text_color=get_colors("color_text_primary"),
-            placeholder_text_color=get_colors("color_text_muted"),
+            fg_color=self.theme_manager.get_colors(
+                "color_background_secondary", self.color_palette
+            ),
+            border_color=self.theme_manager.get_colors(
+                "color_error", self.color_palette
+            ),
+            text_color=self.theme_manager.get_colors(
+                "color_text_primary", self.color_palette
+            ),
+            placeholder_text_color=self.theme_manager.get_colors(
+                "color_text_muted", self.color_palette
+            ),
             font=ctk.CTkFont(
                 family=ctk.ThemeManager.theme["Entry.CustomFont"]["family"],
                 size=ctk.ThemeManager.theme["Entry.CustomFont"]["size"],
@@ -190,17 +238,42 @@ class GUI_Base(CTk):
         self.style_manager.define_style(
             "Custom.CTkListbox",
             fg_color="transparent",
-            border_color=get_colors("color_background_tertiary"),
-            text_color=get_colors("color_text_primary"),
+            border_color=self.theme_manager.get_colors(
+                "color_background_tertiary", self.color_palette
+            ),
+            text_color=self.theme_manager.get_colors(
+                "color_text_primary", self.color_palette
+            ),
             button_color="transparent",
-            hover_color=get_colors("color_accent_tertiary", True),
-            highlight_color=get_colors("color_accent_tertiary"),
+            hover_color=self.theme_manager.get_colors(
+                "color_accent_tertiary", self.color_palette, True
+            ),
+            highlight_color=self.theme_manager.get_colors(
+                "color_accent_tertiary", self.color_palette
+            ),
             font=ctk.CTkFont(
                 family=ctk.ThemeManager.theme["List.CustomFont"]["family"],
                 size=ctk.ThemeManager.theme["List.CustomFont"]["size"],
                 weight=ctk.ThemeManager.theme["List.CustomFont"]["weight"],
             ),
         )
+
+    def apply_color_theme(self):
+        theme_str = json.dumps(self.color_theme)
+        mocked_file = mock_open(read_data=theme_str)
+        with patch("builtins.open", mocked_file):
+            ctk.set_default_color_theme("mocked_theme")
+
+        ### Alternative ways to load theme:
+        ### 1.
+        # with tempfile.NamedTemporaryFile(
+        #     mode="w", delete=False, suffix=".json"
+        # ) as tmp_file:
+        #     json.dump(self.color_theme, tmp_file)  # Write the JSON data
+        #     tmp_file.close()  # Close the file to release the lock
+        #     ctk.set_default_color_theme(tmp_file.name)
+        ### 2.
+        # ctk.set_default_color_theme(Path("zonepaq/config/themes2/Nord.json"))
 
     def adjust_to_content(self, root=None, adjust_width=False, adjust_height=False):
         root = root or self
@@ -234,7 +307,7 @@ class GUI_Base(CTk):
     ):
         widget = ctk_widget(**widget_args)
         if widget_style:
-            CtkStyleManager.apply_style(widget, widget_style)
+            StyleManager.apply_style(widget, widget_style)
         widget.grid(**grid_args)
         if row_weights:
             for row_index, weight in row_weights:
@@ -393,7 +466,6 @@ class GUI_Base(CTk):
             col = widget.grid_info().get("column")
             if col is not None:
                 columns.add(int(col))
-        print(max(columns, default=0))
         return max(columns, default=0)
 
     def create_button(
