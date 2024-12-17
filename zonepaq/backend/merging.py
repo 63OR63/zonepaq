@@ -18,6 +18,8 @@ class Merging:
         save_path = Path(save_path)
         unpacked_files_paths = [Path(f) for f in unpacked_files]
 
+        #! add /self-compare /wl if only one file is going to open
+        # https://manual.winmerge.org/en/Command_line.html
         if merging_engine == "WinMerge":
             engine_path = Path(tool_paths.get("winmerge"))
             if not Files.is_existing_file_type(engine_path, ".exe"):

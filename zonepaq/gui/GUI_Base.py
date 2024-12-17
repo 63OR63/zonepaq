@@ -27,6 +27,7 @@ class GUI_Base(CTk):
         self.configure(bg=settings.THEME_DICT["color_background"])
         # set_app_icon(self, self.window_manager.iconpath)
 
+        self.style_manager = CtkStyleManager
         self.customization_manager = CustomizationManager.get(settings.THEME_DICT)
         # self.customization_manager.instances.register_window(self)
 
@@ -54,7 +55,7 @@ class GUI_Base(CTk):
         ### 2.
         # ctk.set_default_color_theme(Path("zonepaq/config/themes2/Nord.json"))
 
-        CtkStyleManager.define_style(
+        self.style_manager.define_style(
             "Header.CTkLabel",
             fg_color=get_colors("color_background_tertiary"),
             text_color=get_colors("color_text_accent"),
@@ -65,7 +66,7 @@ class GUI_Base(CTk):
             ),
         )
 
-        CtkStyleManager.define_style(
+        self.style_manager.define_style(
             "SubHeader.CTkLabel",
             fg_color=get_colors("color_background_primary"),
             text_color=get_colors("color_text_primary"),
@@ -76,7 +77,7 @@ class GUI_Base(CTk):
             ),
         )
 
-        CtkStyleManager.define_style(
+        self.style_manager.define_style(
             "Hints.CTkLabel",
             fg_color="transparent",
             text_color=get_colors("color_text_muted"),
@@ -87,7 +88,7 @@ class GUI_Base(CTk):
             ),
         )
 
-        CtkStyleManager.define_style(
+        self.style_manager.define_style(
             "Dnd.CTkLabel",
             fg_color="transparent",
             text_color=get_colors("color_background_tertiary"),
@@ -99,35 +100,35 @@ class GUI_Base(CTk):
             ),
         )
 
-        CtkStyleManager.define_style(
+        self.style_manager.define_style(
             "Transparent.CTkFrame",
             fg_color="transparent",
             # border_color="red",
             # border_width=1,
         )
 
-        CtkStyleManager.define_style(
+        self.style_manager.define_style(
             "Primary.CTkFrame",
             fg_color=get_colors("color_background_primary"),
             # border_color="red",
             # border_width=1,
         )
 
-        CtkStyleManager.define_style(
+        self.style_manager.define_style(
             "Secondary.CTkFrame",
             fg_color=get_colors("color_background_secondary"),
             # border_color="red",
             # border_width=1,
         )
 
-        CtkStyleManager.define_style(
+        self.style_manager.define_style(
             "Tertiary.CTkFrame",
             fg_color=get_colors("color_background_tertiary"),
             # border_color="red",
             # border_width=1,
         )
 
-        CtkStyleManager.define_style(
+        self.style_manager.define_style(
             "Generic.CTkButton",
             font=ctk.CTkFont(
                 family=ctk.ThemeManager.theme["Generic.Button.CustomFont"]["family"],
@@ -136,7 +137,7 @@ class GUI_Base(CTk):
             ),
         )
 
-        CtkStyleManager.define_style(
+        self.style_manager.define_style(
             "Action.CTkButton",
             fg_color=get_colors("color_accent_primary"),
             hover_color=get_colors("color_accent_secondary"),
@@ -148,7 +149,7 @@ class GUI_Base(CTk):
             ),
         )
 
-        CtkStyleManager.define_style(
+        self.style_manager.define_style(
             "Muted.CTkButton",
             fg_color=get_colors("color_background_secondary"),
             hover_color=get_colors("color_background_tertiary"),
@@ -160,7 +161,7 @@ class GUI_Base(CTk):
             ),
         )
 
-        CtkStyleManager.define_style(
+        self.style_manager.define_style(
             "Alt.CTkEntry",
             fg_color=get_colors("color_background_primary"),
             border_color=get_colors("color_background_primary"),
@@ -173,7 +174,20 @@ class GUI_Base(CTk):
             ),
         )
 
-        CtkStyleManager.define_style(
+        self.style_manager.define_style(
+            "AltError.CTkEntry",
+            fg_color=get_colors("color_background_primary"),
+            border_color=get_colors("color_error"),
+            text_color=get_colors("color_text_primary"),
+            placeholder_text_color=get_colors("color_text_muted"),
+            font=ctk.CTkFont(
+                family=ctk.ThemeManager.theme["Entry.CustomFont"]["family"],
+                size=ctk.ThemeManager.theme["Entry.CustomFont"]["size"],
+                weight=ctk.ThemeManager.theme["Entry.CustomFont"]["weight"],
+            ),
+        )
+
+        self.style_manager.define_style(
             "Custom.CTkListbox",
             fg_color="transparent",
             border_color=get_colors("color_background_tertiary"),
@@ -230,7 +244,17 @@ class GUI_Base(CTk):
                 widget.grid_columnconfigure(column_index, weight=weight)
         return widget
 
-    def create_header(self, master, text=""):
+    def create_header(self, master, text="", row="current", column="current"):
+        if row == "current":
+            row = self._get_next_row(master)
+        elif isinstance(row, str) and row.startswith(("+", "-")):
+            row = max(eval(f"{self._get_next_row(master)} {row}"), 0)
+
+        if column == "current":
+            column = self._get_next_column(master)
+        elif isinstance(row, str) and row.startswith(("+", "-")):
+            column = max(eval(f"{self._get_next_column(master)} {column}"), 0)
+
         return self.create_ctk_widget(
             ctk_widget=ctk.CTkLabel,
             widget_args={
@@ -250,16 +274,16 @@ class GUI_Base(CTk):
             column_weights=None,
         )
 
-    def create_subheader(self, master, text="", row="+1", column="current"):
-        if row is "current":
-            row = self._get_current_row(master)
+    def create_subheader(self, master, text="", row="current", column="current"):
+        if row == "current":
+            row = self._get_next_row(master)
         elif isinstance(row, str) and row.startswith(("+", "-")):
-            row = max(eval(f"{self._get_current_row(master)} {row}"), 0)
+            row = max(eval(f"{self._get_next_row(master)} {row}"), 0)
 
-        if column is "current":
-            column = self._get_current_column(master)
+        if column == "current":
+            column = self._get_next_column(master)
         elif isinstance(row, str) and row.startswith(("+", "-")):
-            column = max(eval(f"{self._get_current_column(master)} {column}"), 0)
+            column = max(eval(f"{self._get_next_column(master)} {column}"), 0)
 
         return self.create_ctk_widget(
             ctk_widget=ctk.CTkLabel,
@@ -285,7 +309,7 @@ class GUI_Base(CTk):
         self,
         master,
         style="Transparent.CTkFrame",
-        row="+1",
+        row="current",
         column="current",
         rowspan=1,
         columnspan=999,
@@ -296,15 +320,15 @@ class GUI_Base(CTk):
         column_weights=None,
         **kwargs,
     ):
-        if row is "current":
-            row = self._get_current_row(master)
+        if row == "current":
+            row = self._get_next_row(master)
         elif isinstance(row, str) and row.startswith(("+", "-")):
-            row = max(eval(f"{self._get_current_row(master)} {row}"), 0)
+            row = max(eval(f"{self._get_next_row(master)} {row}"), 0)
 
-        if column is "current":
-            column = self._get_current_column(master)
+        if column == "current":
+            column = self._get_next_column(master)
         elif isinstance(row, str) and row.startswith(("+", "-")):
-            column = max(eval(f"{self._get_current_column(master)} {column}"), 0)
+            column = max(eval(f"{self._get_next_column(master)} {column}"), 0)
 
         widget_args = {"master": master}
 
@@ -327,12 +351,18 @@ class GUI_Base(CTk):
             column_weights=column_weights,
         )
 
-    def create_hints(self, master, hints, row="next", column=0):
+    def create_hints(self, master, hints, row="current", column=0):
         if eval(settings.SHOW_HINTS) and hints:
-            if row is "next":
+            if row == "current":
                 row = self._get_next_row(master)
-            if column is "next":
+            elif isinstance(row, str) and row.startswith(("+", "-")):
+                row = max(eval(f"{self._get_next_row(master)} {row}"), 0)
+
+            if column == "current":
                 column = self._get_next_column(master)
+            elif isinstance(row, str) and row.startswith(("+", "-")):
+                column = max(eval(f"{self._get_next_column(master)} {column}"), 0)
+
             self.create_ctk_widget(
                 ctk_widget=ctk.CTkLabel,
                 widget_args={
@@ -352,19 +382,6 @@ class GUI_Base(CTk):
                 column_weights=None,
             )
 
-    def _get_current_row(self, root=None):
-        root = root or self
-        return len(root.grid_slaves()) - 1
-
-    def _get_current_column(self, root=None):
-        root = root or self
-        columns = set()
-        for widget in root.grid_slaves():
-            col = widget.grid_info().get("column")
-            if col is not None:
-                columns.add(int(col))
-        return max(columns, default=0)
-
     def _get_next_row(self, root=None):
         root = root or self
         return len(root.grid_slaves())
@@ -376,7 +393,8 @@ class GUI_Base(CTk):
             col = widget.grid_info().get("column")
             if col is not None:
                 columns.add(int(col))
-        return max(columns, default=-1) + 1
+        print(max(columns, default=0))
+        return max(columns, default=0)
 
     def create_button(
         self,
@@ -386,7 +404,7 @@ class GUI_Base(CTk):
         height=None,
         command=None,
         style="Generic.CTkButton",
-        row="next",
+        row="current",
         column="current",
         rowspan=1,
         columnspan=1,
@@ -397,14 +415,15 @@ class GUI_Base(CTk):
         column_weights=None,
         **kwargs,
     ):
-        if row is "current":
-            row = max(self._get_next_row(master) - 1, 0)
-        elif row is "next":
+        if row == "current":
             row = self._get_next_row(master)
-        if column is "current":
-            column = max(self._get_next_column(master) - 1, 0)
-        elif column is "next":
+        elif isinstance(row, str) and row.startswith(("+", "-")):
+            row = max(eval(f"{self._get_next_row(master)} {row}"), 0)
+
+        if column == "current":
             column = self._get_next_column(master)
+        elif isinstance(row, str) and row.startswith(("+", "-")):
+            column = max(eval(f"{self._get_next_column(master)} {column}"), 0)
 
         widget_args = {
             "master": master,

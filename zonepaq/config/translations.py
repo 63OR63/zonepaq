@@ -12,7 +12,7 @@ TRANSLATIONS = {
         "menu_preferences_settings_vanilla_unpacked": "Vanilla Unpacked",
         "menu_preferences_settings_browse": "Browse",
         "menu_preferences_settings_save": "Save",
-        "menu_preferences_settings_aes_key": "AES key",
+        "menu_preferences_settings_aes_key": "AES Key",
         "menu_preferences_merging_engine": "Merging Engine",
         "menu_preferences_language": "Language",
         "menu_preferences_theme": "Color theme",

@@ -1,4 +1,5 @@
 from backend.logger import log
+from backend.tools import Data
 from config.settings import settings, translate
 from gui.GUI_Base import GUI_Base
 
@@ -23,22 +24,67 @@ class GUI_SettingsMenu(GUI_Base):
         log.info("Settings menu opened.")
 
     def _add_settings_groups(self):
+        self.create_header(
+            self, text=translate("menu_preferences_settings"), row=0, column=0
+        )
 
-        # header_label = ttk.Label(
-        #     self,
-        #     text=translate("menu_preferences_settings"),
-        #     style="Header.TLabel",
-        # )
-        # header_label.grid(row=0, column=0, columnspan=3, sticky="ew")
+        sidebar_frame = self.create_frame(
+            self,
+            style="Primary.CTkFrame",
+            row=1,
+            column=0,
+            columnspan=1,
+        )
 
-        self.create_header(self, text=translate("menu_preferences_settings"))
+        general_tabview_frame = self.create_frame(
+            self,
+            style="Secondary.CTkFrame",
+            row=1,
+            column=1,
+            column_weights=[(0, 1)],
+        )
+        appearance_tabview_frame = self.create_frame(
+            self,
+            style="Secondary.CTkFrame",
+            row=1,
+            column=1,
+            column_weights=[(0, 1)],
+        )
+        self.show_frame(general_tabview_frame)
 
-        # self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=0)
+        self.grid_columnconfigure(1, weight=1)
 
-        # self.grid_columnconfigure(1, weight=1)
-        # self.grid_columnconfigure(2, weight=0)
+        save_frame = self.create_frame(
+            self, column=0, style="Tertiary.CTkFrame", column_weights=[(0, 1)]
+        )
 
-        path_groups = {
+        save_button = self.create_button(
+            save_frame,
+            text=translate("menu_preferences_settings_save"),
+            command=self._save_settings_and_close,
+            style="Action.CTkButton",
+            padx=self.padding / 2,
+            pady=self.padding / 2,
+            sticky="e",
+        )
+
+        general_button = self.create_button(
+            sidebar_frame,
+            text="General",
+            corner_radius=0,
+            command=lambda: self.show_frame(general_tabview_frame),
+        )
+
+        appearance_button = self.create_button(
+            sidebar_frame,
+            text="Appearance",
+            style="Muted.CTkButton",
+            corner_radius=0,
+            command=lambda: self.show_frame(appearance_tabview_frame),
+        )
+
+        path_group = {
             translate("menu_preferences_settings_path_tools"): {
                 "repak_cli": {
                     "path_dict": settings.TOOLS_PATHS,
@@ -56,6 +102,9 @@ class GUI_SettingsMenu(GUI_Base):
                     "type": ".exe",
                 },
             },
+        }
+
+        vanilla_group = {
             translate("menu_preferences_settings_path_game"): {
                 "vanilla_unpacked": {
                     "path_dict": settings.GAME_PATHS,
@@ -63,7 +112,10 @@ class GUI_SettingsMenu(GUI_Base):
                     "type": "folder",
                 },
             },
-            "AES Key": {
+        }
+
+        aes_group = {
+            translate("menu_preferences_settings_aes_key"): {
                 "aes_key": {
                     "path_dict": {"aes_key": settings.AES_KEY},
                     "title": translate("menu_preferences_settings_aes_key"),
@@ -72,81 +124,38 @@ class GUI_SettingsMenu(GUI_Base):
             },
         }
 
-        self.grid_columnconfigure(0, weight=0)
-        self.grid_columnconfigure(1, weight=1)
+        for group_name, paths in path_group.items():
+            self._add_path_group(general_tabview_frame, group_name, paths)
 
-        # settings_frame = self.create_frame(
-        #     self,
-        #     padx=self.padding,
-        #     pady=(self.padding, 0),
-        #     column_weights=[(0, 0), (1, 1)],
-        # )
+        for group_name, paths in vanilla_group.items():
+            self._add_path_group(general_tabview_frame, group_name, paths)
 
-        sidebar_frame = self.create_frame(
-            self,
-            style="Primary.CTkFrame",
-            columnspan=1,
+        for group_name, paths in aes_group.items():
+            self._add_path_group(general_tabview_frame, group_name, paths)
+
+    def show_frame(self, frame):
+        frame.tkraise()
+
+    def _add_path_group(self, master, group_name, paths):
+
+        self.create_subheader(master, text=group_name)
+        group_frame = self.create_frame(
+            master, pady=self.padding / 2, column_weights=[(0, 0), (1, 1), (2, 0)]
         )
 
-        general_tabview_frame = self.create_frame(
-            self,
-            style="Secondary.CTkFrame",
-            row="current",
-            column="+1",
-        )
-
-        save_frame = self.create_frame(
-            self, column=0, style="Tertiary.CTkFrame", column_weights=[(0, 1)]
-        )
-
-        save_button = self.create_button(
-            save_frame,
-            text="Save",
-            style="Action.CTkButton",
-            padx=self.padding / 2,
-            pady=self.padding / 2,
-            sticky="e",
-        )
-
-        general_button = self.create_button(
-            sidebar_frame, text="General", corner_radius=0
-        )
-
-        appearance_button = self.create_button(
-            sidebar_frame,
-            text="Appearance",
-            style="Muted.CTkButton",
-            corner_radius=0,
-        )
-
-        row_index = 1
-        for group_name, paths in path_groups.items():
-            row_index = self._add_path_group(
-                general_tabview_frame, group_name, paths, row_index
-            )
-
-    def _add_path_group(self, master, group_name, paths, starting_row):
-        self._create_group_label(master, group_name, starting_row)
-        for index, (settings_key, path_data) in enumerate(
-            paths.items(), start=starting_row + 1
-        ):
+        for settings_key, path_data in paths.items():
             self._create_path_input(
-                master,
+                group_frame,
                 path_data["path_dict"],
                 settings_key,
                 path_data["title"],
                 path_data["type"],
-                index,
             )
-        return starting_row + len(paths) + 1
-
-    def _create_group_label(self, master, group_label, row):
-
-        self.create_subheader(master, text=group_label, row=row, column=0)
 
     def _create_path_input(
-        self, master, path_dict, settings_key, path_title, entry_type, row
+        self, master, path_dict, settings_key, path_title, entry_type
     ):
+        current_row = self._get_next_row(master)
 
         self.create_ctk_widget(
             ctk_widget=ctk.CTkLabel,
@@ -154,10 +163,10 @@ class GUI_SettingsMenu(GUI_Base):
                 "master": master,
                 "text": f"{path_title}:",
                 "anchor": "w",
-                "pady": self.padding / 2,
+                "pady": self.padding / 5,
             },
             grid_args={
-                "row": row,
+                "row": current_row,
                 "column": 0,
                 "sticky": "w",
                 "padx": self.padding,
@@ -169,10 +178,6 @@ class GUI_SettingsMenu(GUI_Base):
         entry_variable = ctk.StringVar(
             master=self, value=path_dict.get(settings_key, "")
         )
-        print(path_dict.get(settings_key, ""))
-
-        master.grid_columnconfigure(1, weight=1)
-        master.grid_columnconfigure(2, weight=0)
 
         entry_widget = self.create_ctk_widget(
             ctk_widget=ctk.CTkEntry,
@@ -184,11 +189,11 @@ class GUI_SettingsMenu(GUI_Base):
             },
             widget_style="Alt.CTkEntry",
             grid_args={
-                "row": row,
+                "row": current_row,
                 "column": 1,
                 "sticky": "ew",
                 "padx": (0, self.padding),
-                "pady": self.padding / 2,
+                "pady": self.padding / 5,
             },
             row_weights=None,
             column_weights=None,
@@ -198,7 +203,7 @@ class GUI_SettingsMenu(GUI_Base):
             settings_key, entry_variable.get(), entry_type, entry_widget
         )
 
-        if entry_type != "aes":
+        if entry_type in ("folder", ".exe"):
             browse_button = self.create_ctk_widget(
                 ctk_widget=ctk.CTkButton,
                 widget_args={
@@ -211,11 +216,11 @@ class GUI_SettingsMenu(GUI_Base):
                 },
                 widget_style="Generic.CTkButton",
                 grid_args={
-                    "row": row,
+                    "row": current_row,
                     "column": 2,
                     "sticky": "e",
                     "padx": (0, self.padding),
-                    "pady": self.padding / 2,
+                    "pady": self.padding / 5,
                 },
                 row_weights=None,
                 column_weights=None,
@@ -232,34 +237,19 @@ class GUI_SettingsMenu(GUI_Base):
         self, settings_key, new_value, entry_type, entry_widget
     ):
         self.temp_storage[settings_key] = new_value
-        # entry_widget.apply_style(forced_style=entry_widget.get_style(entry_type))
 
-    def _add_save_button(self):
+        path = Path(entry_widget.get())
 
-        save_button = self.create_ctk_widget(
-            ctk_widget=ctk.CTkButton,
-            widget_args={
-                "master": self,
-                "command": self._save_settings_and_close,
-                "text": translate("menu_preferences_settings_save"),
-                "width": 170,
-                "height": 40,
-            },
-            widget_style="Generic.CTkButton",
-            grid_args={
-                "row": self._get_highest_row() + 1,
-                "column": 0,
-                "sticky": "ns",
-                "padx": 0,
-                "pady": self.padding,
-                "columnspan": 3,
-            },
-            row_weights=None,
-            column_weights=None,
-        )
+        if Data.is_valid_data(path, entry_type):
+            style = "Alt.CTkEntry"
+        else:
+            style = "AltError.CTkEntry"
 
-    def _get_highest_row(self):
-        return max(widget.grid_info()["row"] for widget in self.grid_slaves())
+        self.style_manager.apply_style(entry_widget, style)
+
+    def _get_highest_row(self, root):
+        root = root or self
+        return max(widget.grid_info()["row"] for widget in root.grid_slaves())
 
     def _save_settings_and_close(self):
         for settings_key, new_value in self.temp_storage.items():
