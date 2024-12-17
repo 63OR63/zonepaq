@@ -93,25 +93,25 @@ def get_colors(color, reverse=False, palette=color_palette):
     return color_list
 
 
-color_palettes = {
-    "Nord": {
-        "color_text_primary": ["#434c5e", "#d8dee9"],
-        "color_text_secondary": ["#3b4252", "#e5e9f0"],
-        "color_text_accent": ["#2e3440", "#eceff4"],
-        "color_text_muted": ["#b2bdd3", "#616e7c"],
-        "color_background_primary": ["#eceff4", "#2e3440"],
-        "color_background_secondary": ["#e5e9f0", "#3b4252"],
-        "color_background_tertiary": ["#d8dee9", "#434c5e"],
-        "color_accent_primary": "#88c0d0",
-        "color_accent_secondary": "#8fbcbb",
-        "color_accent_tertiary": ["#81a1c1", "#5e81ac"],
-        "color_error": "#bf616a",
-        "color_warning": "#d08770",
-        "color_attention": "#ebcb8b",
-        "color_success": "#a3be8c",
-        "color_highlight": "#b48ead",
-    }
-}
+# color_palettes = {
+#     "Nord": {
+#         "color_text_primary": ["#434c5e", "#d8dee9"],
+#         "color_text_secondary": ["#3b4252", "#e5e9f0"],
+#         "color_text_accent": ["#2e3440", "#eceff4"],
+#         "color_text_muted": ["#b2bdd3", "#616e7c"],
+#         "color_background_primary": ["#eceff4", "#2e3440"],
+#         "color_background_secondary": ["#e5e9f0", "#3b4252"],
+#         "color_background_tertiary": ["#d8dee9", "#434c5e"],
+#         "color_accent_primary": "#88c0d0",
+#         "color_accent_secondary": "#8fbcbb",
+#         "color_accent_tertiary": ["#81a1c1", "#5e81ac"],
+#         "color_error": "#bf616a",
+#         "color_warning": "#d08770",
+#         "color_attention": "#ebcb8b",
+#         "color_success": "#a3be8c",
+#         "color_highlight": "#b48ead",
+#     }
+# }
 
 ctk_color_theme = {
     "CTk": {"fg_color": get_colors("color_background_primary")},
@@ -143,7 +143,7 @@ ctk_color_theme = {
         "fg_color": get_colors("color_background_secondary"),
         "border_color": get_colors("color_background_secondary"),
         "text_color": get_colors("color_text_primary"),
-        "placeholder_text_color": get_colors("color_background_tertiary"),
+        "placeholder_text_color": get_colors("color_text_muted"),
     },
     "CTkFrame": {
         "fg_color": get_colors("color_background_secondary"),

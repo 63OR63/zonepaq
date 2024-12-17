@@ -1,496 +1,21 @@
 import ctypes
 import io
-import json
-import sys
 import tempfile
-import tkinter as tk
-from collections import deque
 from concurrent.futures import as_completed
 from pathlib import Path
 from time import sleep
-from tkinter import PhotoImage, filedialog, messagebox, ttk
-from unittest.mock import mock_open, patch
+from tkinter import PhotoImage, filedialog, messagebox
 
 import customtkinter as ctk
-from backend.logger import handle_exception, log
+from backend.logger import log
 from backend.repak import Repak
 from backend.tools import Files
-from config.ctk_themes import CtkStyleManager, ctk_color_theme, get_colors
-from config.metadata import APP_ICONS, APP_NAME, APP_VERSION
 from config.settings import settings, translate
-from config.styles import get_styles
 from CTkListbox import *
+from gui.custom_set_titlebar_icon import custom_set_titlebar_icon
+from gui.GUI_Base import GUI_Base
 from gui.gui_toplevel import GUI_ConflictsReport
-from gui.menus import MenuRibbon
-
-from tkinterdnd2 import DND_FILES, TkinterDnD
-
-
-class InstanceManager:
-    """Manages registration and cleanup of windows and widgets."""
-
-    def __init__(self):
-        self._reset()
-
-    def register_window(self, window):
-        if window not in self.windows:
-            log.deep_debug(f"Registering window: {window}")
-            self.windows.append(window)
-
-    def unregister_window(self, window):
-        if window in self.windows:
-            log.deep_debug(f"Unregistering window: {window}")
-            self.windows.remove(window)
-
-        for widget in list(self.widgets.keys()):
-            if self.widgets[widget] == window:
-                log.deep_debug(f"Unregistering widget: {widget} @ {window}")
-                self.widgets.pop(widget)
-
-    def register_widget(self, widget, window):
-        if widget not in self.widgets:
-            log.deep_debug(f"Registering widget: {widget} @ {window}")
-            self.widgets[widget] = window
-
-    def _reset(self):
-        log.deep_debug("'windows' and 'widgets' instance storages reset.")
-        self.windows = deque()
-        self.widgets = {}
-
-
-class CustomizationManager:
-    """Singleton class to apply and manage UI themes and customizations."""
-
-    _instance = None
-
-    def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
-
-    def __init__(self, style, theme_dict):
-        self.style = style
-        self.theme_dict = theme_dict
-        self.instances = InstanceManager()  # Central instance tracking
-        self._reload_styles(self.theme_dict)
-
-    @classmethod
-    def get(cls, theme_dict):
-        if cls._instance is None:
-            style = ttk.Style()
-            style.theme_use("clam")
-            # style.theme_use("alt")
-            # style.theme_use("default")
-            # style.theme_use("classic")
-            # style.theme_use("vista")
-            # style.theme_use("xpnative")
-            cls._instance = cls(style, theme_dict)
-        return cls._instance
-
-    def reset(self):
-        self.instances._reset()
-        log.deep_debug("'CustomizationManager' instance cleared.")
-        CustomizationManager._instance = None
-
-    def apply_theme(self, window, theme_name):
-        settings.update_config("SETTINGS", "theme_name", theme_name)
-
-        self._reload_styles(settings.THEME_DICT)
-
-        for widget in self.instances.widgets:
-            widget.apply_style()
-
-        for window in self.instances.windows:
-            self._apply_specific_styles(window)
-
-    def apply_translation(self, window, lang_name):
-        settings.update_config("SETTINGS", "lang_name", lang_name)
-
-        self.reset()
-
-        window.destroy()
-        gui = GUI_LaunchScreen()
-        gui.run()
-
-    def apply_show_hints(self, window, show_hints):
-        settings.SHOW_HINTS = str(show_hints)
-        settings.update_config("SETTINGS", "show_hints", show_hints)
-
-        self.reset()
-
-        window.destroy()
-        gui = GUI_LaunchScreen()
-        gui.run()
-
-    def _reload_styles(self, theme_dict):
-        styles = get_styles(theme_dict)
-        for widget, config in styles.items():
-            self.style.configure(widget, **config)
-
-        self._map_style("TCheckbutton", theme_dict["color_background"])
-        self._map_style("Treeview.Heading", theme_dict["color_background"])
-
-    def _map_style(self, widget, color):
-        self.style.map(
-            widget,
-            background=[
-                ("active", color),
-                ("!active", color),
-            ],
-        )
-
-    def _apply_specific_styles(self, widget, generic={}, listboxes={}):
-        excluded_widgets = (
-            tk.Menu,
-            tk.Entry,
-        )
-
-        default_generic = {
-            "bg": settings.THEME_DICT["color_background"],
-            "fg": settings.THEME_DICT["color_foreground"],
-        }
-        default_listboxes = {
-            "bg": settings.THEME_DICT["color_background_highlight"],
-            "fg": settings.THEME_DICT["color_foreground"],
-            "selectbackground": settings.THEME_DICT["color_highlight"],
-            "font": (
-                settings.THEME_DICT["font_family_code"],
-                settings.THEME_DICT["font_size_small"],
-                "normal",
-            ),
-        }
-        treeview_tags = {
-            "no_conflicts": {"foreground": settings.THEME_DICT["color_success"]},
-            "dual_match": {"foreground": settings.THEME_DICT["color_foreground"]},
-            "dual_no_match": {"foreground": settings.THEME_DICT["color_attention"]},
-            "tri": {"foreground": settings.THEME_DICT["color_warning"]},
-            "complex": {"foreground": settings.THEME_DICT["color_error"]},
-        }
-
-        generic = {**default_generic, **generic}
-        listboxes = {**default_listboxes, **listboxes}
-
-        queue = deque([widget])
-
-        while queue:
-            current_widget = queue.popleft()
-            if not isinstance(current_widget, excluded_widgets):
-                if isinstance(current_widget, tk.Listbox):
-                    for key, value in listboxes.items():
-                        try:
-                            if hasattr(current_widget, "configure"):
-                                current_widget.configure({key: value})
-                        except:
-                            pass
-                elif isinstance(current_widget, ttk.Treeview):
-                    for tag, style in treeview_tags.items():
-                        try:
-                            current_widget.tag_configure(tag, **style)
-                        except:
-                            pass
-                else:
-                    for key, value in generic.items():
-                        try:
-                            if hasattr(current_widget, "configure"):
-                                current_widget.configure({key: value})
-                        except:
-                            pass
-
-            queue.extend(current_widget.winfo_children())
-
-
-# !WORKAROUND for CTk going crazy with destroying windows
-class WindowManager:
-    _instance = None
-
-    def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
-
-    def __init__(self, parent):
-        if not hasattr(self, "initialized"):
-            self.open_windows = {type(parent): parent}
-            # set_app_icon(parent)
-            # self.iconpath = tk.PhotoImage(file=resource_path(APP_ICONS["png"]))
-
-            self.initialized = True
-
-    def open_window(self, parent, new_window):
-        print(self.open_windows)
-        if new_window in self.open_windows:
-            window = self.open_windows[new_window]
-            parent.withdraw()
-            window.deiconify()
-        else:
-            parent.withdraw()
-            window = new_window()
-            self.open_windows[new_window] = window
-            window.run()
-
-    def close_window(self, parent):
-        """Close the current window."""
-        if isinstance(parent, GUI_LaunchScreen):
-            parent.destroy()
-            sys.exit(0)
-            # parent.quit()
-        else:
-            parent.withdraw()
-            self.open_windows[type(parent)] = parent
-
-
-def custom_set_titlebar_icon(self):
-    try:
-        base_path = Path(sys._MEIPASS)
-    except Exception:
-        base_path = Path(".")
-    try:
-        resource_path = base_path / APP_ICONS["png"]
-        self.iconphoto(True, tk.PhotoImage(file=resource_path))
-    except Exception:
-        pass
-
-
-# !WORKAROUND for CTk overwriting changes in app icon
-_CTk = ctk.CTk
-if hasattr(_CTk, "_windows_set_titlebar_icon"):
-    _CTk._windows_set_titlebar_icon = custom_set_titlebar_icon
-
-
-class CTk(_CTk, TkinterDnD.DnDWrapper):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.TkdndVersion = TkinterDnD._require(self)
-
-
-class App(CTk):
-    def __init__(self):
-        super().__init__()
-        gui = GUI_LaunchScreen()
-        gui.run()
-
-
-class GUI_Base(CTk):
-    """Base class for all GUI windows with common functionalities."""
-
-    def __init__(self, title):
-        super().__init__()  # Initialize the ctk.CTk class
-        self.window_manager = WindowManager(self)
-
-        self.configure(fg_color=get_colors("color_background_primary"))
-
-        self.report_callback_exception = handle_exception
-
-        self.title(f"{APP_NAME} v{APP_VERSION} - {title}")
-        self.configure(bg=settings.THEME_DICT["color_background"])
-        # set_app_icon(self, self.window_manager.iconpath)
-
-        self.customization_manager = CustomizationManager.get(settings.THEME_DICT)
-        # self.customization_manager.instances.register_window(self)
-
-        self.menu = MenuRibbon(self)
-        self.protocol("WM_DELETE_WINDOW", self.on_closing)
-
-        self.padding = 20
-
-        theme_str = json.dumps(ctk_color_theme)
-        mocked_file = mock_open(read_data=theme_str)
-        with patch("builtins.open", mocked_file):
-            ctk.set_default_color_theme("mocked_theme")
-
-        ### Alternative ways to load theme:
-        ### 1.
-        # with tempfile.NamedTemporaryFile(
-        #     mode="w", delete=False, suffix=".json"
-        # ) as tmp_file:
-        #     json.dump(ctk_color_theme, tmp_file)  # Write the JSON data
-        #     tmp_file.close()  # Close the file to release the lock
-        #     ctk.set_default_color_theme(tmp_file.name)
-        ### 2.
-        # ctk.set_default_color_theme(Path("zonepaq/config/themes2/Nord.json"))
-
-        CtkStyleManager.define_style(
-            "Header.CTkLabel",
-            fg_color=get_colors("color_background_tertiary"),
-            text_color=get_colors("color_text_accent"),
-            font=ctk.CTkFont(
-                family=ctk.ThemeManager.theme["Header.CustomFont"]["family"],
-                size=ctk.ThemeManager.theme["Header.CustomFont"]["size"],
-                weight=ctk.ThemeManager.theme["Header.CustomFont"]["weight"],
-            ),
-        )
-
-        CtkStyleManager.define_style(
-            "Hints.CTkLabel",
-            fg_color="transparent",
-            text_color=get_colors("color_text_muted"),
-            font=ctk.CTkFont(
-                family=ctk.ThemeManager.theme["Hints.CustomFont"]["family"],
-                size=ctk.ThemeManager.theme["Hints.CustomFont"]["size"],
-                weight=ctk.ThemeManager.theme["Hints.CustomFont"]["weight"],
-            ),
-        )
-
-        CtkStyleManager.define_style(
-            "Dnd.CTkLabel",
-            fg_color="transparent",
-            text_color=get_colors("color_background_tertiary"),
-            # text_color=get_colors("color_text_muted"),
-            font=ctk.CTkFont(
-                family=ctk.ThemeManager.theme["Dnd.CustomFont"]["family"],
-                size=ctk.ThemeManager.theme["Dnd.CustomFont"]["size"],
-                weight=ctk.ThemeManager.theme["Dnd.CustomFont"]["weight"],
-            ),
-        )
-
-        CtkStyleManager.define_style(
-            "Transparent.CTkFrame",
-            fg_color="transparent",
-            # border_color="red",
-            # border_width=1,
-        )
-
-        CtkStyleManager.define_style(
-            "Generic.CTkButton",
-            font=ctk.CTkFont(
-                family=ctk.ThemeManager.theme["Generic.Button.CustomFont"]["family"],
-                size=ctk.ThemeManager.theme["Generic.Button.CustomFont"]["size"],
-                weight=ctk.ThemeManager.theme["Generic.Button.CustomFont"]["weight"],
-            ),
-        )
-
-        CtkStyleManager.define_style(
-            "Action.CTkButton",
-            fg_color=get_colors("color_accent_primary"),
-            hover_color=get_colors("color_accent_secondary"),
-            border_color=get_colors("color_accent_secondary"),
-            font=ctk.CTkFont(
-                family=ctk.ThemeManager.theme["Action.Button.CustomFont"]["family"],
-                size=ctk.ThemeManager.theme["Action.Button.CustomFont"]["size"],
-                weight=ctk.ThemeManager.theme["Action.Button.CustomFont"]["weight"],
-            ),
-        )
-
-        CtkStyleManager.define_style(
-            "Custom.CTkListbox",
-            fg_color="transparent",
-            border_color=get_colors("color_background_tertiary"),
-            text_color=get_colors("color_text_primary"),
-            button_color="transparent",
-            hover_color=get_colors("color_accent_tertiary", True),
-            highlight_color=get_colors("color_accent_tertiary"),
-            font=ctk.CTkFont(
-                family=ctk.ThemeManager.theme["List.CustomFont"]["family"],
-                size=ctk.ThemeManager.theme["List.CustomFont"]["size"],
-                weight=ctk.ThemeManager.theme["List.CustomFont"]["weight"],
-            ),
-        )
-
-    def adjust_to_content(self, root=None, adjust_width=False, adjust_height=False):
-        root = root or self
-
-        root.update_idletasks()
-        current_width = root.winfo_reqwidth()
-        current_height = root.winfo_reqheight()
-
-        def set_minsize(previous_width, previous_height):
-            root.minsize(
-                min(previous_width, root._current_width),
-                min(previous_height, root._current_height),
-            )
-
-        root.after(1009, lambda: set_minsize(current_width, current_height))
-
-        root.resizable(adjust_width, adjust_height)
-
-    def on_closing(self):
-        # self.customization_manager.reset()
-        self.window_manager.close_window(self)
-
-    @staticmethod
-    def _create_ctk_widget(
-        ctk_widget,
-        widget_args,
-        widget_style=None,
-        grid_args=None,
-        row_weights=None,
-        column_weights=None,
-    ):
-        widget = ctk_widget(**widget_args)
-        if widget_style:
-            CtkStyleManager.apply_style(widget, widget_style)
-        widget.grid(**grid_args)
-        if row_weights:
-            for row_index, weight in row_weights:
-                widget.grid_rowconfigure(row_index, weight=weight)
-        if column_weights:
-            for column_index, weight in column_weights:
-                widget.grid_columnconfigure(column_index, weight=weight)
-        return widget
-
-    def _create_header(self, text):
-        self._create_ctk_widget(
-            ctk_widget=ctk.CTkLabel,
-            widget_args={
-                "master": self,
-                "text": text,
-                "anchor": "center",
-                "pady": self.padding,
-            },
-            widget_style="Header.CTkLabel",
-            grid_args={"row": 0, "column": 0, "sticky": "nsew"},
-            row_weights=None,
-            column_weights=None,
-        )
-
-    def _create_buttons(
-        self,
-        buttons,
-        parent,
-        frame_grid_args=None,
-        row_weights=None,
-        column_weights=None,
-    ):
-        button_frame = self._create_ctk_widget(
-            ctk_widget=ctk.CTkFrame,
-            widget_args={"master": parent},
-            widget_style="Transparent.CTkFrame",
-            grid_args={**frame_grid_args},
-            row_weights=row_weights,
-            column_weights=column_weights,
-        )
-
-        for button_config in buttons["custom"]:
-            self._create_ctk_widget(
-                ctk_widget=ctk.CTkButton,
-                widget_args={
-                    "master": button_frame,
-                    "text": button_config.get("text", "test"),
-                    "width": button_config.get("width", 0),
-                    "height": button_config.get("height", 0),
-                    "command": button_config.get("command", None),
-                },
-                widget_style=button_config.get("style", "Generic.CTkButton"),
-                grid_args={
-                    "row": button_config.get("row", 0),
-                    "column": button_config.get("column", 0),
-                    "columnspan": button_config.get("columnspan", 1),
-                    "rowspan": button_config.get("rowspan", 1),
-                    "sticky": buttons["grid"].get("sticky", ""),
-                    "padx": buttons["grid"].get("padx", 0),
-                    "pady": buttons["grid"].get("pady", 0),
-                },
-                row_weights=None,
-                column_weights=None,
-            )
-
-    def open_gui(self, gui_class):
-        # self.customization_manager.reset()
-        log.debug(f"Opening {gui_class}...")
-        self.window_manager.open_window(self, gui_class)
-
-    def run(self):
-        self.mainloop()
+from tkinterdnd2 import DND_FILES
 
 
 class GUI_LaunchScreen(GUI_Base):
@@ -503,6 +28,7 @@ class GUI_LaunchScreen(GUI_Base):
 
         log.info("Launch screen opened.")
 
+    # !RENAME method
     def _setup2(self):
         self._create_header(text=translate("launch_screen_header"))
 
@@ -549,6 +75,12 @@ class GUI_LaunchScreen(GUI_Base):
 
     def _open_merge_gui(self):
         self.open_gui(GUI_MergeScreen)
+
+    def on_closing(self):
+        # self.customization_manager.reset()
+        self.window_manager.close_window(
+            self, forced=True
+        )  # !FIXME need to refactor window_manager.close_window
 
 
 class GUI_Secondary(GUI_Base):
@@ -773,7 +305,6 @@ class GUI_Secondary(GUI_Base):
                     "style": "Action.CTkButton",
                     "width": 170,
                     "height": 40,
-                    "accent": True,
                     "row": 1,
                     "column": 0,
                 },
@@ -1076,7 +607,6 @@ class GUI_MergeScreen(GUI_Secondary):
         super().__init__(title=translate("merge_screen_title"))
         self._create_sections()
 
-        self.adjust_to_content(adjust_width=True)
         log.info("Merge screen opened.")
 
     def _create_sections(self):

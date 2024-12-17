@@ -13,7 +13,7 @@ from config.metadata import (
     LEGAL_NOTICE,
 )
 from config.settings import settings, translate
-from gui.gui_toplevel import GUI_SettingsMenu
+from gui.GUI_SettingsMenu import GUI_SettingsMenu
 
 
 class MenuRibbon:
@@ -77,7 +77,9 @@ class MenuRibbon:
         parent_menu.add_cascade(label=menu_label, menu=submenu)
 
     def _add_merging_engine_menu(self, parent_menu):
-        self.selected_engine = tk.StringVar(value=settings.MERGING_ENGINE)
+        self.selected_engine = tk.StringVar(
+            master=self.root, value=settings.MERGING_ENGINE
+        )
         self._add_option_menu(
             parent_menu=parent_menu,
             menu_label=translate("menu_preferences_merging_engine"),
@@ -90,7 +92,9 @@ class MenuRibbon:
         )
 
     def _add_language_menu(self, parent_menu):
-        self.selected_language = tk.StringVar(value=settings.LANG_NAME)
+        self.selected_language = tk.StringVar(
+            master=self.root, value=settings.LANG_NAME
+        )
         self._add_option_menu(
             parent_menu=parent_menu,
             menu_label=translate("menu_preferences_language"),
@@ -101,7 +105,7 @@ class MenuRibbon:
         )
 
     def _add_theme_menu(self, parent_menu):
-        self.selected_theme = tk.StringVar(value=settings.THEME_NAME)
+        self.selected_theme = tk.StringVar(master=self.root, value=settings.THEME_NAME)
         self._add_option_menu(
             parent_menu=parent_menu,
             menu_label=translate("menu_preferences_theme"),
@@ -128,7 +132,7 @@ class MenuRibbon:
 
     def open_settings_window(self):
         log.debug("Opening settings menu...")
-        GUI_SettingsMenu(parent=self.root)
+        self.root.open_gui(gui_class=GUI_SettingsMenu, toplevel=True)
 
     def show_license(self):
         messagebox.showinfo(translate("menu_help_license"), LEGAL_NOTICE)
