@@ -92,6 +92,11 @@ class Settings:
         # self.THEME_DICT = get_theme_dict(self.THEME_NAME)  #!delme
         self.ALL_LANG_NAMES = get_available_languages()
         self.ALL_THEME_NAMES = ThemeManager.get_available_theme_names()
+        self.TOOL_LINKS = {
+            "repak_link": "https://github.com/trumank/repak/releases",
+            "winmerge_link": "https://winmerge.org",
+            "kdiff3_link": "https://kdiff3.sourceforge.io",
+        }
 
     def update_config(self, section, key, value):
         self.set(section, key, value)

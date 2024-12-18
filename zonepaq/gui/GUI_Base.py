@@ -93,7 +93,7 @@ class GUI_Base(CTk):
 
     def on_closing(self):
         # self.customization_manager.reset()
-        self.window_manager.close_window(self)
+        self.window_manager.close_window(self, forced=True)
 
     def create_ctk_widget(
         self,

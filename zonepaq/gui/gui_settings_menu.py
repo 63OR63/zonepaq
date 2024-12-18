@@ -1,3 +1,4 @@
+from functools import partial
 from backend.logger import log
 from backend.tools import Data
 from config.settings import settings, translate
@@ -25,6 +26,10 @@ class GUI_SettingsMenu(GUI_Base):
 
         self.adjust_to_content(root=self, adjust_width=True)
         log.info("Settings menu opened.")
+
+    # def on_closing(self):
+    #     self.window_manager.close_window(self)
+    #     self.destroy()
 
     def _create_tabview_layout(self):
         self.create_header(
@@ -116,15 +121,21 @@ class GUI_SettingsMenu(GUI_Base):
                     "type": ".exe",
                     "buttons": [
                         {
-                            "command": lambda entry_variable, entry_type: lambda: self._open_path_browse_dialog(
-                                entry_variable, entry_type
+                            "command": self._open_path_browse_dialog,
+                            "params": (
+                                "entry_variable",
+                                "entry_type",
+                                "entry_widget",
+                                "settings_key",
                             ),
                             "text": translate("menu_preferences_settings_browse"),
                             "style": "Generic.CTkButton",
                         },
                         {
-                            "command": lambda entry_variable, entry_type: lambda: self._open_path_browse_dialog(
-                                entry_variable, entry_type
+                            "command": self._install_tool,
+                            "params": (
+                                settings.TOOL_LINKS["repak_link"],
+                                "entry_variable",
                             ),
                             "text": "Install",
                             "style": "Alt.CTkButton",
@@ -137,15 +148,21 @@ class GUI_SettingsMenu(GUI_Base):
                     "type": ".exe",
                     "buttons": [
                         {
-                            "command": lambda entry_variable, entry_type: lambda: self._open_path_browse_dialog(
-                                entry_variable, entry_type
+                            "command": self._open_path_browse_dialog,
+                            "params": (
+                                "entry_variable",
+                                "entry_type",
+                                "entry_widget",
+                                "settings_key",
                             ),
                             "text": translate("menu_preferences_settings_browse"),
                             "style": "Generic.CTkButton",
                         },
                         {
-                            "command": lambda entry_variable, entry_type: lambda: self._open_path_browse_dialog(
-                                entry_variable, entry_type
+                            "command": self._install_tool,
+                            "params": (
+                                settings.TOOL_LINKS["winmerge_link"],
+                                "entry_variable",
                             ),
                             "text": "Install",
                             "style": "Alt.CTkButton",
@@ -158,15 +175,21 @@ class GUI_SettingsMenu(GUI_Base):
                     "type": ".exe",
                     "buttons": [
                         {
-                            "command": lambda entry_variable, entry_type: lambda: self._open_path_browse_dialog(
-                                entry_variable, entry_type
+                            "command": self._open_path_browse_dialog,
+                            "params": (
+                                "entry_variable",
+                                "entry_type",
+                                "entry_widget",
+                                "settings_key",
                             ),
                             "text": translate("menu_preferences_settings_browse"),
                             "style": "Generic.CTkButton",
                         },
                         {
-                            "command": lambda entry_variable, entry_type: lambda: self._open_path_browse_dialog(
-                                entry_variable, entry_type
+                            "command": self._install_tool,
+                            "params": (
+                                settings.TOOL_LINKS["kdiff3_link"],
+                                "entry_variable",
                             ),
                             "text": "Install",
                             "style": "Alt.CTkButton",
@@ -181,16 +204,19 @@ class GUI_SettingsMenu(GUI_Base):
                     "type": "folder",
                     "buttons": [
                         {
-                            "command": lambda entry_variable, entry_type: lambda: self._open_path_browse_dialog(
-                                entry_variable, entry_type
+                            "command": self._open_path_browse_dialog,
+                            "params": (
+                                "entry_variable",
+                                "entry_type",
+                                "entry_widget",
+                                "settings_key",
                             ),
                             "text": translate("menu_preferences_settings_browse"),
                             "style": "Generic.CTkButton",
                         },
                         {
-                            "command": lambda entry_variable, entry_type: lambda: self._open_path_browse_dialog(
-                                entry_variable, entry_type
-                            ),
+                            "command": self._unpack_files,
+                            "params": ("entry_variable"),
                             "text": "Unpack",
                             "style": "Alt.CTkButton",
                         },
@@ -204,7 +230,8 @@ class GUI_SettingsMenu(GUI_Base):
                     "type": "aes",
                     "buttons": [
                         {
-                            "command": lambda *_: lambda: print("test"),
+                            "command": self._get_aes_key,
+                            "params": ("entry_variable"),
                             "text": "Get",
                             "style": "Alt.CTkButton",
                         },
@@ -219,6 +246,15 @@ class GUI_SettingsMenu(GUI_Base):
         )
         for group_name, entries in general_group.items():
             self._create_entry_group(group_frame, group_name, entries)
+
+    def _install_tool(self, link, entry_variable):
+        print(link)
+
+    def _unpack_files(self, entry_variable):
+        print(entry_variable.get())
+
+    def _get_aes_key(self, entry_variable):
+        print(entry_variable.get())
 
     def _create_entry_group(self, master, group_name, entries):
 
@@ -289,11 +325,32 @@ class GUI_SettingsMenu(GUI_Base):
 
         for index, button in enumerate(entry_buttons):
             column_index = 2 + index
+
+            command = button["command"]
+            params = button.get("params", ())
+
+            if not isinstance(params, (list, tuple)):
+                params = (params,)
+
+            resolved_params = []
+            for param in params:
+                if param == "entry_variable":
+                    resolved_params.append(entry_variable)
+                elif param == "entry_type":
+                    resolved_params.append(entry_type)
+                elif param == "entry_widget":
+                    resolved_params.append(entry_widget)
+                elif param == "settings_key":
+                    resolved_params.append(settings_key)
+                else:
+                    resolved_params.append(param)
+            print(resolved_params)
+
             browse_button = self.create_ctk_widget(
                 ctk_widget=ctk.CTkButton,
                 widget_args={
                     "master": master,
-                    "command": button["command"](entry_variable, entry_type),
+                    "command": lambda cmd=command, p=resolved_params: cmd(*p),
                     "text": button["text"],
                     "width": 80,
                 },
@@ -525,7 +582,9 @@ class GUI_SettingsMenu(GUI_Base):
         self.window_manager.close_window(self)
         # self.destroy()
 
-    def _open_path_browse_dialog(self, entry_variable, entry_type):
+    def _open_path_browse_dialog(
+        self, entry_variable, entry_type, entry_widget, settings_key
+    ):
         path = Path(entry_variable.get())
         if path.is_file():
             initial_dir = path.parent
@@ -547,3 +606,7 @@ class GUI_SettingsMenu(GUI_Base):
             if isinstance(selected_path, tuple):
                 selected_path = ";".join(selected_path)
             entry_variable.set(selected_path)
+
+            self._store_temp_path_and_apply_style(
+                settings_key, entry_variable.get(), entry_type, entry_widget
+            )
