@@ -57,21 +57,22 @@ class GUI_Base(CTk):
         log.debug(f"Color theme {color_palette} applied")
 
     def apply_color_theme(self, color_theme):
+        ### Using mocked file
         theme_str = json.dumps(color_theme)
         mocked_file = mock_open(read_data=theme_str)
         with patch("builtins.open", mocked_file):
             ctk.set_default_color_theme("mocked_theme")
 
-        ### Alternative ways to load theme:
-        ### 1.
+        ### Using temp file
         # with tempfile.NamedTemporaryFile(
         #     mode="w", delete=False, suffix=".json"
         # ) as tmp_file:
         #     json.dump(self.color_theme, tmp_file)  # Write the JSON data
         #     tmp_file.close()  # Close the file to release the lock
         #     ctk.set_default_color_theme(tmp_file.name)
-        ### 2.
-        # ctk.set_default_color_theme(Path("zonepaq/config/themes2/Nord.json"))
+
+        ### Using predefined .json file
+        # ctk.set_default_color_theme(Path(f"zonepaq/config/themes/{color_theme}.json"))
 
     def adjust_to_content(self, root=None, adjust_width=False, adjust_height=False):
         root = root or self

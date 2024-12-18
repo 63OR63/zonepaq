@@ -63,6 +63,7 @@ def build_win():
         f"{metadata.APP_ICONS['png']};{Path(metadata.APP_ICONS['png']).parent}",
         "--version-file",
         version_file,
+        "--additional-hooks-dir=hooks",
         entry_point,
     ]
 
@@ -79,6 +80,7 @@ def build_macos():
         metadata.APP_ICONS["icns"],
         "--add-data",
         f"{metadata.APP_ICONS['png']};{Path(metadata.APP_ICONS['png']).parent}",
+        "--additional-hooks-dir=hooks",
         entry_point,
     ]
 
@@ -95,6 +97,7 @@ def build_linux():
         metadata.APP_ICONS["png"],
         "--add-data",
         f"{metadata.APP_ICONS['png']};{Path(metadata.APP_ICONS['png']).parent}",
+        "--additional-hooks-dir=hooks",
         entry_point,
     ]
 
