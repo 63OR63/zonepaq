@@ -223,6 +223,52 @@ class GUI_Base(CTk):
             column_weights=column_weights,
         )
 
+    def create_spacer(
+        self,
+        master,
+        style="Transparent.CTkFrame",
+        row="current",
+        column=0,
+        rowspan=1,
+        columnspan=999,
+        sticky="nsew",
+        padx=0,
+        pady=0,
+        row_weights=None,
+        column_weights=None,
+        **kwargs,
+    ):
+        if row == "current":
+            row = self._get_next_row(master)
+        elif isinstance(row, str) and row.startswith(("+", "-")):
+            row = max(eval(f"{self._get_next_row(master)} {row}"), 0)
+
+        if column == "current":
+            column = self._get_next_column(master)
+        elif isinstance(row, str) and row.startswith(("+", "-")):
+            column = max(eval(f"{self._get_next_column(master)} {column}"), 0)
+
+        widget_args = {"master": master, "height": self.padding / 2}
+
+        widget_args.update(kwargs)
+
+        return self.create_ctk_widget(
+            ctk_widget=ctk.CTkFrame,
+            widget_args=widget_args,
+            widget_style=style,
+            grid_args={
+                "row": row,
+                "column": column,
+                "rowspan": rowspan,
+                "columnspan": columnspan,
+                "sticky": sticky,
+                "padx": padx,
+                "pady": pady,
+            },
+            row_weights=row_weights,
+            column_weights=column_weights,
+        )
+
     def create_hints(self, master, hints, row="current", column=0):
         if eval(settings.SHOW_HINTS) and hints:
             if row == "current":

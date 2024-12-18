@@ -101,9 +101,6 @@ class GUI_SettingsMenu(GUI_Base):
                     "type": ".exe",
                 },
             },
-        }
-
-        vanilla_group = {
             translate("menu_preferences_settings_path_game"): {
                 "vanilla_unpacked": {
                     "path_dict": settings.GAME_PATHS,
@@ -111,9 +108,6 @@ class GUI_SettingsMenu(GUI_Base):
                     "type": "folder",
                 },
             },
-        }
-
-        aes_group = {
             translate("menu_preferences_settings_aes_key"): {
                 "aes_key": {
                     "path_dict": {"aes_key": settings.AES_KEY},
@@ -123,14 +117,12 @@ class GUI_SettingsMenu(GUI_Base):
             },
         }
 
+        group_frame = self.create_frame(
+            general_tabview_frame,
+            column_weights=[(0, 0), (1, 1), (2, 0)],
+        )
         for group_name, paths in path_group.items():
-            self._create_entry_group(general_tabview_frame, group_name, paths)
-
-        for group_name, paths in vanilla_group.items():
-            self._create_entry_group(general_tabview_frame, group_name, paths)
-
-        for group_name, paths in aes_group.items():
-            self._create_entry_group(general_tabview_frame, group_name, paths)
+            self._create_entry_group(group_frame, group_name, paths)
 
         ####################################################################
 
@@ -218,19 +210,18 @@ class GUI_SettingsMenu(GUI_Base):
 
     def _create_entry_group(self, master, group_name, paths):
 
-        self.create_subheader(master, text=group_name)
-        group_frame = self.create_frame(
-            master, pady=self.padding / 2, column_weights=[(0, 0), (1, 1), (2, 0)]
-        )
+        self.create_subheader(master, text=group_name, column=0)
 
+        self.create_spacer(master)
         for settings_key, path_data in paths.items():
             self._create_entry_line(
-                group_frame,
+                master,
                 path_data["path_dict"],
                 settings_key,
                 path_data["title"],
                 path_data["type"],
             )
+        self.create_spacer(master)
 
     def _create_entry_line(
         self, master, path_dict, settings_key, path_title, entry_type
