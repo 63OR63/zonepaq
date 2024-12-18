@@ -116,7 +116,7 @@ class GUI_Base(CTk):
                 widget.grid_columnconfigure(column_index, weight=weight)
         return widget
 
-    def create_header(self, master, text="", row="current", column="current"):
+    def create_header(self, master, text="", row="current", column=0):
         if row == "current":
             row = self._get_next_row(master)
         elif isinstance(row, str) and row.startswith(("+", "-")):
@@ -146,7 +146,7 @@ class GUI_Base(CTk):
             column_weights=None,
         )
 
-    def create_subheader(self, master, text="", row="current", column="current"):
+    def create_subheader(self, master, text="", row="current", column=0):
         if row == "current":
             row = self._get_next_row(master)
         elif isinstance(row, str) and row.startswith(("+", "-")):
@@ -349,9 +349,9 @@ class GUI_Base(CTk):
         }
 
         if width:
-            widget_args[width] = width
+            widget_args["width"] = width
         if height:
-            widget_args[height] = height
+            widget_args["height"] = height
 
         widget_args.update(kwargs)
 

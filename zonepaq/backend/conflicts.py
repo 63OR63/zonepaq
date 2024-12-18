@@ -26,7 +26,7 @@ class ConflictProcessor:
         tool_paths = settings.TOOLS_PATHS
         if merging_engine == "WinMerge":
             engine_path = Path(tool_paths.get("winmerge"))
-        elif merging_engine == "kdiff3":
+        elif merging_engine == "KDiff3":
             engine_path = Path(tool_paths.get("kdiff3"))
         if not Files.is_existing_file_type(engine_path, ".exe"):
             log.error(f"{merging_engine} executable isn't found at {str(engine_path)}")

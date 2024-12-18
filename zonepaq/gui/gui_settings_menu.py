@@ -18,11 +18,15 @@ class GUI_SettingsMenu(GUI_Base):
         super().__init__(title=translate("menu_preferences_settings"))
         self.padding = self.padding
         self.temp_storage = {}  # Temporary storage for entries values
-        self._add_settings_groups()
+        self._create_tabview_layout()
+        self._add_general_tabview(self.general_tabview_frame)
+        self._add_appearance_tabview(self.appearance_tabview_frame)
+        self.show_frame(self.general_tabview_frame)
+
         self.adjust_to_content(root=self, adjust_width=True)
         log.info("Settings menu opened.")
 
-    def _add_settings_groups(self):
+    def _create_tabview_layout(self):
         self.create_header(
             self, text=translate("menu_preferences_settings"), row=0, column=0
         )
@@ -35,21 +39,20 @@ class GUI_SettingsMenu(GUI_Base):
             columnspan=1,
         )
 
-        general_tabview_frame = self.create_frame(
+        self.general_tabview_frame = self.create_frame(
             self,
             style="Primary.CTkFrame",
             row=1,
             column=1,
             column_weights=[(0, 1)],
         )
-        appearance_tabview_frame = self.create_frame(
+        self.appearance_tabview_frame = self.create_frame(
             self,
             style="Primary.CTkFrame",
             row=1,
             column=1,
             column_weights=[(0, 1)],
         )
-        self.show_frame(general_tabview_frame)
 
         self.grid_columnconfigure(0, weight=0)
         self.grid_columnconfigure(1, weight=1)
@@ -58,21 +61,42 @@ class GUI_SettingsMenu(GUI_Base):
             self, column=0, style="Tertiary.CTkFrame", column_weights=[(0, 1)]
         )
 
+        self.create_ctk_widget(
+            ctk_widget=ctk.CTkLabel,
+            widget_args={
+                "master": save_frame,
+                "text": "* Require a restart for changes to take effect",
+                "anchor": "e",
+                "pady": self.padding / 2,
+            },
+            widget_style="Hints2.CTkLabel",
+            grid_args={
+                "row": self._get_next_row(save_frame),
+                "column": 0,
+                "sticky": "e",
+            },
+            row_weights=None,
+            column_weights=None,
+        )
+
         save_button = self.create_button(
             save_frame,
             text=translate("menu_preferences_settings_save"),
             command=self._save_settings_and_close,
             style="Action.CTkButton",
-            padx=self.padding / 2,
+            width=80 * 2 + self.padding,
+            padx=self.padding,
             pady=self.padding / 2,
             sticky="e",
+            row="-1",
+            column=1,
         )
 
         general_button = self.create_button(
             sidebar_frame,
             text="General",
             corner_radius=0,
-            command=lambda: self.show_frame(general_tabview_frame),
+            command=lambda: self.show_frame(self.general_tabview_frame),
         )
 
         appearance_button = self.create_button(
@@ -80,25 +104,74 @@ class GUI_SettingsMenu(GUI_Base):
             text="Appearance",
             style="Muted.CTkButton",
             corner_radius=0,
-            command=lambda: self.show_frame(appearance_tabview_frame),
+            command=lambda: self.show_frame(self.appearance_tabview_frame),
         )
 
-        path_group = {
+    def _add_general_tabview(self, master):
+        general_group = {
             translate("menu_preferences_settings_path_tools"): {
                 "repak_cli": {
                     "path_dict": settings.TOOLS_PATHS,
                     "title": "repak",
                     "type": ".exe",
+                    "buttons": [
+                        {
+                            "command": lambda entry_variable, entry_type: lambda: self._open_path_browse_dialog(
+                                entry_variable, entry_type
+                            ),
+                            "text": translate("menu_preferences_settings_browse"),
+                            "style": "Generic.CTkButton",
+                        },
+                        {
+                            "command": lambda entry_variable, entry_type: lambda: self._open_path_browse_dialog(
+                                entry_variable, entry_type
+                            ),
+                            "text": "Install",
+                            "style": "Alt.CTkButton",
+                        },
+                    ],
                 },
                 "winmerge": {
                     "path_dict": settings.TOOLS_PATHS,
                     "title": "WinMerge",
                     "type": ".exe",
+                    "buttons": [
+                        {
+                            "command": lambda entry_variable, entry_type: lambda: self._open_path_browse_dialog(
+                                entry_variable, entry_type
+                            ),
+                            "text": translate("menu_preferences_settings_browse"),
+                            "style": "Generic.CTkButton",
+                        },
+                        {
+                            "command": lambda entry_variable, entry_type: lambda: self._open_path_browse_dialog(
+                                entry_variable, entry_type
+                            ),
+                            "text": "Install",
+                            "style": "Alt.CTkButton",
+                        },
+                    ],
                 },
                 "kdiff3": {
                     "path_dict": settings.TOOLS_PATHS,
-                    "title": "kdiff3",
+                    "title": "KDiff3",
                     "type": ".exe",
+                    "buttons": [
+                        {
+                            "command": lambda entry_variable, entry_type: lambda: self._open_path_browse_dialog(
+                                entry_variable, entry_type
+                            ),
+                            "text": translate("menu_preferences_settings_browse"),
+                            "style": "Generic.CTkButton",
+                        },
+                        {
+                            "command": lambda entry_variable, entry_type: lambda: self._open_path_browse_dialog(
+                                entry_variable, entry_type
+                            ),
+                            "text": "Install",
+                            "style": "Alt.CTkButton",
+                        },
+                    ],
                 },
             },
             translate("menu_preferences_settings_path_game"): {
@@ -106,6 +179,22 @@ class GUI_SettingsMenu(GUI_Base):
                     "path_dict": settings.GAME_PATHS,
                     "title": translate("menu_preferences_settings_vanilla_unpacked"),
                     "type": "folder",
+                    "buttons": [
+                        {
+                            "command": lambda entry_variable, entry_type: lambda: self._open_path_browse_dialog(
+                                entry_variable, entry_type
+                            ),
+                            "text": translate("menu_preferences_settings_browse"),
+                            "style": "Generic.CTkButton",
+                        },
+                        {
+                            "command": lambda entry_variable, entry_type: lambda: self._open_path_browse_dialog(
+                                entry_variable, entry_type
+                            ),
+                            "text": "Unpack",
+                            "style": "Alt.CTkButton",
+                        },
+                    ],
                 },
             },
             translate("menu_preferences_settings_aes_key"): {
@@ -113,118 +202,42 @@ class GUI_SettingsMenu(GUI_Base):
                     "path_dict": {"aes_key": settings.AES_KEY},
                     "title": translate("menu_preferences_settings_aes_key"),
                     "type": "aes",
+                    "buttons": [
+                        {
+                            "command": lambda *_: lambda: print("test"),
+                            "text": "Get",
+                            "style": "Alt.CTkButton",
+                        },
+                    ],
                 },
             },
         }
 
         group_frame = self.create_frame(
-            general_tabview_frame,
+            master,
             column_weights=[(0, 0), (1, 1), (2, 0)],
         )
-        for group_name, paths in path_group.items():
-            self._create_entry_group(group_frame, group_name, paths)
+        for group_name, entries in general_group.items():
+            self._create_entry_group(group_frame, group_name, entries)
 
-        ####################################################################
-
-        self.create_subheader(appearance_tabview_frame, text="test")
-
-        group_frame = self.create_frame(
-            appearance_tabview_frame,
-            pady=self.padding / 2,
-            column_weights=[(0, 0), (1, 0), (2, 0)],
-        )
-        current_row = self._get_next_row(group_frame)
-
-        self.create_ctk_widget(
-            ctk_widget=ctk.CTkLabel,
-            widget_args={
-                "master": group_frame,
-                "text": f"{'test'}:",
-                "anchor": "w",
-                "pady": self.padding / 5,
-            },
-            grid_args={
-                "row": current_row,
-                "column": 0,
-                "sticky": "w",
-                "padx": self.padding,
-            },
-            row_weights=None,
-            column_weights=None,
-        )
-
-        self.selected_theme = ctk.StringVar(master=self, value=settings.THEME_NAME)
-
-        color_theme_widget = self.create_ctk_widget(
-            ctk_widget=ctk.CTkOptionMenu,
-            widget_args={
-                "master": group_frame,
-                "variable": self.selected_theme,
-                "values": settings.ALL_THEME_NAMES,
-                "command": lambda selected_theme=self.selected_theme: (
-                    self.restyle(selected_theme),
-                    # self.after_idle(self.relaunch_app),
-                ),
-                "anchor": "w",
-            },
-            grid_args={
-                "row": current_row,
-                "column": 1,
-                "sticky": "w",
-                "padx": (0, self.padding),
-                "pady": self.padding / 5,
-            },
-            row_weights=None,
-            column_weights=None,
-        )
-
-        self.dark_mode_widget = self.create_ctk_widget(
-            ctk_widget=ctk.CTkSwitch,
-            widget_args={
-                "master": group_frame,
-                "text": "Dark Mode",
-                "onvalue": True,
-                "offvalue": False,
-                "command": self.switch_dark_mode,
-            },
-            grid_args={
-                "row": current_row,
-                "column": 2,
-                "sticky": "w",
-                "padx": (0, self.padding),
-                "pady": self.padding / 5,
-            },
-            row_weights=None,
-            column_weights=None,
-        )
-
-    def switch_dark_mode(self):
-        if self.dark_mode_widget.get():
-            ctk.set_appearance_mode("dark")
-        else:
-            ctk.set_appearance_mode("light")
-
-    def show_frame(self, frame):
-        frame.tkraise()
-        # self.adjust_to_content(root=self, adjust_width=True)  # !FIXME
-
-    def _create_entry_group(self, master, group_name, paths):
+    def _create_entry_group(self, master, group_name, entries):
 
         self.create_subheader(master, text=group_name, column=0)
 
         self.create_spacer(master)
-        for settings_key, path_data in paths.items():
+        for settings_key, entry_data in entries.items():
             self._create_entry_line(
                 master,
-                path_data["path_dict"],
+                entry_data["path_dict"],
                 settings_key,
-                path_data["title"],
-                path_data["type"],
+                entry_data["title"],
+                entry_data["type"],
+                entry_data["buttons"],
             )
         self.create_spacer(master)
 
     def _create_entry_line(
-        self, master, path_dict, settings_key, path_title, entry_type
+        self, master, path_dict, settings_key, path_title, entry_type, entry_buttons
     ):
         current_row = self._get_next_row(master)
 
@@ -274,22 +287,21 @@ class GUI_SettingsMenu(GUI_Base):
             settings_key, entry_variable.get(), entry_type, entry_widget
         )
 
-        if entry_type in ("folder", ".exe"):
+        for index, button in enumerate(entry_buttons):
+            column_index = 2 + index
             browse_button = self.create_ctk_widget(
                 ctk_widget=ctk.CTkButton,
                 widget_args={
                     "master": master,
-                    "command": lambda: self._open_path_browse_dialog(
-                        entry_variable, entry_type
-                    ),
-                    "text": translate("menu_preferences_settings_browse"),
-                    "width": 0,
+                    "command": button["command"](entry_variable, entry_type),
+                    "text": button["text"],
+                    "width": 80,
                 },
-                widget_style="Generic.CTkButton",
+                widget_style=button["style"],
                 grid_args={
                     "row": current_row,
-                    "column": 2,
-                    "sticky": "e",
+                    "column": column_index,
+                    "sticky": "w",
                     "padx": (0, self.padding),
                     "pady": self.padding / 5,
                 },
@@ -303,6 +315,184 @@ class GUI_SettingsMenu(GUI_Base):
                 settings_key, entry_variable.get(), entry_type, entry_widget
             ),
         )
+
+    def _add_appearance_tabview(self, master):
+
+        group_frame = self.create_frame(
+            master,
+            column_weights=[(4, 1)],
+        )
+
+        self.create_subheader(group_frame, text="Theming")
+        self.create_spacer(group_frame)
+
+        current_row = self._get_next_row(group_frame)
+
+        self.create_ctk_widget(
+            ctk_widget=ctk.CTkLabel,
+            widget_args={
+                "master": group_frame,
+                "text": f"{'Color theme'} *:",
+                "anchor": "w",
+                "pady": self.padding / 5,
+            },
+            grid_args={
+                "row": current_row,
+                "column": 0,
+                "sticky": "w",
+                "padx": self.padding,
+            },
+            row_weights=None,
+            column_weights=None,
+        )
+
+        self.selected_theme = ctk.StringVar(master=self, value=settings.THEME_NAME)
+        color_theme_widget = self.create_ctk_widget(
+            ctk_widget=ctk.CTkOptionMenu,
+            widget_args={
+                "master": group_frame,
+                "variable": self.selected_theme,
+                "values": settings.ALL_THEME_NAMES,
+                "command": lambda selected_theme=self.selected_theme: (
+                    settings.update_config("SETTINGS", "theme_name", selected_theme),
+                ),
+                "anchor": "w",
+            },
+            grid_args={
+                "row": current_row,
+                "column": 1,
+                "sticky": "w",
+                "padx": (0, self.padding),
+                "pady": self.padding / 5,
+            },
+            row_weights=None,
+            column_weights=None,
+        )
+
+        self.dark_mode_widget = self.create_ctk_widget(
+            ctk_widget=ctk.CTkSwitch,
+            widget_args={
+                "master": group_frame,
+                "text": "Dark Mode",
+                "onvalue": True,
+                "offvalue": False,
+                "command": self.switch_dark_mode,
+            },
+            grid_args={
+                "row": current_row,
+                "column": 2,
+                "sticky": "w",
+                "padx": (0, self.padding),
+                "pady": self.padding / 5,
+            },
+            row_weights=None,
+            column_weights=None,
+        )
+
+        self.create_spacer(group_frame)
+        self.create_subheader(group_frame, text="Interface Language")
+        self.create_spacer(group_frame)
+
+        current_row = self._get_next_row(group_frame)
+
+        self.create_ctk_widget(
+            ctk_widget=ctk.CTkLabel,
+            widget_args={
+                "master": group_frame,
+                "text": f"{'Language'} *:",
+                "anchor": "w",
+                "pady": self.padding / 5,
+            },
+            grid_args={
+                "row": current_row,
+                "column": 0,
+                "sticky": "w",
+                "padx": self.padding,
+            },
+            row_weights=None,
+            column_weights=None,
+        )
+
+        self.selected_lang = ctk.StringVar(master=self, value=settings.LANG_NAME)
+        language_widget = self.create_ctk_widget(
+            ctk_widget=ctk.CTkOptionMenu,
+            widget_args={
+                "master": group_frame,
+                "variable": self.selected_lang,
+                "values": list(settings.ALL_LANG_NAMES),
+                "command": lambda selected_lang=self.selected_lang: (
+                    settings.update_config("SETTINGS", "lang_name", selected_lang),
+                ),
+                "anchor": "w",
+            },
+            grid_args={
+                "row": current_row,
+                "column": 1,
+                "sticky": "w",
+                "padx": (0, self.padding),
+                "pady": self.padding / 5,
+            },
+            row_weights=None,
+            column_weights=None,
+        )
+
+        self.create_spacer(group_frame)
+        self.create_subheader(group_frame, text="Accesibility")
+        self.create_spacer(group_frame)
+
+        current_row = self._get_next_row(group_frame)
+
+        self.create_ctk_widget(
+            ctk_widget=ctk.CTkLabel,
+            widget_args={
+                "master": group_frame,
+                "text": f"{'Hints'} *:",
+                "anchor": "w",
+                "pady": self.padding / 5,
+            },
+            grid_args={
+                "row": current_row,
+                "column": 0,
+                "sticky": "w",
+                "padx": self.padding,
+            },
+            row_weights=None,
+            column_weights=None,
+        )
+
+        self.show_hints = ctk.BooleanVar(value=settings.SHOW_HINTS)
+        self.show_hints_widget = self.create_ctk_widget(
+            ctk_widget=ctk.CTkSwitch,
+            widget_args={
+                "master": group_frame,
+                "text": "Show Hints",
+                "variable": self.show_hints,
+                "onvalue": True,
+                "offvalue": False,
+                "command": self.switch_hints,
+            },
+            grid_args={
+                "row": current_row,
+                "column": 1,
+                "sticky": "w",
+                "padx": (0, self.padding),
+                "pady": self.padding / 5,
+            },
+            row_weights=None,
+            column_weights=None,
+        )
+
+    def switch_dark_mode(self):
+        if self.dark_mode_widget.get():
+            ctk.set_appearance_mode("dark")
+        else:
+            ctk.set_appearance_mode("light")
+
+    def switch_hints(self):
+        settings.update_config("SETTINGS", "show_hints", self.show_hints_widget.get())
+
+    def show_frame(self, frame):
+        frame.tkraise()
 
     def _store_temp_path_and_apply_style(
         self, settings_key, new_value, entry_type, entry_widget

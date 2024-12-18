@@ -481,6 +481,17 @@ class StyleManager:
         )
 
         cls.define_style(
+            "Hints2.CTkLabel",
+            fg_color="transparent",
+            text_color=ThemeManager.get_colors("color_text_secondary", color_palette),
+            font=ctk.CTkFont(
+                family=ctk.ThemeManager.theme["Hints.CustomFont"]["family"],
+                size=ctk.ThemeManager.theme["Hints.CustomFont"]["size"],
+                weight=ctk.ThemeManager.theme["Hints.CustomFont"]["weight"],
+            ),
+        )
+
+        cls.define_style(
             "Dnd.CTkLabel",
             fg_color="transparent",
             text_color=ThemeManager.get_colors(
@@ -528,6 +539,22 @@ class StyleManager:
 
         cls.define_style(
             "Generic.CTkButton",
+            font=ctk.CTkFont(
+                family=ctk.ThemeManager.theme["Generic.Button.CustomFont"]["family"],
+                size=ctk.ThemeManager.theme["Generic.Button.CustomFont"]["size"],
+                weight=ctk.ThemeManager.theme["Generic.Button.CustomFont"]["weight"],
+            ),
+        )
+
+        cls.define_style(
+            "Alt.CTkButton",
+            fg_color=ThemeManager.get_colors("color_accent_primary", color_palette),
+            hover_color=ThemeManager.get_colors(
+                "color_accent_secondary", color_palette
+            ),
+            border_color=ThemeManager.get_colors(
+                "color_accent_secondary", color_palette
+            ),
             font=ctk.CTkFont(
                 family=ctk.ThemeManager.theme["Generic.Button.CustomFont"]["family"],
                 size=ctk.ThemeManager.theme["Generic.Button.CustomFont"]["size"],

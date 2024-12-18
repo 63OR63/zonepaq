@@ -84,7 +84,7 @@ class MenuRibbon:
         self._add_option_menu(
             parent_menu=parent_menu,
             menu_label=translate("menu_preferences_merging_engine"),
-            options=["WinMerge", "kdiff3"],
+            options=["WinMerge", "KDiff3"],
             selected_option=self.selected_engine,
             apply_function=lambda engine_name, window=None: settings.update_config(
                 "SETTINGS", "merging_engine", engine_name

@@ -14,7 +14,7 @@ The application is user-friendly, featuring an intuitive GUI that allows modders
 ## Quick start
 
 1. Download and install **[repak_cli](https://github.com/trumank/repak/releases)**
-2. Download and install **[kdiff3](https://sourceforge.net/projects/kdiff3/files)** and/or **[WinMerge](https://winmerge.org/downloads)**
+2. Download and install **[KDiff3](https://sourceforge.net/projects/kdiff3/files)** and/or **[WinMerge](https://winmerge.org/downloads)**
 3. Download the latest release of **[ZonePaq Toolkit](https://github.com/63OR63/zonepaq/releases)**
 4. Run `.exe` file and follow on-screen hints.
 
@@ -24,7 +24,7 @@ The application is user-friendly, featuring an intuitive GUI that allows modders
 
 - **Python 3.8+** (ensure it is installed on your system)
 - **Python dependencies**: None. The application is built on default modules.
-- **[repak_cli](https://github.com/trumank/repak)**, **[kdiff3](https://kdiff3.sourceforge.net)** and/or **[WinMerge](https://winmerge.org)**
+- **[repak_cli](https://github.com/trumank/repak)**, **[KDiff3](https://kdiff3.sourceforge.net)** and/or **[WinMerge](https://winmerge.org)**
 
 ### Steps to Install
 
@@ -50,7 +50,7 @@ You can compile an executable for your operating system by running `python build
 
 2. Make sure the paths are set correctly. At a minimum, you need to set paths for:
     - **repak_cli**
-    - Either **kdiff3** or **WinMerge**
+    - Either **KDiff3** or **WinMerge**
 
 3. Once your settings are configured, click **Save** and follow the on-screen instructions.
 
@@ -93,7 +93,7 @@ Yes! The **ZonePaq Toolkit** module will automatically repack files into a `.pak
 
 - ### What external tools are supported for merging conflicts?
 
-Currently, **[WinMerge](https://winmerge.org)** and **[kdiff3](https://kdiff3.sourceforge.net)** are supported.
+Currently, **[WinMerge](https://winmerge.org)** and **[KDiff3](https://kdiff3.sourceforge.net)** are supported.
 
 - ### Can this Toolkit be used for other Unreal Engine games?
 

@@ -1,11 +1,11 @@
 DEFAULT_TOOLS_PATHS = {
     "repak_cli": r"C:\Program Files\repak_cli\bin\repak.exe",
     "WinMerge": r"C:\Program Files\WinMerge\WinMergeU.exe",
-    "kdiff3": r"C:\Program Files\KDiff3\kdiff3.exe",
+    "KDiff3": r"C:\Program Files\KDiff3\kdiff3.exe",
 }
 
 DEFAULT_SETTINGS = {
-    "merging_engine": "kdiff3",
+    "merging_engine": "KDiff3",
     "lang_name": "English",
     "theme_name": "Nord",
     "show_hints": "True",
