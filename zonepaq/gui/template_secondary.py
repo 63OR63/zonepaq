@@ -44,16 +44,15 @@ class GUI_Secondary(GUI_Toplevel):
             self,
             padx=self.padding,
             pady=self.padding,
-            column_weights=[(0, 1)],
-        )
-
-        listbox_frame = self.create_frame(
-            section_frame,
             column_weights=[(0, 1), (1, 0)],
+            row_weights=[(0, 1)],
+            sticky="nsew",
         )
-        self._create_listbox(listbox_frame, listbox_name, listbox_mode)
+        self.grid_rowconfigure(section_frame.grid_info().get("row"), weight=1)
+
+        self._create_listbox(section_frame, listbox_name, listbox_mode)
         self._create_side_buttons(
-            listbox_frame, add_command, remove_command, clear_command
+            section_frame, add_command, remove_command, clear_command
         )
 
         self._create_action_button(section_frame, action_name, action_command)
@@ -64,13 +63,11 @@ class GUI_Secondary(GUI_Toplevel):
             widget_args={
                 "master": root,
                 "width": 400,
-                # "justify": "left",
                 "multiple_selection": True,
             },
             widget_style="Custom.CTkListbox",
             grid_args={"row": 0, "column": 0, "sticky": "nsew"},
-            # row_weights=[(0, 0)],
-            # column_weights=[(0, 0)],
+            row_weights=[(0, 1)],
         )
         setattr(self, listbox_name, listbox)
 
@@ -110,77 +107,53 @@ class GUI_Secondary(GUI_Toplevel):
         return listbox
 
     def _create_side_buttons(self, root, add_command, remove_command, clear_command):
-        buttons = {
-            "custom": [
-                {
-                    "text": translate("button_add"),
-                    "command": add_command,
-                    "width": 90,
-                    "height": 30,
-                    "row": 0,
-                    "column": 0,
-                },
-                {
-                    "text": translate("button_remove"),
-                    "command": remove_command,
-                    "width": 90,
-                    "height": 30,
-                    "row": 1,
-                    "column": 0,
-                },
-                {
-                    "text": translate("button_clear"),
-                    "command": clear_command,
-                    "width": 90,
-                    "height": 30,
-                    "row": 2,
-                    "column": 0,
-                },
-            ],
-            "grid": {},
-        }
-        self.create_buttons(
-            buttons,
-            parent=root,
-            frame_grid_args={
-                "row": 0,
-                "column": 1,
-                "sticky": "ns",
-                "padx": (self.padding, 0),
-                # "pady": (self.padding, 0),
-            },
+        buttons_frame = self.create_frame(
+            root,
+            row=0,
+            column=1,
+            style="Transparent.CTkFrame",
             row_weights=[(0, 1), (1, 1), (2, 1)],
-            column_weights=[(0, 1)],
+            padx=(self.padding, 0),
+        )
+        width = 90
+        height = 30
+        self.create_button(
+            buttons_frame,
+            text=translate("button_add"),
+            command=add_command,
+            width=width,
+            height=height,
+            sticky="s",
+        )
+        self.create_button(
+            buttons_frame,
+            text=translate("button_remove"),
+            command=remove_command,
+            width=width,
+            height=height,
+            pady=self.padding,
+        )
+        self.create_button(
+            buttons_frame,
+            text=translate("button_clear"),
+            command=clear_command,
+            width=width,
+            height=height,
+            sticky="n",
         )
 
     def _create_action_button(self, section_frame, action_name, action_command):
-        buttons = {
-            "custom": [
-                {
-                    "text": action_name,
-                    "command": action_command,
-                    "style": "Action.CTkButton",
-                    "width": 170,
-                    "height": 40,
-                    "row": 1,
-                    "column": 0,
-                },
-            ],
-            "grid": {
-                "padx": 0,
-                "pady": (self.padding, 0),
-            },
-        }
-        self.create_buttons(
-            buttons,
-            parent=section_frame,
-            frame_grid_args={
-                "row": 2,
-                "column": 0,
-                "sticky": "ns",
-                "padx": 0,
-                "pady": 0,
-            },
+        self.create_button(
+            section_frame,
+            text=action_name,
+            command=action_command,
+            style="Action.CTkButton",
+            width=170,
+            height=40,
+            padx=0,
+            pady=(self.padding, 0),
+            column=0,
+            columnspan=999,
         )
 
     def _add_dnd_files_to_listbox(self, event, listbox, mode, dnd):

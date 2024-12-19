@@ -27,7 +27,18 @@ class GUI_SettingsMenu(GUI_Toplevel):
 
     def on_closing(self):
         self.destroy()
-        # self.master.deiconify()
+
+    def _save_settings_and_close(self):
+        for settings_key, new_value in self.temp_storage.items():
+            new_value = str(new_value).strip()
+            if settings_key == "aes_key":
+                settings.AES_KEY = new_value
+            elif settings_key in settings.GAME_PATHS:
+                settings.GAME_PATHS[settings_key] = new_value
+            elif settings_key in settings.TOOLS_PATHS:
+                settings.TOOLS_PATHS[settings_key] = new_value
+        settings.save()
+        self.destroy()
 
     def _create_tabview_layout(self):
         self.create_header(
@@ -41,6 +52,7 @@ class GUI_SettingsMenu(GUI_Toplevel):
             column=0,
             columnspan=1,
         )
+        self.grid_columnconfigure(sidebar_frame.grid_info().get("column"), weight=0)
 
         self.general_tabview_frame = self.create_frame(
             self,
@@ -49,6 +61,9 @@ class GUI_SettingsMenu(GUI_Toplevel):
             column=1,
             column_weights=[(0, 1)],
         )
+        self.grid_columnconfigure(
+            self.general_tabview_frame.grid_info().get("column"), weight=1
+        )
         self.appearance_tabview_frame = self.create_frame(
             self,
             style="Primary.CTkFrame",
@@ -56,9 +71,9 @@ class GUI_SettingsMenu(GUI_Toplevel):
             column=1,
             column_weights=[(0, 1)],
         )
-
-        self.grid_columnconfigure(0, weight=0)
-        self.grid_columnconfigure(1, weight=1)
+        # self.grid_columnconfigure(
+        #     self.appearance_tabview_frame.grid_info().get("column"), weight=1
+        # )
 
         save_frame = self.create_frame(
             self, column=0, style="Tertiary.CTkFrame", column_weights=[(0, 1)]
@@ -616,18 +631,6 @@ class GUI_SettingsMenu(GUI_Toplevel):
     def _get_highest_row(self, root):
         root = root or self
         return max(widget.grid_info()["row"] for widget in root.grid_slaves())
-
-    def _save_settings_and_close(self):
-        for settings_key, new_value in self.temp_storage.items():
-            new_value = str(new_value).strip()
-            if settings_key == "aes_key":
-                settings.AES_KEY = new_value
-            elif settings_key in settings.GAME_PATHS:
-                settings.GAME_PATHS[settings_key] = new_value
-            elif settings_key in settings.TOOLS_PATHS:
-                settings.TOOLS_PATHS[settings_key] = new_value
-        settings.save()
-        self.window_manager.close_window(self)
 
     def _open_path_browse_dialog(
         self, entry_variable, entry_type, entry_widget, settings_key

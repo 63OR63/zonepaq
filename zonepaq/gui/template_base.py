@@ -77,31 +77,31 @@ class GUI_Base(CTk):
         ### Using predefined .json file
         # ctk.set_default_color_theme(Path(f"zonepaq/config/themes/{color_theme}.json"))
 
-    # * Alternative to wrapping CTk.resizable(), causes flickering
     # def adjust_to_content(self, root, adjust_width=False, adjust_height=False):
     #     root = root or self
 
-    #     root.update_idletasks()
-    #     current_width = root.winfo_reqwidth()
-    #     current_height = root.winfo_reqheight()
-
-    #     def set_minsize(previous_width, previous_height):
-    #         root.minsize(
-    #             min(previous_width, root._current_width),
-    #             min(previous_height, root._current_height),
-    #         )
-
-    #     root.after(1009, lambda: set_minsize(current_width, current_height))
+    #     root.minsize(
+    #         root.winfo_reqwidth(),
+    #         root.winfo_reqheight(),
+    #     )
 
     #     root.resizable(adjust_width, adjust_height)
 
+    # * Alternative to wrapping CTk.resizable(), causes flickering
     def adjust_to_content(self, root, adjust_width=False, adjust_height=False):
         root = root or self
 
-        root.minsize(
-            root.winfo_reqwidth(),
-            root.winfo_reqheight(),
-        )
+        root.update_idletasks()
+        current_width = root.winfo_reqwidth()
+        current_height = root.winfo_reqheight()
+
+        def set_minsize(previous_width, previous_height):
+            root.minsize(
+                min(previous_width, root._current_width),
+                min(previous_height, root._current_height),
+            )
+
+        root.after(1009, lambda: set_minsize(current_width, current_height))
 
         root.resizable(adjust_width, adjust_height)
 
@@ -381,44 +381,3 @@ class GUI_Base(CTk):
             row_weights=row_weights,
             column_weights=column_weights,
         )
-
-    def create_buttons(
-        self,
-        buttons,
-        parent,
-        frame_grid_args=None,
-        row_weights=None,
-        column_weights=None,
-    ):
-        button_frame = self.create_ctk_widget(
-            ctk_widget=ctk.CTkFrame,
-            widget_args={"master": parent},
-            widget_style="Transparent.CTkFrame",
-            grid_args={**frame_grid_args},
-            row_weights=row_weights,
-            column_weights=column_weights,
-        )
-
-        for button_config in buttons["custom"]:
-            self.create_ctk_widget(
-                ctk_widget=ctk.CTkButton,
-                widget_args={
-                    "master": button_frame,
-                    "text": button_config.get("text", "test"),
-                    "width": button_config.get("width", 0),
-                    "height": button_config.get("height", 0),
-                    "command": button_config.get("command", None),
-                },
-                widget_style=button_config.get("style", "Generic.CTkButton"),
-                grid_args={
-                    "row": button_config.get("row", 0),
-                    "column": button_config.get("column", 0),
-                    "columnspan": button_config.get("columnspan", 1),
-                    "rowspan": button_config.get("rowspan", 1),
-                    "sticky": buttons["grid"].get("sticky", ""),
-                    "padx": buttons["grid"].get("padx", 0),
-                    "pady": buttons["grid"].get("pady", 0),
-                },
-                row_weights=None,
-                column_weights=None,
-            )

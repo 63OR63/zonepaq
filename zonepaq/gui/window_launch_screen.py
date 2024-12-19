@@ -34,40 +34,35 @@ class GUI_LaunchScreen(GUI_Base):
     def _setup2(self):
         self.create_header(self, text=translate("launch_screen_header"))
 
-        buttons = {
-            "custom": [
-                {
-                    "text": translate("launch_screen_button_repak"),
-                    "width": 300,
-                    "height": 60,
-                    "command": self._open_repak_gui,
-                    "row": 0,
-                    "column": 0,
-                },
-                {
-                    "text": translate("launch_screen_button_merge"),
-                    "width": 300,
-                    "height": 60,
-                    "command": self._open_merge_gui,
-                    "row": 0,
-                    "column": 1,
-                },
-            ],
-            "grid": {"padx": self.padding // 2, "pady": self.padding // 2},
-        }
-
-        self.create_buttons(
-            buttons,
+        buttons_frame = self.create_frame(
             self,
-            frame_grid_args={
-                "row": 1,
-                "column": 0,
-                "padx": self.padding // 2,
-                "pady": self.padding // 2,
-            },
+            style="Transparent.CTkFrame",
+            padx=self.padding // 2,
+            pady=self.padding // 2,
             row_weights=[(0, 1)],
             column_weights=[(0, 1), (1, 1)],
         )
-
-        self.grid_rowconfigure(1, weight=1)
-        self.grid_columnconfigure(0, weight=1)
+        width = 300
+        height = 60
+        self.create_button(
+            buttons_frame,
+            text=translate("launch_screen_button_repak"),
+            command=self._open_repak_gui,
+            width=width,
+            height=height,
+            row=0,
+            column=0,
+            padx=self.padding // 2,
+            pady=self.padding // 2,
+        )
+        self.create_button(
+            buttons_frame,
+            text=translate("launch_screen_button_merge"),
+            command=self._open_merge_gui,
+            width=width,
+            height=height,
+            row=0,
+            column=1,
+            padx=self.padding // 2,
+            pady=self.padding // 2,
+        )
