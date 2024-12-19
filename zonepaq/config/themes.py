@@ -346,8 +346,8 @@ class ThemeManager:
         }
         return ctk_color_theme
 
-    @classmethod
-    def _hex_to_rgb(cls, hex_color):
+    @staticmethod
+    def _hex_to_rgb(hex_color):
         hex_color = hex_color.lstrip("#")
         r, g, b = (
             int(hex_color[0:2], 16),
@@ -356,8 +356,8 @@ class ThemeManager:
         )
         return r, g, b
 
-    @classmethod
-    def _rgb_to_hex(cls, r, g, b):
+    @staticmethod
+    def _rgb_to_hex(r, g, b):
         return f"#{r:02x}{g:02x}{b:02x}"
 
     @classmethod

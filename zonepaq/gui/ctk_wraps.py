@@ -29,3 +29,14 @@ class CTk(_CTk, TkinterDnD.DnDWrapper):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.TkdndVersion = TkinterDnD._require(self)
+
+
+_CTkToplevel = ctk.CTkToplevel
+if hasattr(_CTkToplevel, "_windows_set_titlebar_icon"):
+    _CTkToplevel._windows_set_titlebar_icon = custom_set_titlebar_icon
+
+
+class CTkToplevel(_CTkToplevel, TkinterDnD.DnDWrapper):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.TkdndVersion = TkinterDnD._require(self)

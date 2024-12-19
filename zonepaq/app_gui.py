@@ -1,11 +1,16 @@
-from gui.custom_set_titlebar_icon import CTk
-from gui.gui_main import GUI_LaunchScreen
+from gui.window_launch_screen import GUI_LaunchScreen
+
+# from gui.ctk_wraps import CTk
+# class App(CTk):
+#     def __init__(self):
+#         super().__init__()
+#         self.withdraw()
+#         gui = GUI_LaunchScreen()
+#         gui.mainloop()
 
 
-class App(CTk):
+class App:
     def __init__(self):
-        super().__init__()
-        self.withdraw()
         gui = GUI_LaunchScreen()
         gui.mainloop()
 

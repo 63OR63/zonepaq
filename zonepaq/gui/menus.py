@@ -13,7 +13,7 @@ from config.metadata import (
     LEGAL_NOTICE,
 )
 from config.settings import settings, translate
-from gui.gui_settings_menu import GUI_SettingsMenu
+from gui.window_settings_menu import GUI_SettingsMenu
 
 
 class MenuRibbon:
@@ -43,79 +43,7 @@ class MenuRibbon:
             label=translate("menu_preferences_settings"),
             command=self.open_settings_window,
         )
-        self._add_merging_engine_menu(preferences_menu)
-        self._add_language_menu(preferences_menu)
-        self._add_theme_menu(preferences_menu)
         menu_bar.add_cascade(label=translate("menu_preferences"), menu=preferences_menu)
-        preferences_menu.add_checkbutton(
-            label=translate("menu_preferences_hints"),
-            variable=self.show_hints,
-            # command=lambda: self.root.customization_manager.apply_show_hints(
-            #     window=self.root, show_hints=self.show_hints.get()
-            # ),
-            command=None,  #!fixme
-        )
-
-    def _add_option_menu(
-        self,
-        parent_menu,
-        menu_label,
-        options,
-        selected_option,
-        apply_function,
-        apply_param_name,
-    ):
-        submenu = tk.Menu(parent_menu, tearoff=0)
-        for option_name in options:
-            submenu.add_radiobutton(
-                label=option_name,
-                variable=selected_option,
-                value=option_name,
-                command=lambda opt=option_name: apply_function(
-                    **{apply_param_name: opt, "window": self.root}
-                ),
-            )
-        parent_menu.add_cascade(label=menu_label, menu=submenu)
-
-    def _add_merging_engine_menu(self, parent_menu):
-        self.selected_engine = tk.StringVar(
-            master=self.root, value=settings.MERGING_ENGINE
-        )
-        self._add_option_menu(
-            parent_menu=parent_menu,
-            menu_label=translate("menu_preferences_merging_engine"),
-            options=["WinMerge", "KDiff3"],
-            selected_option=self.selected_engine,
-            apply_function=lambda engine_name, window=None: settings.update_config(
-                "SETTINGS", "merging_engine", engine_name
-            ),
-            apply_param_name="engine_name",
-        )
-
-    def _add_language_menu(self, parent_menu):
-        self.selected_language = tk.StringVar(
-            master=self.root, value=settings.LANG_NAME
-        )
-        self._add_option_menu(
-            parent_menu=parent_menu,
-            menu_label=translate("menu_preferences_language"),
-            options=settings.ALL_LANG_NAMES,
-            selected_option=self.selected_language,
-            # apply_function=self.root.customization_manager.apply_translation,
-            apply_function=None,  #!Fixme
-            apply_param_name="lang_name",
-        )
-
-    def _add_theme_menu(self, parent_menu):
-        self.selected_theme = tk.StringVar(master=self.root, value=settings.THEME_NAME)
-        self._add_option_menu(
-            parent_menu=parent_menu,
-            menu_label=translate("menu_preferences_theme"),
-            options=settings.ALL_THEME_NAMES,
-            selected_option=self.selected_theme,
-            apply_function=self.root.apply_color_theme,
-            apply_param_name="theme_name",
-        )
 
     def _add_help_menu(self, menu_bar):
         help_menu = tk.Menu(menu_bar, tearoff=0)
@@ -134,7 +62,8 @@ class MenuRibbon:
 
     def open_settings_window(self):
         log.debug("Opening settings menu...")
-        self.root.open_gui(gui_class=GUI_SettingsMenu, toplevel=True)
+        GUI_SettingsMenu(self.root)
+        # self.root.withdraw()
 
     def show_license(self):
         messagebox.showinfo(translate("menu_help_license"), LEGAL_NOTICE)

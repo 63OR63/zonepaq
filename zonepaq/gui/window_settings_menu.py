@@ -1,23 +1,20 @@
-from functools import partial
 from backend.logger import log
 from backend.tools import Data
 from config.settings import settings, translate
-from gui.gui_base import GUI_Base
-
+from gui.template_toplevel import GUI_Toplevel
 import customtkinter as ctk
 
 # import tkinter as tk
 from pathlib import Path
-from tkinter import filedialog, ttk
+from tkinter import filedialog
 
 
-# class GUI_SettingsMenu(GUI_Toplevel):
-class GUI_SettingsMenu(GUI_Base):
+class GUI_SettingsMenu(GUI_Toplevel):
     """Popup window for configuring and saving application settings."""
 
-    def __init__(self):
-        super().__init__(title=translate("menu_preferences_settings"))
-        self.padding = self.padding
+    def __init__(self, master):
+        super().__init__(master, title=translate("menu_preferences_settings"))
+
         self.temp_storage = {}  # Temporary storage for entries values
         self._create_tabview_layout()
         self._add_general_tabview(self.general_tabview_frame)
@@ -25,11 +22,12 @@ class GUI_SettingsMenu(GUI_Base):
         self.show_frame(self.general_tabview_frame)
 
         self.adjust_to_content(root=self, adjust_width=True)
+
         log.info("Settings menu opened.")
 
-    # def on_closing(self):
-    #     self.window_manager.close_window(self)
-    #     self.destroy()
+    def on_closing(self):
+        self.destroy()
+        # self.master.deiconify()
 
     def _create_tabview_layout(self):
         self.create_header(
@@ -84,7 +82,7 @@ class GUI_SettingsMenu(GUI_Base):
             column_weights=None,
         )
 
-        save_button = self.create_button(
+        self.create_button(
             save_frame,
             text=translate("menu_preferences_settings_save"),
             command=self._save_settings_and_close,
@@ -97,14 +95,14 @@ class GUI_SettingsMenu(GUI_Base):
             column=1,
         )
 
-        general_button = self.create_button(
+        self.create_button(
             sidebar_frame,
             text="General",
             corner_radius=0,
             command=lambda: self.show_frame(self.general_tabview_frame),
         )
 
-        appearance_button = self.create_button(
+        self.create_button(
             sidebar_frame,
             text="Appearance",
             style="Muted.CTkButton",
@@ -247,6 +245,56 @@ class GUI_SettingsMenu(GUI_Base):
         for group_name, entries in general_group.items():
             self._create_entry_group(group_frame, group_name, entries)
 
+        self.create_subheader(group_frame, text="Merging")
+        self.create_spacer(group_frame)
+
+        current_row = self._get_next_row(group_frame)
+
+        self.create_ctk_widget(
+            ctk_widget=ctk.CTkLabel,
+            widget_args={
+                "master": group_frame,
+                "text": f"{'Used Tool'}:",
+                "anchor": "w",
+                "pady": self.padding / 5,
+            },
+            grid_args={
+                "row": current_row,
+                "column": 0,
+                "sticky": "w",
+                "padx": self.padding,
+            },
+            row_weights=None,
+            column_weights=None,
+        )
+
+        self.engine_name = ctk.StringVar(master=self, value=settings.MERGING_ENGINE)
+        self.create_ctk_widget(
+            ctk_widget=ctk.CTkOptionMenu,
+            widget_args={
+                "master": group_frame,
+                "variable": self.engine_name,
+                "values": list(settings.ALL_LANG_NAMES),
+                "command": lambda engine_name=self.engine_name: (
+                    settings.update_config(
+                        "SETTINGS", "merging_engine", self.engine_name
+                    ),
+                ),
+                "anchor": "w",
+            },
+            grid_args={
+                "row": current_row,
+                "column": 1,
+                "sticky": "w",
+                "padx": (0, self.padding),
+                "pady": self.padding / 5,
+            },
+            row_weights=None,
+            column_weights=None,
+        )
+
+        self.create_spacer(group_frame)
+
     def _install_tool(self, link, entry_variable):
         print(link)
 
@@ -346,7 +394,7 @@ class GUI_SettingsMenu(GUI_Base):
                     resolved_params.append(param)
             print(resolved_params)
 
-            browse_button = self.create_ctk_widget(
+            self.create_ctk_widget(
                 ctk_widget=ctk.CTkButton,
                 widget_args={
                     "master": master,
@@ -404,7 +452,7 @@ class GUI_SettingsMenu(GUI_Base):
         )
 
         self.selected_theme = ctk.StringVar(master=self, value=settings.THEME_NAME)
-        color_theme_widget = self.create_ctk_widget(
+        self.create_ctk_widget(
             ctk_widget=ctk.CTkOptionMenu,
             widget_args={
                 "master": group_frame,
@@ -447,7 +495,7 @@ class GUI_SettingsMenu(GUI_Base):
         )
 
         self.create_spacer(group_frame)
-        self.create_subheader(group_frame, text="Interface Language")
+        self.create_subheader(group_frame, text="Localization")
         self.create_spacer(group_frame)
 
         current_row = self._get_next_row(group_frame)
@@ -456,7 +504,7 @@ class GUI_SettingsMenu(GUI_Base):
             ctk_widget=ctk.CTkLabel,
             widget_args={
                 "master": group_frame,
-                "text": f"{'Language'} *:",
+                "text": f"{'Language'}:",
                 "anchor": "w",
                 "pady": self.padding / 5,
             },
@@ -471,7 +519,7 @@ class GUI_SettingsMenu(GUI_Base):
         )
 
         self.selected_lang = ctk.StringVar(master=self, value=settings.LANG_NAME)
-        language_widget = self.create_ctk_widget(
+        self.create_ctk_widget(
             ctk_widget=ctk.CTkOptionMenu,
             widget_args={
                 "master": group_frame,
@@ -494,7 +542,7 @@ class GUI_SettingsMenu(GUI_Base):
         )
 
         self.create_spacer(group_frame)
-        self.create_subheader(group_frame, text="Accesibility")
+        self.create_subheader(group_frame, text="Onboarding")
         self.create_spacer(group_frame)
 
         current_row = self._get_next_row(group_frame)
@@ -503,7 +551,7 @@ class GUI_SettingsMenu(GUI_Base):
             ctk_widget=ctk.CTkLabel,
             widget_args={
                 "master": group_frame,
-                "text": f"{'Hints'} *:",
+                "text": f"{'Hints'}:",
                 "anchor": "w",
                 "pady": self.padding / 5,
             },
@@ -522,7 +570,7 @@ class GUI_SettingsMenu(GUI_Base):
             ctk_widget=ctk.CTkSwitch,
             widget_args={
                 "master": group_frame,
-                "text": "Show Hints",
+                "text": "Show Hints in GUI",
                 "variable": self.show_hints,
                 "onvalue": True,
                 "offvalue": False,
@@ -580,7 +628,6 @@ class GUI_SettingsMenu(GUI_Base):
                 settings.TOOLS_PATHS[settings_key] = new_value
         settings.save()
         self.window_manager.close_window(self)
-        # self.destroy()
 
     def _open_path_browse_dialog(
         self, entry_variable, entry_type, entry_widget, settings_key

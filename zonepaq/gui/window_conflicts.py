@@ -7,25 +7,7 @@ from backend.conflicts import ConflictProcessor
 from backend.logger import log
 from config.metadata import APP_NAME, APP_VERSION
 from config.settings import settings, translate
-from gui.widgets import CustomButton, CustomEntry
-
-
-class GUI_Toplevel:
-    """Base class for creating popup windows with custom configurations."""
-
-    def __init__(self, parent, title, geometry="800x400"):
-        self.root = parent
-        self.window = tk.Toplevel(self.root)
-        self.window.title(f"{APP_NAME} v{APP_VERSION} - {title}")
-        self.window.geometry(geometry)
-        self.window.resizable(False, False)
-        self.window.configure(bg=settings.THEME_DICT["color_background"])
-        self.root.customization_manager.instances.register_window(self.window)
-        self.window.protocol("WM_DELETE_WINDOW", self._close_window)
-
-    def _close_window(self):
-        self.root.customization_manager.instances.unregister_window(window=self.window)
-        self.window.destroy()
+from gui.template_toplevel import GUI_Toplevel
 
 
 class GUI_ConflictsReport(GUI_Toplevel):
@@ -77,14 +59,14 @@ class GUI_ConflictsReport(GUI_Toplevel):
     def _create_search_entry(self, search_frame):
         self.search_var = tk.StringVar(master=self)
         self.search_var.trace_add("write", lambda *args: self._search_tree())
-        self.search_entry = CustomEntry(
-            parent=search_frame,
-            customization_manager=self.root.customization_manager,
-            textvariable=self.search_var,
-            style="PathEntry.TEntry",
-            window=self.window,
-        )
-        self.search_entry.grid(row=0, column=1, sticky="ew", padx=(5, 5), pady=5)
+        # self.search_entry = CustomEntry(
+        #     parent=search_frame,
+        #     customization_manager=self.root.customization_manager,
+        #     textvariable=self.search_var,
+        #     style="PathEntry.TEntry",
+        #     window=self.window,
+        # )
+        # self.search_entry.grid(row=0, column=1, sticky="ew", padx=(5, 5), pady=5)
 
     def _create_show_paths_check_button(self, search_frame):
         self.show_paths_check_button = ttk.Checkbutton(
@@ -251,34 +233,34 @@ class GUI_ConflictsReport(GUI_Toplevel):
             sticky="ne",
         )
 
-        select_all_button = CustomButton(
-            parent=buttons_frame,
-            customization_manager=self.root.customization_manager,
-            text=translate("merge_screen_conflicts_select_all_button"),
-            command=lambda: self._select_tagged_items(),
-            style="TButton",
-            width=160,
-            height=55,
-            window=self.window,
-        )
-        select_all_button.grid(
-            row=0,
-            column=0,
-            padx=(0, self.padding),
-            sticky="ne",
-        )
+        # select_all_button = CustomButton(
+        #     parent=buttons_frame,
+        #     customization_manager=self.root.customization_manager,
+        #     text=translate("merge_screen_conflicts_select_all_button"),
+        #     command=lambda: self._select_tagged_items(),
+        #     style="TButton",
+        #     width=160,
+        #     height=55,
+        #     window=self.window,
+        # )
+        # select_all_button.grid(
+        #     row=0,
+        #     column=0,
+        #     padx=(0, self.padding),
+        #     sticky="ne",
+        # )
 
-        process_button = CustomButton(
-            parent=buttons_frame,
-            customization_manager=self.root.customization_manager,
-            text=translate("merge_screen_conflicts_action_button"),
-            command=lambda: self._process_selected_files(),
-            style="Accent.TButton",
-            width=160,
-            height=55,
-            window=self.window,
-        )
-        process_button.grid(row=0, column=1, sticky="ne")
+        # process_button = CustomButton(
+        #     parent=buttons_frame,
+        #     customization_manager=self.root.customization_manager,
+        #     text=translate("merge_screen_conflicts_action_button"),
+        #     command=lambda: self._process_selected_files(),
+        #     style="Accent.TButton",
+        #     width=160,
+        #     height=55,
+        #     window=self.window,
+        # )
+        # process_button.grid(row=0, column=1, sticky="ne")
 
     def _select_tagged_items(self):
         self.tree.selection_remove(self.tree.selection())

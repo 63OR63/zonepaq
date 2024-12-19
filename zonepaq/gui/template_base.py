@@ -1,13 +1,14 @@
-import json
-from unittest.mock import mock_open, patch
+from backend.logger import handle_exception, log
+from config.settings import settings
+from config.metadata import APP_NAME, APP_VERSION
+from config.themes import StyleManager, ThemeManager
+from gui.ctk_wraps import CTk
 
 import customtkinter as ctk
-from backend.logger import handle_exception, log
-from config.themes import StyleManager, ThemeManager
-from config.metadata import APP_NAME, APP_VERSION
-from config.settings import settings
-from gui.custom_set_titlebar_icon import CTk
-from gui.window_manager import WindowManager
+
+
+import json
+from unittest.mock import mock_open, patch
 
 
 class GUI_Base(CTk):
@@ -18,11 +19,10 @@ class GUI_Base(CTk):
 
         self.title(f"{APP_NAME} v{APP_VERSION} - {title}")
 
-        self.window_manager = WindowManager(self)
         self.theme_manager = ThemeManager
         self.style_manager = StyleManager
 
-        self.restyle()
+        self._restyle()
 
         self.report_callback_exception = handle_exception
 
@@ -34,7 +34,10 @@ class GUI_Base(CTk):
 
         self.padding = 20
 
-    def restyle(self, color_palette=settings.THEME_NAME):
+    def on_closing(self):
+        raise NotImplementedError("Subclasses must implement the 'on_closing' method.")
+
+    def _restyle(self, color_palette=settings.THEME_NAME):
         log.debug(f"Applying {color_palette} color theme...")
 
         self.color_theme = self.theme_manager.merge_dicts(
@@ -90,10 +93,6 @@ class GUI_Base(CTk):
         root.after(1009, lambda: set_minsize(current_width, current_height))
 
         root.resizable(adjust_width, adjust_height)
-
-    def on_closing(self):
-        # self.customization_manager.reset()
-        self.window_manager.close_window(self, forced=True)
 
     def create_ctk_widget(
         self,
@@ -412,10 +411,3 @@ class GUI_Base(CTk):
                 row_weights=None,
                 column_weights=None,
             )
-
-    def open_gui(self, gui_class, toplevel=False):
-        # self.customization_manager.reset()
-        log.debug(f"Opening {gui_class}...")
-        self.window_manager.open_window(
-            parent=self, new_window=gui_class, toplevel=toplevel
-        )
