@@ -21,7 +21,7 @@ class GUI_SettingsMenu(GUI_Toplevel):
         self._add_appearance_tabview(self.appearance_tabview_frame)
         self.show_frame(self.general_tabview_frame)
 
-        self.adjust_to_content(root=self, adjust_width=True)
+        self.adjust_to_content(self, adjust_width=True)
 
         log.info("Settings menu opened.")
 

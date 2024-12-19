@@ -14,9 +14,7 @@ class GUI_Secondary(GUI_Toplevel):
 
     def __init__(self, master, title):
         super().__init__(master, title=title)
-        self.master = master
-        # def __init__(self, title):
-        #     super().__init__(title=title)
+
         self.grid_columnconfigure(0, weight=1)
 
     @property

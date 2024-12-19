@@ -18,7 +18,7 @@ class GUI_MergeScreen(GUI_Secondary):
         super().__init__(master, title=translate("merge_screen_title"))
         self._create_sections()
 
-        self.adjust_to_content(adjust_width=True, adjust_height=True)
+        self.adjust_to_content(self, adjust_width=True, adjust_height=True)
 
         log.info("Merge screen opened.")
 

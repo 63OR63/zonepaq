@@ -11,7 +11,7 @@ class GUI_LaunchScreen(GUI_Base):
         super().__init__(title=translate("launch_screen_title"))
         self._setup2()
 
-        self.adjust_to_content()
+        self.adjust_to_content(self)
 
         log.info("Launch screen opened.")
 

@@ -4,6 +4,7 @@ import tempfile
 from concurrent.futures import as_completed
 from pathlib import Path
 from time import sleep
+import time
 from tkinter import PhotoImage, filedialog, messagebox
 
 from backend.logger import log
@@ -13,6 +14,8 @@ from config.settings import settings, translate
 from CTkListbox import *
 from gui.ctk_wraps import custom_set_titlebar_icon
 from gui.template_secondary import GUI_Secondary
+import customtkinter as ctk
+import tkinter as tk
 
 
 class GUI_RepakScreen(GUI_Secondary):
@@ -22,7 +25,7 @@ class GUI_RepakScreen(GUI_Secondary):
         super().__init__(master, title=translate("repak_screen_title"))
         self._create_sections()
 
-        self.adjust_to_content(adjust_width=True, adjust_height=True)
+        self.adjust_to_content(self, adjust_width=True, adjust_height=True)
 
         log.info("Repak screen opened.")
 

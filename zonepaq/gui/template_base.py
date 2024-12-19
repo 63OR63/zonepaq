@@ -77,20 +77,31 @@ class GUI_Base(CTk):
         ### Using predefined .json file
         # ctk.set_default_color_theme(Path(f"zonepaq/config/themes/{color_theme}.json"))
 
-    def adjust_to_content(self, root=None, adjust_width=False, adjust_height=False):
+    # * Alternative to wrapping CTk.resizable(), causes flickering
+    # def adjust_to_content(self, root, adjust_width=False, adjust_height=False):
+    #     root = root or self
+
+    #     root.update_idletasks()
+    #     current_width = root.winfo_reqwidth()
+    #     current_height = root.winfo_reqheight()
+
+    #     def set_minsize(previous_width, previous_height):
+    #         root.minsize(
+    #             min(previous_width, root._current_width),
+    #             min(previous_height, root._current_height),
+    #         )
+
+    #     root.after(1009, lambda: set_minsize(current_width, current_height))
+
+    #     root.resizable(adjust_width, adjust_height)
+
+    def adjust_to_content(self, root, adjust_width=False, adjust_height=False):
         root = root or self
 
-        root.update_idletasks()
-        current_width = root.winfo_reqwidth()
-        current_height = root.winfo_reqheight()
-
-        def set_minsize(previous_width, previous_height):
-            root.minsize(
-                min(previous_width, root._current_width),
-                min(previous_height, root._current_height),
-            )
-
-        root.after(1009, lambda: set_minsize(current_width, current_height))
+        root.minsize(
+            root.winfo_reqwidth(),
+            root.winfo_reqheight(),
+        )
 
         root.resizable(adjust_width, adjust_height)
 
