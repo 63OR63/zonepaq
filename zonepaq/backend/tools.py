@@ -1,65 +1,86 @@
 import re
 from pathlib import Path
+import shutil
 
 from backend.logger import log
 
 
 class Files:
-    """Utility class for folder analysis, content tree building, and duplicate detection."""
+    """Utility class for files/folders analysis and management."""
 
-    @staticmethod
-    def is_existing_folder(folder_path):
+    @classmethod
+    def is_existing_folder(cls, folder_path):
         try:
-            folder = Path(folder_path)
-
-            path_str = str(folder).strip("/")
-            if not path_str:
+            folder = Path(folder_path).resolve()
+            if not folder.is_dir():
+                log.debug(f"{str(folder)} folder doesn't exist.")
                 return False
-            if set(path_str) == {"."}:
+            if folder in {Path(".").resolve(), Path("/").resolve()}:
+                log.debug(f"{str(folder)} folder is located at wrong location.")
                 return False
-            resolved_path = folder.resolve()
-            if resolved_path in {Path(".").resolve(), Path("/").resolve()}:
-                return False
-
-            return folder.exists() and folder.is_dir()
+            log.debug(f"{str(folder)} folder exists.")
+            return True
         except Exception as e:
             log.exception(f"Error during folder path validation: {e}")
             return False
 
-    @staticmethod
-    def is_existing_file_type(file_path, file_type):
+    @classmethod
+    def is_existing_file(cls, file_path):
         try:
-            file = Path(file_path)
-            return file.exists() and file.is_file() and file.suffix.lower() == file_type
+            file = Path(file_path).resolve()
+            if file.exists() and file.is_file():
+                log.debug(f"{str(file)} file exists.")
+                return True
+            log.debug(f"{str(file)} file doesn't exist.")
+            return False
         except Exception as e:
             log.exception(f"Error during file path validation: {e}")
             return False
 
-    @staticmethod
-    def is_folder_empty(folder_path):
+    @classmethod
+    def is_existing_file_type(cls, file_path, file_type):
         try:
-            folder = Path(folder_path)
-            if Files.is_existing_folder(folder):
-                return not any(item.is_file() for item in folder.rglob("*"))
+            file = Path(file_path).resolve()
+            if cls.is_existing_file(file_path) and file.suffix.lower() == file_type:
+                log.debug(f"{str(file)} extension is {str(file_type)}")
+                return True
+            log.debug(f"{str(file)} extension isn't {str(file_type)}")
+            return False
+        except Exception as e:
+            log.exception(f"Error during file path validation: {e}")
+            return False
+
+    @classmethod
+    def is_folder_empty(cls, folder_path):
+        try:
+            if cls.is_existing_folder(folder_path):
+                folder = Path(folder_path).resolve()
+                if not any(item.is_file() for item in folder.rglob("*")):
+                    log.debug(f"{str(folder)} is empty.")
+                    return True
+                log.debug(f"{str(folder)} isn't empty.")
+                return False
         except Exception as e:
             log.exception(f"Error during folder content validation: {e}")
             return False
 
     @staticmethod
-    def build_content_tree(gathered_files: dict) -> dict:
-        content_tree = {}
-        for source_path, file_paths in gathered_files.items():
-            for file_path in file_paths:
-                parts = Path(file_path).parts
-                game_name, *file_hierarchy, file_name = parts
-
-                current_level = content_tree.setdefault(game_name, {})
-                for part in file_hierarchy:
-                    current_level = current_level.setdefault(part, {})
-
-                current_level.setdefault(file_name, []).append(source_path)
-
-        return content_tree
+    def delete_path(path):
+        try:
+            path = Path(path)
+            if not path.exists():
+                return False
+            if path.is_dir():
+                shutil.rmtree(path)
+                log.debug(f"Deleted folder: {path}")
+                return True
+            else:
+                path.unlink()
+                log.debug(f"Deleted file: {path}")
+                return True
+        except Exception as e:
+            log.error(f"Deletion failed for {path}: {e}")
+            return False
 
 
 class Data:
@@ -104,3 +125,19 @@ class Data:
         except Exception as e:
             log.exception(f"Error during AES validation of {key}: {e}")
             return False
+
+    @staticmethod
+    def build_content_tree(gathered_files: dict) -> dict:
+        content_tree = {}
+        for source_path, file_paths in gathered_files.items():
+            for file_path in file_paths:
+                parts = Path(file_path).parts
+                game_name, *file_hierarchy, file_name = parts
+
+                current_level = content_tree.setdefault(game_name, {})
+                for part in file_hierarchy:
+                    current_level = current_level.setdefault(part, {})
+
+                current_level.setdefault(file_name, []).append(source_path)
+
+        return content_tree

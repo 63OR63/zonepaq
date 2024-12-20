@@ -1,4 +1,5 @@
 from backend.logger import handle_exception, log
+from backend.tools_manager import ToolsManager
 from config.settings import settings
 from config.metadata import APP_NAME, APP_VERSION
 from config.themes import StyleManager, ThemeManager
@@ -19,6 +20,7 @@ class GUI_Base(CTk):
 
         self.title(f"{APP_NAME} v{APP_VERSION} - {title}")
 
+        self.tools_manager = ToolsManager()
         self.theme_manager = ThemeManager
         self.style_manager = StyleManager
 
@@ -291,7 +293,7 @@ class GUI_Base(CTk):
             elif isinstance(row, str) and row.startswith(("+", "-")):
                 column = max(eval(f"{self._get_next_column(master)} {column}"), 0)
 
-            self.create_ctk_widget(
+            return self.create_ctk_widget(
                 ctk_widget=ctk.CTkLabel,
                 widget_args={
                     "master": master,
@@ -365,7 +367,7 @@ class GUI_Base(CTk):
 
         widget_args.update(kwargs)
 
-        self.create_ctk_widget(
+        return self.create_ctk_widget(
             ctk_widget=ctk.CTkButton,
             widget_args=widget_args,
             widget_style=style,

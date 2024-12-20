@@ -18,12 +18,17 @@ class GUI_Toplevel(CTkToplevel):
 
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
+        from gui.menus import MenuRibbon
+
+        self.menu = MenuRibbon(self)
+
     def on_closing(self):
         raise NotImplementedError("Subclasses must implement the 'on_closing' method.")
 
     def _bind_master_attributes(self):
 
         attribute_names = [
+            "tools_manager",
             "theme_manager",
             "style_manager",
             "padding",
@@ -40,7 +45,6 @@ class GUI_Toplevel(CTkToplevel):
             "_get_next_row",
             "_get_next_column",
             "create_button",
-            "create_buttons",
         ]
 
         for name in attribute_names + method_names:

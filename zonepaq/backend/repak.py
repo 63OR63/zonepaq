@@ -21,7 +21,7 @@ class Repak:
             repak_path = cls.REPAK_PATH
 
             if not Files.is_existing_file_type(repak_path, ".exe"):
-                raise FileNotFoundError(f"repak doesn't exist at {repak_path}")
+                raise FileNotFoundError(f"repak_cli doesn't exist at {repak_path}")
 
             file = Path(file)
             result = subprocess.run(
@@ -61,9 +61,7 @@ class Repak:
             destination = Path(destination)
             unpacked_folder = Path(source).with_suffix("")
 
-            if unpacked_folder.is_dir():
-                log.warning(f"Removing existing unpacked folder: {unpacked_folder}")
-                shutil.rmtree(unpacked_folder)
+            Files.delete_path(unpacked_folder)
 
             command = [repak_path]
             if aes_key:
@@ -97,12 +95,7 @@ class Repak:
             target_folder = destination / unpacked_folder.name
 
             if unpacked_folder != target_folder:
-                if target_folder.is_dir():
-                    log.warning(
-                        f"Removing existing target folder: {str(target_folder)}"
-                    )
-                    shutil.rmtree(target_folder)
-
+                Files.delete_path(target_folder)
                 shutil.move(unpacked_folder, target_folder)
             log.info(f"Successfully unpacked {str(source)} to {str(target_folder)}")
             return True, str(target_folder)

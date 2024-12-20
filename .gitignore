@@ -141,3 +141,4 @@ settings.txt
 /logs
 *.dot
 /*.png
+/zonepaq/tools

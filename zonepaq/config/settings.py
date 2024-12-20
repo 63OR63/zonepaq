@@ -9,6 +9,7 @@ from config.defaults import (
     DEFAULT_TOOLS_PATHS,
     DEFAULT_VANILLA_FOLDER_SUFFIX,
     GAMES,
+    TOOLS,
 )
 from config.themes import ThemeManager
 from config.translations import get_available_languages, get_translation
@@ -75,6 +76,13 @@ class ConfigurationLoader:
 
 
 class Settings:
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
     def __init__(self, sources, defaults):
         self.loader = ConfigurationLoader(sources, defaults)
         self.load()
@@ -92,11 +100,8 @@ class Settings:
         # self.THEME_DICT = get_theme_dict(self.THEME_NAME)  #!delme
         self.ALL_LANG_NAMES = get_available_languages()
         self.ALL_THEME_NAMES = ThemeManager.get_available_theme_names()
-        self.TOOL_LINKS = {
-            "repak_link": "https://github.com/trumank/repak/releases",
-            "winmerge_link": "https://winmerge.org",
-            "kdiff3_link": "https://kdiff3.sourceforge.io",
-        }
+        # self.TOOL_LINKS = TOOL_LINKS
+        self.TOOLS = TOOLS
 
     def update_config(self, section, key, value):
         self.set(section, key, value)
@@ -115,7 +120,8 @@ class Settings:
         self.loader.save(self.config)
 
 
-INI_SETTINGS_FILE = "settings.ini"
+INI_SETTINGS_FILE = r"zonepaq\settings.ini"
+Path(INI_SETTINGS_FILE).parent.mkdir(parents=True, exist_ok=True)
 
 sources = [
     IniConfigSource(INI_SETTINGS_FILE),

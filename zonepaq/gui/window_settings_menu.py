@@ -6,7 +6,7 @@ import customtkinter as ctk
 
 # import tkinter as tk
 from pathlib import Path
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
 
 
 class GUI_SettingsMenu(GUI_Toplevel):
@@ -14,12 +14,12 @@ class GUI_SettingsMenu(GUI_Toplevel):
 
     def __init__(self, master):
         super().__init__(master, title=translate("menu_preferences_settings"))
-
+        print(Path(".").resolve())
         self.temp_storage = {}  # Temporary storage for entries values
         self._create_tabview_layout()
         self._add_general_tabview(self.general_tabview_frame)
         self._add_appearance_tabview(self.appearance_tabview_frame)
-        self.show_frame(self.general_tabview_frame)
+        self._show_frame(self.general_tabview_frame)
 
         self.adjust_to_content(self, adjust_width=True)
 
@@ -64,6 +64,7 @@ class GUI_SettingsMenu(GUI_Toplevel):
         self.grid_columnconfigure(
             self.general_tabview_frame.grid_info().get("column"), weight=1
         )
+
         self.appearance_tabview_frame = self.create_frame(
             self,
             style="Primary.CTkFrame",
@@ -83,7 +84,7 @@ class GUI_SettingsMenu(GUI_Toplevel):
             ctk_widget=ctk.CTkLabel,
             widget_args={
                 "master": save_frame,
-                "text": "* Require a restart for changes to take effect",
+                "text": translate("settings_require_restart"),
                 "anchor": "e",
                 "pady": self.padding / 2,
             },
@@ -99,10 +100,10 @@ class GUI_SettingsMenu(GUI_Toplevel):
 
         self.create_button(
             save_frame,
-            text=translate("menu_preferences_settings_save"),
+            text=translate("settings_save"),
             command=self._save_settings_and_close,
             style="Action.CTkButton",
-            width=80 * 2 + self.padding,
+            width=120,
             padx=self.padding,
             pady=self.padding / 2,
             sticky="e",
@@ -110,24 +111,38 @@ class GUI_SettingsMenu(GUI_Toplevel):
             column=1,
         )
 
-        self.create_button(
+        self.general_button = self.create_button(
             sidebar_frame,
-            text="General",
+            text=translate("settings_general"),
+            command=lambda: self._button_command(
+                self.general_button, self.general_tabview_frame
+            ),
             corner_radius=0,
-            command=lambda: self.show_frame(self.general_tabview_frame),
+            width=120,
         )
 
-        self.create_button(
+        self.appearance_button = self.create_button(
             sidebar_frame,
-            text="Appearance",
+            text=translate("settings_appearance"),
             style="Muted.CTkButton",
+            command=lambda: self._button_command(
+                self.appearance_button, self.appearance_tabview_frame
+            ),
             corner_radius=0,
-            command=lambda: self.show_frame(self.appearance_tabview_frame),
+            width=120,
         )
+
+    def _button_command(self, button_widget, frame):
+        self.style_manager.apply_style(button_widget, "Generic.CTkButton")
+        buttons = [self.general_button, self.appearance_button]
+        for btn in buttons:
+            if btn != button_widget:
+                self.style_manager.apply_style(btn, "Muted.CTkButton")
+        self._show_frame(frame)
 
     def _add_general_tabview(self, master):
         general_group = {
-            translate("menu_preferences_settings_path_tools"): {
+            translate("settings_general_path_tools"): {
                 "repak_cli": {
                     "path_dict": settings.TOOLS_PATHS,
                     "title": "repak",
@@ -141,50 +156,20 @@ class GUI_SettingsMenu(GUI_Toplevel):
                                 "entry_widget",
                                 "settings_key",
                             ),
-                            "text": translate("menu_preferences_settings_browse"),
+                            "text": translate("settings_general_browse"),
                             "style": "Generic.CTkButton",
                         },
                         {
-                            "command": self._install_tool,
-                            "params": (
-                                settings.TOOL_LINKS["repak_link"],
-                                "entry_variable",
-                            ),
-                            "text": "Install",
-                            "style": "Alt.CTkButton",
-                        },
-                    ],
-                },
-                "winmerge": {
-                    "path_dict": settings.TOOLS_PATHS,
-                    "title": "WinMerge",
-                    "type": ".exe",
-                    "buttons": [
-                        {
-                            "command": self._open_path_browse_dialog,
-                            "params": (
-                                "entry_variable",
-                                "entry_type",
-                                "entry_widget",
-                                "settings_key",
-                            ),
-                            "text": translate("menu_preferences_settings_browse"),
-                            "style": "Generic.CTkButton",
-                        },
-                        {
-                            "command": self._install_tool,
-                            "params": (
-                                settings.TOOL_LINKS["winmerge_link"],
-                                "entry_variable",
-                            ),
-                            "text": "Install",
+                            "command": self._install_repak,
+                            "params": ("entry_variable",),
+                            "text": translate("settings_general_install"),
                             "style": "Alt.CTkButton",
                         },
                     ],
                 },
                 "kdiff3": {
                     "path_dict": settings.TOOLS_PATHS,
-                    "title": "KDiff3",
+                    "title": "kdiff3",
                     "type": ".exe",
                     "buttons": [
                         {
@@ -195,25 +180,46 @@ class GUI_SettingsMenu(GUI_Toplevel):
                                 "entry_widget",
                                 "settings_key",
                             ),
-                            "text": translate("menu_preferences_settings_browse"),
+                            "text": translate("settings_general_browse"),
                             "style": "Generic.CTkButton",
                         },
                         {
-                            "command": self._install_tool,
+                            "command": self._install_kdiff3,
+                            "params": ("entry_variable",),
+                            "text": translate("settings_general_install"),
+                            "style": "Alt.CTkButton",
+                        },
+                    ],
+                },
+                "winmerge": {
+                    "path_dict": settings.TOOLS_PATHS,
+                    "title": "WinMergeU",
+                    "type": ".exe",
+                    "buttons": [
+                        {
+                            "command": self._open_path_browse_dialog,
                             "params": (
-                                settings.TOOL_LINKS["kdiff3_link"],
                                 "entry_variable",
+                                "entry_type",
+                                "entry_widget",
+                                "settings_key",
                             ),
-                            "text": "Install",
+                            "text": translate("settings_general_browse"),
+                            "style": "Generic.CTkButton",
+                        },
+                        {
+                            "command": self._install_winmerge,
+                            "params": ("entry_variable",),
+                            "text": translate("settings_general_install"),
                             "style": "Alt.CTkButton",
                         },
                     ],
                 },
             },
-            translate("menu_preferences_settings_path_game"): {
+            translate("settings_general_path_game"): {
                 "vanilla_unpacked": {
                     "path_dict": settings.GAME_PATHS,
-                    "title": translate("menu_preferences_settings_vanilla_unpacked"),
+                    "title": translate("settings_general_vanilla_unpacked"),
                     "type": "folder",
                     "buttons": [
                         {
@@ -224,28 +230,28 @@ class GUI_SettingsMenu(GUI_Toplevel):
                                 "entry_widget",
                                 "settings_key",
                             ),
-                            "text": translate("menu_preferences_settings_browse"),
+                            "text": translate("settings_general_browse"),
                             "style": "Generic.CTkButton",
                         },
                         {
                             "command": self._unpack_files,
                             "params": ("entry_variable"),
-                            "text": "Unpack",
+                            "text": translate("settings_general_unpack"),
                             "style": "Alt.CTkButton",
                         },
                     ],
                 },
             },
-            translate("menu_preferences_settings_aes_key"): {
+            translate("settings_general_keys"): {
                 "aes_key": {
                     "path_dict": {"aes_key": settings.AES_KEY},
-                    "title": translate("menu_preferences_settings_aes_key"),
+                    "title": translate("settings_general_aes_key"),
                     "type": "aes",
                     "buttons": [
                         {
                             "command": self._get_aes_key,
                             "params": ("entry_variable"),
-                            "text": "Get",
+                            "text": translate("settings_general_get"),
                             "style": "Alt.CTkButton",
                         },
                     ],
@@ -260,7 +266,9 @@ class GUI_SettingsMenu(GUI_Toplevel):
         for group_name, entries in general_group.items():
             self._create_entry_group(group_frame, group_name, entries)
 
-        self.create_subheader(group_frame, text="Merging")
+        self.create_subheader(
+            group_frame, text=translate("settings_general_merging_engine")
+        )
         self.create_spacer(group_frame)
 
         current_row = self._get_next_row(group_frame)
@@ -269,7 +277,7 @@ class GUI_SettingsMenu(GUI_Toplevel):
             ctk_widget=ctk.CTkLabel,
             widget_args={
                 "master": group_frame,
-                "text": f"{'Used Tool'}:",
+                "text": f"{translate('settings_general_used_tool')}:",
                 "anchor": "w",
                 "pady": self.padding / 5,
             },
@@ -290,7 +298,7 @@ class GUI_SettingsMenu(GUI_Toplevel):
                 "master": group_frame,
                 "variable": self.engine_name,
                 "values": list(settings.ALL_LANG_NAMES),
-                "command": lambda engine_name=self.engine_name: (
+                "command": lambda: (
                     settings.update_config(
                         "SETTINGS", "merging_engine", self.engine_name
                     ),
@@ -309,15 +317,6 @@ class GUI_SettingsMenu(GUI_Toplevel):
         )
 
         self.create_spacer(group_frame)
-
-    def _install_tool(self, link, entry_variable):
-        print(link)
-
-    def _unpack_files(self, entry_variable):
-        print(entry_variable.get())
-
-    def _get_aes_key(self, entry_variable):
-        print(entry_variable.get())
 
     def _create_entry_group(self, master, group_name, entries):
 
@@ -368,7 +367,7 @@ class GUI_SettingsMenu(GUI_Toplevel):
                 "master": master,
                 "textvariable": entry_variable,
                 "placeholder_text": "CTkEntry",
-                "width": 400,
+                "width": 300,
             },
             widget_style="Alt.CTkEntry",
             grid_args={
@@ -415,13 +414,13 @@ class GUI_SettingsMenu(GUI_Toplevel):
                     "master": master,
                     "command": lambda cmd=command, p=resolved_params: cmd(*p),
                     "text": button["text"],
-                    "width": 80,
+                    "width": 0,
                 },
                 widget_style=button["style"],
                 grid_args={
                     "row": current_row,
                     "column": column_index,
-                    "sticky": "w",
+                    "sticky": "ew",
                     "padx": (0, self.padding),
                     "pady": self.padding / 5,
                 },
@@ -443,7 +442,9 @@ class GUI_SettingsMenu(GUI_Toplevel):
             column_weights=[(4, 1)],
         )
 
-        self.create_subheader(group_frame, text="Theming")
+        self.create_subheader(
+            group_frame, text=translate("settings_appearance_customization")
+        )
         self.create_spacer(group_frame)
 
         current_row = self._get_next_row(group_frame)
@@ -452,7 +453,7 @@ class GUI_SettingsMenu(GUI_Toplevel):
             ctk_widget=ctk.CTkLabel,
             widget_args={
                 "master": group_frame,
-                "text": f"{'Color theme'} *:",
+                "text": f"{translate('settings_appearance_color_theme')} *:",
                 "anchor": "w",
                 "pady": self.padding / 5,
             },
@@ -493,10 +494,10 @@ class GUI_SettingsMenu(GUI_Toplevel):
             ctk_widget=ctk.CTkSwitch,
             widget_args={
                 "master": group_frame,
-                "text": "Dark Mode",
+                "text": translate("settings_appearance_dark_mode"),
                 "onvalue": True,
                 "offvalue": False,
-                "command": self.switch_dark_mode,
+                "command": self._switch_dark_mode,
             },
             grid_args={
                 "row": current_row,
@@ -510,7 +511,9 @@ class GUI_SettingsMenu(GUI_Toplevel):
         )
 
         self.create_spacer(group_frame)
-        self.create_subheader(group_frame, text="Localization")
+        self.create_subheader(
+            group_frame, text=translate("settings_appearance_localization")
+        )
         self.create_spacer(group_frame)
 
         current_row = self._get_next_row(group_frame)
@@ -519,7 +522,7 @@ class GUI_SettingsMenu(GUI_Toplevel):
             ctk_widget=ctk.CTkLabel,
             widget_args={
                 "master": group_frame,
-                "text": f"{'Language'}:",
+                "text": f"{translate('settings_appearance_language')}:",
                 "anchor": "w",
                 "pady": self.padding / 5,
             },
@@ -557,7 +560,9 @@ class GUI_SettingsMenu(GUI_Toplevel):
         )
 
         self.create_spacer(group_frame)
-        self.create_subheader(group_frame, text="Onboarding")
+        self.create_subheader(
+            group_frame, text=translate("settings_appearance_onboarding")
+        )
         self.create_spacer(group_frame)
 
         current_row = self._get_next_row(group_frame)
@@ -566,7 +571,7 @@ class GUI_SettingsMenu(GUI_Toplevel):
             ctk_widget=ctk.CTkLabel,
             widget_args={
                 "master": group_frame,
-                "text": f"{'Hints'}:",
+                "text": f"{translate('settings_appearance_hints')}:",
                 "anchor": "w",
                 "pady": self.padding / 5,
             },
@@ -585,11 +590,11 @@ class GUI_SettingsMenu(GUI_Toplevel):
             ctk_widget=ctk.CTkSwitch,
             widget_args={
                 "master": group_frame,
-                "text": "Show Hints in GUI",
+                "text": translate("settings_appearance_show_hints"),
                 "variable": self.show_hints,
                 "onvalue": True,
                 "offvalue": False,
-                "command": self.switch_hints,
+                "command": self._switch_hints,
             },
             grid_args={
                 "row": current_row,
@@ -602,16 +607,16 @@ class GUI_SettingsMenu(GUI_Toplevel):
             column_weights=None,
         )
 
-    def switch_dark_mode(self):
+    def _switch_dark_mode(self):
         if self.dark_mode_widget.get():
             ctk.set_appearance_mode("dark")
         else:
             ctk.set_appearance_mode("light")
 
-    def switch_hints(self):
+    def _switch_hints(self):
         settings.update_config("SETTINGS", "show_hints", self.show_hints_widget.get())
 
-    def show_frame(self, frame):
+    def _show_frame(self, frame):
         frame.tkraise()
 
     def _store_temp_path_and_apply_style(
@@ -660,3 +665,36 @@ class GUI_SettingsMenu(GUI_Toplevel):
             self._store_temp_path_and_apply_style(
                 settings_key, entry_variable.get(), entry_type, entry_widget
             )
+
+    def prompt_redownload(self, text):
+        result = messagebox.askquestion(translate("generic_question"), text)
+        if result == "yes":
+            return True
+        return False
+
+    def _install_repak(self, entry_variable):
+        print(entry_variable)
+
+    def _install_kdiff3(self, entry_variable):
+        print(entry_variable)
+
+        if kdiff_url := self.tools_manager.get_latest_kdiff3():
+            self.tools_manager.download_and_extract_tool(
+                url=kdiff_url,
+                installer_path=self.tools_manager.kdiff_installer,
+                output_dir=self.tools_manager.kdiff_output_dir,
+                tool_name="KDiff3",
+                prompt_callback=self.prompt_redownload,
+                extract_parameter="bin",
+            )
+        else:
+            log.error("Failed to retrieve KDiff3 download URL.")
+
+    def _install_winmerge(self, entry_variable):
+        print(entry_variable)
+
+    def _unpack_files(self, entry_variable):
+        print(entry_variable.get())
+
+    def _get_aes_key(self, entry_variable):
+        print(entry_variable.get())

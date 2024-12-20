@@ -1,6 +1,6 @@
 from backend.logger import log
 from backend.repak import Repak
-from backend.tools import Files
+from backend.tools import Files, Data
 from config.settings import translate
 from gui.window_conflicts import GUI_ConflictsReport
 from gui.template_secondary import GUI_Secondary
@@ -75,7 +75,7 @@ class GUI_MergeScreen(GUI_Secondary):
                 except Exception as e:
                     results_ko[file.as_posix()] = str(e)
 
-            content_tree = Files.build_content_tree(results_ok)
+            content_tree = Data.build_content_tree(results_ok)
 
             log.debug("Opening conflicts resolver screen...")
             GUI_ConflictsReport(parent=self, content_tree=content_tree)

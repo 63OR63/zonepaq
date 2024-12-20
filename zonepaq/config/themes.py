@@ -539,6 +539,13 @@ class StyleManager:
 
         cls.define_style(
             "Generic.CTkButton",
+            fg_color=ThemeManager.get_colors("color_accent_tertiary", color_palette),
+            hover_color=ThemeManager.get_colors(
+                "color_accent_tertiary", color_palette, True
+            ),
+            border_color=ThemeManager.get_colors(
+                "color_accent_tertiary", color_palette, True
+            ),
             font=ctk.CTkFont(
                 family=ctk.ThemeManager.theme["Generic.Button.CustomFont"]["family"],
                 size=ctk.ThemeManager.theme["Generic.Button.CustomFont"]["size"],
