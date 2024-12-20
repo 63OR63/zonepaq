@@ -58,8 +58,11 @@ class Files:
                 if not any(item.is_file() for item in folder.rglob("*")):
                     log.debug(f"{str(folder)} is empty.")
                     return True
-                log.debug(f"{str(folder)} isn't empty.")
-                return False
+            else:
+                log.debug(f"{str(folder)} doesn't exist.")
+                return True
+            log.debug(f"{str(folder)} isn't empty.")
+            return False
         except Exception as e:
             log.exception(f"Error during folder content validation: {e}")
             return False

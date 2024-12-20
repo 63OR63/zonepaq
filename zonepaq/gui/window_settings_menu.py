@@ -677,29 +677,150 @@ class GUI_SettingsMenu(GUI_Toplevel):
         print(entry_variable)
         pass
 
-    def _install_kdiff3(self, entry_variable):
-        if sys.platform == "win32":
+    # def _install_kdiff3(self, entry_variable):
+    #     if sys.platform != "win32":
+    #         messagebox.showerror(
+    #             translate("generic_error"),
+    #             translate("dialogue_only_windows"),
+    #             parent=self,
+    #         )
+    #         return False
+
+    #     if kdiff_url := self.tools_manager.get_latest_kdiff3(
+    #         settings.TOOLS["kdiff3"]["base_url"]
+    #     ):
+    #         if self.tools_manager.download_and_extract_tool(
+    #             url=kdiff_url,
+    #             installer_path=self.tools_manager.kdiff_installer,
+    #             output_dir=self.tools_manager.kdiff_output_dir,
+    #             tool_name="KDiff3",
+    #             prompt_callback=self.prompt_redownload,
+    #             extract_method=self.tools_manager.kdiff_extract_method,
+    #             extract_parameter=self.tools_manager.kdiff_extract_parameter,
+    #         ):
+    #             messagebox.showerror(
+    #                 translate("generic_info"),
+    #                 f'KDiff3 {translate("dialogue_install_success")} {self.tools_manager.kdiff_output_dir}',
+    #                 parent=self,
+    #             )
+    #             return True
+
+    #     messagebox.showerror(
+    #         translate("generic_error"),
+    #         f'{translate("dialogue_install_error")} KDiff3\n{translate("dialogue_check_logs")}',
+    #         parent=self,
+    #     )
+    #     return False
+
+    # def _install_winmerge(self, entry_variable):
+    #     if sys.platform != "win32":
+    #         messagebox.showerror(
+    #             translate("generic_error"),
+    #             translate("dialogue_only_windows"),
+    #             parent=self,
+    #         )
+    #         return False
+
+    #     if winmerge_url := self.tools_manager.get_latest_github_release_asset(
+    #         github_repo=settings.TOOLS["winmerge"]["github_repo"],
+    #         asset_regex=self.tools_manager.winmerge_asset_regex,
+    #     ):
+    #         if self.tools_manager.download_and_extract_tool(
+    #             url=winmerge_url,
+    #             installer_path=self.tools_manager.winmerge_installer,
+    #             output_dir=self.tools_manager.winmerge_output_dir,
+    #             tool_name="WinMerge",
+    #             prompt_callback=self.prompt_redownload,
+    #             extract_method=self.tools_manager.winmerge_extract_method,
+    #             extract_parameter=self.tools_manager.winmerge_extract_parameter,
+    #         ):
+    #             messagebox.showerror(
+    #                 translate("generic_info"),
+    #                 f'WinMerge {translate("dialogue_install_success")} {self.tools_manager.winmerge_output_dir}',
+    #                 parent=self,
+    #             )
+    #             return True
+
+    #     messagebox.showerror(
+    #         translate("generic_error"),
+    #         f'{translate("dialogue_install_error")} WinMerge\n{translate("dialogue_check_logs")}',
+    #         parent=self,
+    #     )
+    #     return False
+
+    def _install_tool(
+        self,
+        tool_name,
+        download_method,
+        download_args,
+        installer_path,
+        output_dir,
+        extract_method,
+        extract_parameter,
+        check_platform=True,
+    ):
+        if check_platform and sys.platform != "win32":
             messagebox.showerror(
                 translate("generic_error"),
                 translate("dialogue_only_windows"),
                 parent=self,
             )
+            return False
 
-        if kdiff_url := self.tools_manager.get_latest_kdiff3():
-            self.tools_manager.download_and_extract_tool(
-                url=kdiff_url,
-                installer_path=self.tools_manager.kdiff_installer,
-                output_dir=self.tools_manager.kdiff_output_dir,
-                tool_name="KDiff3",
+        # Get the download URL
+        if download_url := download_method(**download_args):
+            # Download and extract the tool
+            install_result, skipped = self.tools_manager.download_and_extract_tool(
+                url=download_url,
+                installer_path=installer_path,
+                output_dir=output_dir,
+                tool_name=tool_name,
                 prompt_callback=self.prompt_redownload,
-                extract_parameter="bin",
+                extract_method=extract_method,
+                extract_parameter=extract_parameter,
             )
-        else:
-            log.error("Failed to retrieve KDiff3 download URL.")
+            if skipped:
+                return False
+            if install_result:
+                messagebox.showinfo(
+                    translate("generic_info"),
+                    f'{tool_name} {translate("dialogue_install_success")} {output_dir}',
+                    parent=self,
+                )
+                return True
+
+        # Show error if installation fails
+        messagebox.showerror(
+            translate("generic_error"),
+            f'{translate("dialogue_install_error")} {tool_name}\n{translate("dialogue_check_logs")}',
+            parent=self,
+        )
+        return False
+
+    def _install_kdiff3(self, entry_variable):
+        return self._install_tool(
+            tool_name="KDiff3",
+            download_method=self.tools_manager.get_latest_kdiff3,
+            download_args={"base_url": settings.TOOLS["kdiff3"]["base_url"]},
+            installer_path=self.tools_manager.kdiff_installer,
+            output_dir=self.tools_manager.kdiff_output_dir,
+            extract_method=self.tools_manager.kdiff_extract_method,
+            extract_parameter=self.tools_manager.kdiff_extract_parameter,
+        )
 
     def _install_winmerge(self, entry_variable):
-        print(entry_variable)
-        pass
+        return self._install_tool(
+            tool_name="WinMerge",
+            download_method=self.tools_manager.get_latest_github_release_asset,
+            download_args={
+                "github_repo": settings.TOOLS["winmerge"]["github_repo"],
+                "asset_regex": self.tools_manager.winmerge_asset_regex,
+            },
+            installer_path=self.tools_manager.winmerge_installer,
+            output_dir=self.tools_manager.winmerge_output_dir,
+            extract_method=self.tools_manager.winmerge_extract_method,
+            extract_parameter=self.tools_manager.winmerge_extract_parameter,
+        )
 
     def _unpack_files(self, entry_variable):
         print(entry_variable.get())

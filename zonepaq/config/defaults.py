@@ -54,7 +54,7 @@ TOOLS = {
         "exe": "7zr",
     },
     "repak_cli": {
-        "github": "trumank/repak",
+        "github_repo": "trumank/repak",
         "exe": "repak",
     },
     "kdiff3": {
@@ -62,7 +62,7 @@ TOOLS = {
         "exe": "kdiff3",
     },
     "winmerge": {
-        "github": "winmerge/winmerge",
+        "github_repo": "winmerge/winmerge",
         "exe": "WinMergeU",
     },
 }
