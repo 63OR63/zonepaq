@@ -50,7 +50,7 @@ class GUI_MergeScreen(GUI_Secondary):
             log.error(f"repak_cli executable isn't found at {str(self.repak_cli)}")
             messagebox.showerror(
                 translate("generic_error"),
-                f'repak_cli executable {translate("error_executable_not_found_1")} {str(self.repak_cli)}\n{translate("error_executable_not_found_2")}',
+                f'repak_cli {translate("error_executable_not_found_1")} {str(self.repak_cli)}\n{translate("error_executable_not_found_2")}',
                 parent=self,
             )
             return
@@ -84,5 +84,5 @@ class GUI_MergeScreen(GUI_Secondary):
         else:
             messagebox.showwarning(
                 translate("generic_warning"),
-                translate("repack_screen_repack_msg_empty_list"),
+                translate("repak_screen_repack_msg_empty_list"),
             )

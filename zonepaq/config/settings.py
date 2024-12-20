@@ -142,6 +142,7 @@ settings = Settings(sources, defaults)
 
 
 def translate(text, lang=None):
+    # return settings.LANG_DICT[text]  # to debug raise errors
     if lang:
         try:
             return get_translation(lang).get(text) or get_translation("English").get(

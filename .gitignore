@@ -136,9 +136,10 @@ version.rc
 settings.ini
 settings.json
 settings.txt
-/.vscode
+.vscode
 /tmp
 /logs
 *.dot
 /*.png
 /zonepaq/tools
+.VSCodeCounter

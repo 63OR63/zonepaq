@@ -168,5 +168,5 @@ class GUI_RepakScreen(GUI_Secondary):
         else:
             messagebox.showwarning(
                 translate("generic_warning"),
-                translate("repack_screen_repack_msg_empty_list"),
+                translate("repak_screen_repack_msg_empty_list"),
             )

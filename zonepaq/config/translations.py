@@ -131,6 +131,7 @@ TRANSLATIONS = {
             "installer exists.\n" "Do you want to redownload the latest version?"
         ),
         "dialogue_tools_reinstall": ("exists.\n" "Do you want to reinstall it?"),
+        "dialogue_only_windows": "This function is available only on Windows.",
     },
     "Русский": {
         "meta_description": "Удобное графическое приложение для распаковки, упаковки и разрешения конфликтов .pak модов.",
@@ -259,6 +260,11 @@ TRANSLATIONS = {
             "- Сложные конфликты не могут быть обработаны из-за ограничения в утилите сравнения на открытие 3 файлов одновременно."
         ),
         "dialogue_pak_files": "PAK файлы",
+        "dialogue_tools_redowndload_installer": (
+            "(архив) найден.\n" "Вы хотите перекачать последнюю версию?"
+        ),
+        "dialogue_tools_reinstall": ("найден.\n" "Вы хотите переустановить его?"),
+        "dialogue_only_windows": "Функция доступна только на Windows.",
     },
 }
 

@@ -1,3 +1,4 @@
+import sys
 from backend.logger import log
 from backend.tools import Data
 from config.settings import settings, translate
@@ -14,7 +15,6 @@ class GUI_SettingsMenu(GUI_Toplevel):
 
     def __init__(self, master):
         super().__init__(master, title=translate("menu_preferences_settings"))
-        print(Path(".").resolve())
         self.temp_storage = {}  # Temporary storage for entries values
         self._create_tabview_layout()
         self._add_general_tabview(self.general_tabview_frame)
@@ -406,7 +406,6 @@ class GUI_SettingsMenu(GUI_Toplevel):
                     resolved_params.append(settings_key)
                 else:
                     resolved_params.append(param)
-            print(resolved_params)
 
             self.create_ctk_widget(
                 ctk_widget=ctk.CTkButton,
@@ -667,16 +666,24 @@ class GUI_SettingsMenu(GUI_Toplevel):
             )
 
     def prompt_redownload(self, text):
-        result = messagebox.askquestion(translate("generic_question"), text)
+        result = messagebox.askquestion(
+            translate("generic_question"), text, parent=self
+        )
         if result == "yes":
             return True
         return False
 
     def _install_repak(self, entry_variable):
         print(entry_variable)
+        pass
 
     def _install_kdiff3(self, entry_variable):
-        print(entry_variable)
+        if sys.platform == "win32":
+            messagebox.showerror(
+                translate("generic_error"),
+                translate("dialogue_only_windows"),
+                parent=self,
+            )
 
         if kdiff_url := self.tools_manager.get_latest_kdiff3():
             self.tools_manager.download_and_extract_tool(
@@ -692,9 +699,12 @@ class GUI_SettingsMenu(GUI_Toplevel):
 
     def _install_winmerge(self, entry_variable):
         print(entry_variable)
+        pass
 
     def _unpack_files(self, entry_variable):
         print(entry_variable.get())
+        pass
 
     def _get_aes_key(self, entry_variable):
         print(entry_variable.get())
+        pass
