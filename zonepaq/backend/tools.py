@@ -53,13 +53,12 @@ class Files:
     @classmethod
     def is_folder_empty(cls, folder_path):
         try:
+            folder = Path(folder_path).resolve()
             if cls.is_existing_folder(folder_path):
-                folder = Path(folder_path).resolve()
                 if not any(item.is_file() for item in folder.rglob("*")):
                     log.debug(f"{str(folder)} is empty.")
                     return True
             else:
-                log.debug(f"{str(folder)} doesn't exist.")
                 return True
             log.debug(f"{str(folder)} isn't empty.")
             return False

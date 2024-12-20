@@ -27,16 +27,31 @@ class ToolsManager:
             self.tools_base / "7zr" / f'{settings.TOOLS["7zr"]["exe"]}.exe'
         )
 
-        self.kdiff_installer = self.tools_base / "kdiff3_installer.exe"
-        self.kdiff_extract_method = "7zr"
-        self.kdiff_extract_parameter = "bin"
-        self.kdiff_output_dir = self.tools_base / "KDiff3"
+        self.repak_asset_regex = r"repak_cli-x86_64-pc-windows-msvc.zip$"
+        self.repak_installer = self.tools_base / "repak_archive.zip"
+        self.repak_extract_method = "zipfile"
+        self.repak_extract_parameter = ""
+        self.repak_output_dir = self.tools_base / "repak_cli"
+        self.repak_local_path = (
+            self.repak_output_dir / f'{settings.TOOLS["repak_cli"]["exe"]}.exe'
+        )
+
+        self.kdiff3_installer = self.tools_base / "kdiff3_installer.exe"
+        self.kdiff3_extract_method = "7zr"
+        self.kdiff3_extract_parameter = "bin"
+        self.kdiff3_output_dir = self.tools_base / "KDiff3"
+        self.kdiff3_local_path = (
+            self.repak_output_dir / f'{settings.TOOLS["kdiff3"]["exe"]}.exe'
+        )
 
         self.winmerge_asset_regex = r"winmerge-\d+(\.\d+)*-exe.zip$"
         self.winmerge_installer = self.tools_base / "winmerge_archive.zip"
         self.winmerge_extract_method = "zipfile"
         self.winmerge_extract_parameter = "WinMerge"
         self.winmerge_output_dir = self.tools_base / "WinMerge"
+        self.winmerge_local_path = (
+            self.repak_output_dir / f'{settings.TOOLS["winmerge"]["exe"]}.exe'
+        )
 
     def download_file(self, url, target_file):
         try:
@@ -132,15 +147,17 @@ class ToolsManager:
                 log.debug(f"Extracting installer with 7zr: {installer_path}...")
                 with tempfile.TemporaryDirectory() as temp_unpack_dir:
                     temp_unpack_dir = Path(temp_unpack_dir)
+                    command = [
+                        str(self.seven_zip_local_path),
+                        "x",
+                        str(installer_path),
+                        "-aoa",
+                        f"-o{temp_unpack_dir}",
+                    ]
+                    if extract_parameter:  # Only append if not empty
+                        command.insert(3, extract_parameter)
                     subprocess.run(
-                        [
-                            str(self.seven_zip_local_path),
-                            "x",
-                            str(installer_path),
-                            extract_parameter,
-                            "-aoa",
-                            f"-o{temp_unpack_dir}",
-                        ],
+                        command,
                         check=True,
                         stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE,
@@ -167,19 +184,23 @@ class ToolsManager:
                 with tempfile.TemporaryDirectory() as temp_unpack_dir:
                     temp_unpack_dir = Path(temp_unpack_dir)
                     with zipfile.ZipFile(installer_path, "r") as zip_ref:
-                        files_to_extract = [
-                            f
-                            for f in zip_ref.namelist()
-                            if f.startswith(f"{extract_parameter}/")
-                        ]
-                        if files_to_extract:
-                            zip_ref.extractall(
-                                temp_unpack_dir, members=files_to_extract
-                            )
+                        if extract_parameter:
+                            files_to_extract = [
+                                f
+                                for f in zip_ref.namelist()
+                                if f.startswith(f"{extract_parameter}/")
+                            ]
                         else:
-                            log.warning(
+                            files_to_extract = zip_ref.namelist()
+
+                        if not files_to_extract:
+                            log.error(
                                 f"No files found matching parameter: {extract_parameter}/"
                             )
+                            return False
+
+                        # Extract the necessary files
+                        zip_ref.extractall(temp_unpack_dir, members=files_to_extract)
                     shutil.copytree(
                         temp_unpack_dir / extract_parameter,
                         output_dir,

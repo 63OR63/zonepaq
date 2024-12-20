@@ -1,6 +1,6 @@
 import sys
 from backend.logger import log
-from backend.tools import Data
+from backend.tools import Data, Files
 from config.settings import settings, translate
 from gui.template_toplevel import GUI_Toplevel
 import customtkinter as ctk
@@ -28,7 +28,7 @@ class GUI_SettingsMenu(GUI_Toplevel):
     def on_closing(self):
         self.destroy()
 
-    def _save_settings_and_close(self):
+    def _save_settings_and_close(self, close=True):
         for settings_key, new_value in self.temp_storage.items():
             new_value = str(new_value).strip()
             if settings_key == "aes_key":
@@ -38,7 +38,8 @@ class GUI_SettingsMenu(GUI_Toplevel):
             elif settings_key in settings.TOOLS_PATHS:
                 settings.TOOLS_PATHS[settings_key] = new_value
         settings.save()
-        self.destroy()
+        if close:
+            self.destroy()
 
     def _create_tabview_layout(self):
         self.create_header(
@@ -673,81 +674,6 @@ class GUI_SettingsMenu(GUI_Toplevel):
             return True
         return False
 
-    def _install_repak(self, entry_variable):
-        print(entry_variable)
-        pass
-
-    # def _install_kdiff3(self, entry_variable):
-    #     if sys.platform != "win32":
-    #         messagebox.showerror(
-    #             translate("generic_error"),
-    #             translate("dialogue_only_windows"),
-    #             parent=self,
-    #         )
-    #         return False
-
-    #     if kdiff_url := self.tools_manager.get_latest_kdiff3(
-    #         settings.TOOLS["kdiff3"]["base_url"]
-    #     ):
-    #         if self.tools_manager.download_and_extract_tool(
-    #             url=kdiff_url,
-    #             installer_path=self.tools_manager.kdiff_installer,
-    #             output_dir=self.tools_manager.kdiff_output_dir,
-    #             tool_name="KDiff3",
-    #             prompt_callback=self.prompt_redownload,
-    #             extract_method=self.tools_manager.kdiff_extract_method,
-    #             extract_parameter=self.tools_manager.kdiff_extract_parameter,
-    #         ):
-    #             messagebox.showerror(
-    #                 translate("generic_info"),
-    #                 f'KDiff3 {translate("dialogue_install_success")} {self.tools_manager.kdiff_output_dir}',
-    #                 parent=self,
-    #             )
-    #             return True
-
-    #     messagebox.showerror(
-    #         translate("generic_error"),
-    #         f'{translate("dialogue_install_error")} KDiff3\n{translate("dialogue_check_logs")}',
-    #         parent=self,
-    #     )
-    #     return False
-
-    # def _install_winmerge(self, entry_variable):
-    #     if sys.platform != "win32":
-    #         messagebox.showerror(
-    #             translate("generic_error"),
-    #             translate("dialogue_only_windows"),
-    #             parent=self,
-    #         )
-    #         return False
-
-    #     if winmerge_url := self.tools_manager.get_latest_github_release_asset(
-    #         github_repo=settings.TOOLS["winmerge"]["github_repo"],
-    #         asset_regex=self.tools_manager.winmerge_asset_regex,
-    #     ):
-    #         if self.tools_manager.download_and_extract_tool(
-    #             url=winmerge_url,
-    #             installer_path=self.tools_manager.winmerge_installer,
-    #             output_dir=self.tools_manager.winmerge_output_dir,
-    #             tool_name="WinMerge",
-    #             prompt_callback=self.prompt_redownload,
-    #             extract_method=self.tools_manager.winmerge_extract_method,
-    #             extract_parameter=self.tools_manager.winmerge_extract_parameter,
-    #         ):
-    #             messagebox.showerror(
-    #                 translate("generic_info"),
-    #                 f'WinMerge {translate("dialogue_install_success")} {self.tools_manager.winmerge_output_dir}',
-    #                 parent=self,
-    #             )
-    #             return True
-
-    #     messagebox.showerror(
-    #         translate("generic_error"),
-    #         f'{translate("dialogue_install_error")} WinMerge\n{translate("dialogue_check_logs")}',
-    #         parent=self,
-    #     )
-    #     return False
-
     def _install_tool(
         self,
         tool_name,
@@ -757,19 +683,21 @@ class GUI_SettingsMenu(GUI_Toplevel):
         output_dir,
         extract_method,
         extract_parameter,
+        local_path,
+        entry_variable,
+        auto_mode=False,
         check_platform=True,
     ):
         if check_platform and sys.platform != "win32":
-            messagebox.showerror(
-                translate("generic_error"),
-                translate("dialogue_only_windows"),
-                parent=self,
-            )
+            if not auto_mode:
+                messagebox.showerror(
+                    translate("generic_error"),
+                    translate("dialogue_only_windows"),
+                    parent=self,
+                )
             return False
 
-        # Get the download URL
         if download_url := download_method(**download_args):
-            # Download and extract the tool
             install_result, skipped = self.tools_manager.download_and_extract_tool(
                 url=download_url,
                 installer_path=installer_path,
@@ -782,30 +710,60 @@ class GUI_SettingsMenu(GUI_Toplevel):
             if skipped:
                 return False
             if install_result:
-                messagebox.showinfo(
-                    translate("generic_info"),
-                    f'{tool_name} {translate("dialogue_install_success")} {output_dir}',
-                    parent=self,
-                )
+                if not auto_mode:
+                    if Files.is_existing_file(local_path):
+                        entry_variable.set(str(Path(local_path).resolve()))
+                        self._save_settings_and_close(close=False)
+                        messagebox.showinfo(
+                            translate("generic_info"),
+                            f'{tool_name} {translate("dialogue_install_success")} {output_dir}',
+                            parent=self,
+                        )
+                    else:
+                        log.error(f"{tool_name} can't be located at {local_path}")
+                        messagebox.showerror(
+                            translate("generic_error"),
+                            f'{translate("dialogue_install_error")} {tool_name}\n{translate("dialogue_check_logs")}',
+                            parent=self,
+                        )
+                        return False
                 return True
 
-        # Show error if installation fails
-        messagebox.showerror(
-            translate("generic_error"),
-            f'{translate("dialogue_install_error")} {tool_name}\n{translate("dialogue_check_logs")}',
-            parent=self,
-        )
+        if not auto_mode:
+            messagebox.showerror(
+                translate("generic_error"),
+                f'{translate("dialogue_install_error")} {tool_name}\n{translate("dialogue_check_logs")}',
+                parent=self,
+            )
         return False
+
+    def _install_repak(self, entry_variable):
+        return self._install_tool(
+            tool_name="repak_cli",
+            download_method=self.tools_manager.get_latest_github_release_asset,
+            download_args={
+                "github_repo": settings.TOOLS["repak_cli"]["github_repo"],
+                "asset_regex": self.tools_manager.repak_asset_regex,
+            },
+            installer_path=self.tools_manager.repak_installer,
+            output_dir=self.tools_manager.repak_output_dir,
+            extract_method=self.tools_manager.repak_extract_method,
+            extract_parameter=self.tools_manager.repak_extract_parameter,
+            local_path=self.tools_manager.repak_local_path,
+            entry_variable=entry_variable,
+        )
 
     def _install_kdiff3(self, entry_variable):
         return self._install_tool(
             tool_name="KDiff3",
             download_method=self.tools_manager.get_latest_kdiff3,
             download_args={"base_url": settings.TOOLS["kdiff3"]["base_url"]},
-            installer_path=self.tools_manager.kdiff_installer,
-            output_dir=self.tools_manager.kdiff_output_dir,
-            extract_method=self.tools_manager.kdiff_extract_method,
-            extract_parameter=self.tools_manager.kdiff_extract_parameter,
+            installer_path=self.tools_manager.kdiff3_installer,
+            output_dir=self.tools_manager.kdiff3_output_dir,
+            extract_method=self.tools_manager.kdiff3_extract_method,
+            extract_parameter=self.tools_manager.kdiff3_extract_parameter,
+            local_path=self.tools_manager.kdiff3_local_path,
+            entry_variable=entry_variable,
         )
 
     def _install_winmerge(self, entry_variable):
@@ -820,6 +778,8 @@ class GUI_SettingsMenu(GUI_Toplevel):
             output_dir=self.tools_manager.winmerge_output_dir,
             extract_method=self.tools_manager.winmerge_extract_method,
             extract_parameter=self.tools_manager.winmerge_extract_parameter,
+            local_path=self.tools_manager.winmerge_local_path,
+            entry_variable=entry_variable,
         )
 
     def _unpack_files(self, entry_variable):
