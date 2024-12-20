@@ -1,6 +1,7 @@
 import re
 from pathlib import Path
 import shutil
+import sys
 
 from backend.logger import log
 
@@ -91,17 +92,31 @@ class Data:
     @staticmethod
     def is_valid_data(data, data_type):
         try:
-            if data_type == "aes" and Data.is_valid_aes_key(data):
-                log.debug(f"{data} is a valid AES key")
-                return True
-            elif data_type == "folder" and Files.is_existing_folder(data):
-                log.debug(f"{data} is an existing folder")
-                return True
-            elif Files.is_existing_file_type(data, data_type):
-                log.debug(f'{data} is an existing "{data_type}" file')
-                return True
+            if data_type == "aes":
+                if Data.is_valid_aes_key(data):
+                    log.debug(f"{data} is a valid AES key")
+                    return True
+                else:
+                    log.debug(f"{data} isn't a valid AES key")
+                    return False
+            elif data_type == "folder":
+                if Files.is_existing_folder(data):
+                    log.debug(f"{data} is an existing folder")
+                    return True
+                else:
+                    return False
+            elif Files.is_existing_file(data):
+                is_windows = sys.platform == "win32"
+                if (is_windows and Path(data).name == f"{data_type}.exe") or Path(
+                    data
+                ).stem == data_type:
+                    log.debug(f'{data} is a valid path to "{data_type}"')
+                    return True
+                else:
+                    log.warning(f'{data} isn\'t a valid path to "{data_type}"')
+                    return False
             else:
-                log.warning(f'{data} is an invalid "{data_type}"')
+                log.warning(f'{data} isn\'t a valid "{data_type}"')
                 return False
         except Exception as e:
             log.exception(f"Error during data validation: {e}")

@@ -67,6 +67,11 @@ TOOLS = {
     },
 }
 
+SUPPORTED_MERGING_ENGINES = {
+    "kdiff3": {"name": "KDiff3"},
+    "winmerge": {"name": "WinMerge"},
+}
+
 DEFAULT_TOOLS_PATHS = {
     "repak_cli": check_app_installed(
         app_exe=TOOLS["repak_cli"]["exe"],

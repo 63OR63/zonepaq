@@ -115,7 +115,7 @@ class log:
                 return "unknown_file", lineno, func_name
 
             try:
-                relative_path = str(Path(full_path).relative_to(Path.cwd() / "zonepaq"))
+                relative_path = str(Path(full_path).relative_to(Path.cwd()))
                 return relative_path, lineno, func_name
             except ValueError:
                 return str(full_path), lineno, func_name

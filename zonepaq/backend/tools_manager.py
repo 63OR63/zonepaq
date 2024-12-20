@@ -20,6 +20,9 @@ class ToolsManager:
         return cls._instance
 
     def __init__(self):
+        self.auto_mode = False
+        self.prompt_callback = None
+
         self.tools_base = settings.TOOLS["tools_base"]
         self.tools_base.mkdir(parents=True, exist_ok=True)
 
@@ -41,7 +44,7 @@ class ToolsManager:
         self.kdiff3_extract_parameter = "bin"
         self.kdiff3_output_dir = self.tools_base / "KDiff3"
         self.kdiff3_local_path = (
-            self.repak_output_dir / f'{settings.TOOLS["kdiff3"]["exe"]}.exe'
+            self.kdiff3_output_dir / f'{settings.TOOLS["kdiff3"]["exe"]}.exe'
         )
 
         self.winmerge_asset_regex = r"winmerge-\d+(\.\d+)*-exe.zip$"
@@ -50,7 +53,7 @@ class ToolsManager:
         self.winmerge_extract_parameter = "WinMerge"
         self.winmerge_output_dir = self.tools_base / "WinMerge"
         self.winmerge_local_path = (
-            self.repak_output_dir / f'{settings.TOOLS["winmerge"]["exe"]}.exe'
+            self.winmerge_output_dir / f'{settings.TOOLS["winmerge"]["exe"]}.exe'
         )
 
     def download_file(self, url, target_file):
@@ -67,8 +70,10 @@ class ToolsManager:
             log.error(f"Download failed: {e}")
             return False
 
-    def confirm_and_prepare_file(self, path, tool_name, prompt_callback, prompt_name):
-        if path.exists() and not prompt_callback(prompt_name):
+    def confirm_and_prepare_file(self, path, tool_name, prompt_name):
+        if path.exists() and not self.prompt_callback(
+            prompt_name, auto_mode=self.auto_mode
+        ):
             return False
         Files.delete_path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -119,13 +124,10 @@ class ToolsManager:
             log.error(f"Error fetching release data: {e}")
             return None
 
-    def check_and_download_installer(
-        self, url, target_file, tool_name, prompt_callback
-    ):
+    def check_and_download_installer(self, url, target_file, tool_name):
         if not self.confirm_and_prepare_file(
             target_file,
             tool_name,
-            prompt_callback,
             f'{tool_name} {translate("dialogue_tools_redowndload_installer")}',
         ):
             log.info(f"Using existing {tool_name} installer.")
@@ -224,10 +226,15 @@ class ToolsManager:
         prompt_callback,
         extract_method,
         extract_parameter,
+        auto_mode=False,
     ):
+        self.auto_mode = auto_mode
+        self.prompt_callback = prompt_callback
+
         if not Files.is_folder_empty(output_dir):
             if not prompt_callback(
-                f'{tool_name} {translate("dialogue_tools_reinstall")}'
+                f'{tool_name} {translate("dialogue_tools_reinstall")}',
+                auto_mode=auto_mode,
             ):
                 log.info(
                     f"{tool_name} already exists. Skipping download and installation."
@@ -237,7 +244,7 @@ class ToolsManager:
         output_dir.mkdir(parents=True, exist_ok=True)
 
         if self.check_and_download_installer(
-            url, installer_path, tool_name, prompt_callback
+            url, installer_path, tool_name
         ) and self.extract_installer(
             installer_path, output_dir, extract_method, extract_parameter
         ):

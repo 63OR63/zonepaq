@@ -146,8 +146,8 @@ class GUI_SettingsMenu(GUI_Toplevel):
             translate("settings_general_path_tools"): {
                 "repak_cli": {
                     "path_dict": settings.TOOLS_PATHS,
-                    "title": "repak",
-                    "type": ".exe",
+                    "title": f'{settings.TOOLS["repak_cli"]["exe"]}.exe',
+                    "type": settings.TOOLS["repak_cli"]["exe"],
                     "buttons": [
                         {
                             "command": self._open_path_browse_dialog,
@@ -162,7 +162,12 @@ class GUI_SettingsMenu(GUI_Toplevel):
                         },
                         {
                             "command": self._install_repak,
-                            "params": ("entry_variable",),
+                            "params": (
+                                "entry_variable",
+                                "entry_type",
+                                "entry_widget",
+                                "settings_key",
+                            ),
                             "text": translate("settings_general_install"),
                             "style": "Alt.CTkButton",
                         },
@@ -170,8 +175,8 @@ class GUI_SettingsMenu(GUI_Toplevel):
                 },
                 "kdiff3": {
                     "path_dict": settings.TOOLS_PATHS,
-                    "title": "kdiff3",
-                    "type": ".exe",
+                    "title": f'{settings.TOOLS["kdiff3"]["exe"]}.exe',
+                    "type": settings.TOOLS["kdiff3"]["exe"],
                     "buttons": [
                         {
                             "command": self._open_path_browse_dialog,
@@ -186,7 +191,12 @@ class GUI_SettingsMenu(GUI_Toplevel):
                         },
                         {
                             "command": self._install_kdiff3,
-                            "params": ("entry_variable",),
+                            "params": (
+                                "entry_variable",
+                                "entry_type",
+                                "entry_widget",
+                                "settings_key",
+                            ),
                             "text": translate("settings_general_install"),
                             "style": "Alt.CTkButton",
                         },
@@ -194,8 +204,8 @@ class GUI_SettingsMenu(GUI_Toplevel):
                 },
                 "winmerge": {
                     "path_dict": settings.TOOLS_PATHS,
-                    "title": "WinMergeU",
-                    "type": ".exe",
+                    "title": f'{settings.TOOLS["winmerge"]["exe"]}.exe',
+                    "type": settings.TOOLS["winmerge"]["exe"],
                     "buttons": [
                         {
                             "command": self._open_path_browse_dialog,
@@ -210,7 +220,12 @@ class GUI_SettingsMenu(GUI_Toplevel):
                         },
                         {
                             "command": self._install_winmerge,
-                            "params": ("entry_variable",),
+                            "params": (
+                                "entry_variable",
+                                "entry_type",
+                                "entry_widget",
+                                "settings_key",
+                            ),
                             "text": translate("settings_general_install"),
                             "style": "Alt.CTkButton",
                         },
@@ -298,7 +313,7 @@ class GUI_SettingsMenu(GUI_Toplevel):
             widget_args={
                 "master": group_frame,
                 "variable": self.engine_name,
-                "values": list(settings.ALL_LANG_NAMES),
+                "values": list(settings.SUPPORTED_MERGING_ENGINES),
                 "command": lambda: (
                     settings.update_config(
                         "SETTINGS", "merging_engine", self.engine_name
@@ -327,11 +342,11 @@ class GUI_SettingsMenu(GUI_Toplevel):
         for settings_key, entry_data in entries.items():
             self._create_entry_line(
                 master,
-                entry_data["path_dict"],
-                settings_key,
-                entry_data["title"],
-                entry_data["type"],
-                entry_data["buttons"],
+                path_dict=entry_data["path_dict"],
+                settings_key=settings_key,
+                path_title=entry_data["title"],
+                entry_type=entry_data["type"],
+                entry_buttons=entry_data["buttons"],
             )
         self.create_spacer(master)
 
@@ -395,24 +410,24 @@ class GUI_SettingsMenu(GUI_Toplevel):
             if not isinstance(params, (list, tuple)):
                 params = (params,)
 
-            resolved_params = []
+            resolved_params = {}
             for param in params:
                 if param == "entry_variable":
-                    resolved_params.append(entry_variable)
+                    resolved_params["entry_variable"] = entry_variable
                 elif param == "entry_type":
-                    resolved_params.append(entry_type)
+                    resolved_params["entry_type"] = entry_type
                 elif param == "entry_widget":
-                    resolved_params.append(entry_widget)
+                    resolved_params["entry_widget"] = entry_widget
                 elif param == "settings_key":
-                    resolved_params.append(settings_key)
+                    resolved_params["settings_key"] = settings_key
                 else:
-                    resolved_params.append(param)
+                    resolved_params[param] = param
 
             self.create_ctk_widget(
                 ctk_widget=ctk.CTkButton,
                 widget_args={
                     "master": master,
-                    "command": lambda cmd=command, p=resolved_params: cmd(*p),
+                    "command": lambda cmd=command, kw=resolved_params: cmd(**kw),
                     "text": button["text"],
                     "width": 0,
                 },
@@ -626,7 +641,10 @@ class GUI_SettingsMenu(GUI_Toplevel):
 
         path = Path(entry_widget.get())
 
-        if Data.is_valid_data(path, entry_type):
+        self._apply_style(Data.is_valid_data(path, entry_type), entry_widget)
+
+    def _apply_style(self, is_valid, entry_widget):
+        if is_valid:
             style = "Alt.CTkEntry"
         else:
             style = "AltError.CTkEntry"
@@ -660,13 +678,15 @@ class GUI_SettingsMenu(GUI_Toplevel):
         if selected_path:
             if isinstance(selected_path, tuple):
                 selected_path = ";".join(selected_path)
-            entry_variable.set(selected_path)
+            entry_variable.set(str(Path(selected_path).resolve()))
 
             self._store_temp_path_and_apply_style(
                 settings_key, entry_variable.get(), entry_type, entry_widget
             )
 
-    def prompt_redownload(self, text):
+    def prompt_redownload(self, text, auto_mode):
+        if auto_mode:
+            return True
         result = messagebox.askquestion(
             translate("generic_question"), text, parent=self
         )
@@ -685,6 +705,9 @@ class GUI_SettingsMenu(GUI_Toplevel):
         extract_parameter,
         local_path,
         entry_variable,
+        entry_type,
+        entry_widget,
+        settings_key,
         auto_mode=False,
         check_platform=True,
     ):
@@ -706,27 +729,31 @@ class GUI_SettingsMenu(GUI_Toplevel):
                 prompt_callback=self.prompt_redownload,
                 extract_method=extract_method,
                 extract_parameter=extract_parameter,
+                auto_mode=auto_mode,
             )
-            if skipped:
-                return False
-            if install_result:
-                if not auto_mode:
-                    if Files.is_existing_file(local_path):
+            # if skipped:
+            #     return False
+            if install_result or skipped:
+                if Data.is_valid_data(local_path, entry_type):
+                    if not auto_mode:
                         entry_variable.set(str(Path(local_path).resolve()))
-                        self._save_settings_and_close(close=False)
+                        self._apply_style(True, entry_widget)
+                        settings.TOOLS_PATHS[settings_key] = local_path
+                        settings.save()
                         messagebox.showinfo(
                             translate("generic_info"),
                             f'{tool_name} {translate("dialogue_install_success")} {output_dir}',
                             parent=self,
                         )
-                    else:
-                        log.error(f"{tool_name} can't be located at {local_path}")
+                else:
+                    log.error(f"{tool_name} can't be located at {local_path}")
+                    if not auto_mode:
                         messagebox.showerror(
                             translate("generic_error"),
                             f'{translate("dialogue_install_error")} {tool_name}\n{translate("dialogue_check_logs")}',
                             parent=self,
                         )
-                        return False
+                    return False
                 return True
 
         if not auto_mode:
@@ -735,9 +762,12 @@ class GUI_SettingsMenu(GUI_Toplevel):
                 f'{translate("dialogue_install_error")} {tool_name}\n{translate("dialogue_check_logs")}',
                 parent=self,
             )
+
         return False
 
-    def _install_repak(self, entry_variable):
+    def _install_repak(
+        self, entry_variable, entry_type, entry_widget, settings_key, auto_mode=False
+    ):
         return self._install_tool(
             tool_name="repak_cli",
             download_method=self.tools_manager.get_latest_github_release_asset,
@@ -751,9 +781,15 @@ class GUI_SettingsMenu(GUI_Toplevel):
             extract_parameter=self.tools_manager.repak_extract_parameter,
             local_path=self.tools_manager.repak_local_path,
             entry_variable=entry_variable,
+            entry_type=entry_type,
+            entry_widget=entry_widget,
+            settings_key=settings_key,
+            auto_mode=auto_mode,
         )
 
-    def _install_kdiff3(self, entry_variable):
+    def _install_kdiff3(
+        self, entry_variable, entry_type, entry_widget, settings_key, auto_mode=False
+    ):
         return self._install_tool(
             tool_name="KDiff3",
             download_method=self.tools_manager.get_latest_kdiff3,
@@ -764,9 +800,15 @@ class GUI_SettingsMenu(GUI_Toplevel):
             extract_parameter=self.tools_manager.kdiff3_extract_parameter,
             local_path=self.tools_manager.kdiff3_local_path,
             entry_variable=entry_variable,
+            entry_type=entry_type,
+            entry_widget=entry_widget,
+            settings_key=settings_key,
+            auto_mode=auto_mode,
         )
 
-    def _install_winmerge(self, entry_variable):
+    def _install_winmerge(
+        self, entry_variable, entry_type, entry_widget, settings_key, auto_mode=False
+    ):
         return self._install_tool(
             tool_name="WinMerge",
             download_method=self.tools_manager.get_latest_github_release_asset,
@@ -780,6 +822,10 @@ class GUI_SettingsMenu(GUI_Toplevel):
             extract_parameter=self.tools_manager.winmerge_extract_parameter,
             local_path=self.tools_manager.winmerge_local_path,
             entry_variable=entry_variable,
+            entry_type=entry_type,
+            entry_widget=entry_widget,
+            settings_key=settings_key,
+            auto_mode=auto_mode,
         )
 
     def _unpack_files(self, entry_variable):

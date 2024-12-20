@@ -10,6 +10,7 @@ from config.defaults import (
     DEFAULT_VANILLA_FOLDER_SUFFIX,
     GAMES,
     TOOLS,
+    SUPPORTED_MERGING_ENGINES,
 )
 from config.themes import ThemeManager
 from config.translations import get_available_languages, get_translation
@@ -97,10 +98,11 @@ class Settings:
         self.TOOLS_PATHS = self.get("TOOLS_PATHS")
         self.GAME_PATHS = self.get("GAME_PATHS")
         self.LANG_DICT = get_translation(self.LANG_NAME)
-        # self.THEME_DICT = get_theme_dict(self.THEME_NAME)  #!delme
         self.ALL_LANG_NAMES = get_available_languages()
         self.ALL_THEME_NAMES = ThemeManager.get_available_theme_names()
-        # self.TOOL_LINKS = TOOL_LINKS
+        self.SUPPORTED_MERGING_ENGINES = [
+            engine["name"] for engine in SUPPORTED_MERGING_ENGINES.values()
+        ]
         self.TOOLS = TOOLS
 
     def update_config(self, section, key, value):
