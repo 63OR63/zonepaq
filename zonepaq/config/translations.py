@@ -88,6 +88,7 @@ TRANSLATIONS = {
             "...the merging window will open..."
         ),
         "merge_screen_analyze_button": "Analyze all",
+        "merge_screen_analyze_msg_empty_list": "Please, select some files to analyze.",
         "merge_screen_conflicts_title": "Find conflicts or merge mods",
         "merge_screen_conflicts_show_path": "Show full path",
         "merge_screen_conflicts_file_structure": "File Tree",
@@ -225,6 +226,7 @@ TRANSLATIONS = {
             "...откроется окно слияния..."
         ),
         "merge_screen_analyze_button": "Анализировать все",
+        "merge_screen_analyze_msg_empty_list": "Пожалуйста, выберите файлы для анализа.",
         "merge_screen_conflicts_title": "Поиск конфликтов или слияние модов",
         "merge_screen_conflicts_show_path": "Показать полный путь",
         "merge_screen_conflicts_file_structure": "Дерево файлов",

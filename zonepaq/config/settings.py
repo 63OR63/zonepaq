@@ -94,6 +94,7 @@ class Settings:
         self.LANG_NAME = self.get("SETTINGS", "lang_name")
         self.THEME_NAME = self.get("SETTINGS", "theme_name")
         self.SHOW_HINTS = self.get("SETTINGS", "show_hints")
+        self.DARK_MODE = self.get("SETTINGS", "dark_mode")
         self.AES_KEY = self.get("SETTINGS", "aes_key")
         self.TOOLS_PATHS = self.get("TOOLS_PATHS")
         self.GAME_PATHS = self.get("GAME_PATHS")

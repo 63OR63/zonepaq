@@ -17,6 +17,7 @@ class GUI_MergeScreen(GUI_Secondary):
     def __init__(self, master):
         super().__init__(master, title=translate("merge_screen_title"))
         self._create_sections()
+        self.create_settings_button(self)
 
         self.adjust_to_content(self, adjust_width=True, adjust_height=True)
 
@@ -84,5 +85,5 @@ class GUI_MergeScreen(GUI_Secondary):
         else:
             messagebox.showwarning(
                 translate("generic_warning"),
-                translate("repak_screen_repack_msg_empty_list"),
+                translate("merge_screen_analyze_msg_empty_list"),
             )

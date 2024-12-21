@@ -24,6 +24,7 @@ class GUI_RepakScreen(GUI_Secondary):
     def __init__(self, master):
         super().__init__(master, title=translate("repak_screen_title"))
         self._create_sections()
+        self.create_settings_button(self)
 
         self.adjust_to_content(self, adjust_width=True, adjust_height=True)
 

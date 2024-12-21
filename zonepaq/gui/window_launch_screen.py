@@ -2,6 +2,9 @@ import sys
 from backend.logger import log
 from config.settings import translate
 from gui.template_base import GUI_Base
+import customtkinter as ctk
+
+from gui.window_settings_menu import GUI_SettingsMenu
 
 
 class GUI_LaunchScreen(GUI_Base):
@@ -66,3 +69,5 @@ class GUI_LaunchScreen(GUI_Base):
             padx=self.padding // 2,
             pady=self.padding // 2,
         )
+
+        self.create_settings_button(self)

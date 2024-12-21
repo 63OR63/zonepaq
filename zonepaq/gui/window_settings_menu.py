@@ -9,6 +9,8 @@ import customtkinter as ctk
 from pathlib import Path
 from tkinter import filedialog, messagebox
 
+from gui.window_help import GUI_HelpScreen
+
 
 class GUI_SettingsMenu(GUI_Toplevel):
     """Popup window for configuring and saving application settings."""
@@ -19,6 +21,15 @@ class GUI_SettingsMenu(GUI_Toplevel):
         self._create_tabview_layout()
         self._add_general_tabview(self.general_tabview_frame)
         self._add_appearance_tabview(self.appearance_tabview_frame)
+
+        self.create_header_button(
+            self,
+            command=lambda: GUI_HelpScreen(self),
+            image=self.help_image,
+            image_hover=self.help_image_hover,
+            sticky="e",
+        )
+
         self._show_frame(self.general_tabview_frame)
 
         self.adjust_to_content(self, adjust_width=True)
@@ -95,8 +106,6 @@ class GUI_SettingsMenu(GUI_Toplevel):
                 "column": 0,
                 "sticky": "e",
             },
-            row_weights=None,
-            column_weights=None,
         )
 
         self.create_button(
@@ -303,8 +312,6 @@ class GUI_SettingsMenu(GUI_Toplevel):
                 "sticky": "w",
                 "padx": self.padding,
             },
-            row_weights=None,
-            column_weights=None,
         )
 
         self.engine_name = ctk.StringVar(master=self, value=settings.MERGING_ENGINE)
@@ -314,10 +321,8 @@ class GUI_SettingsMenu(GUI_Toplevel):
                 "master": group_frame,
                 "variable": self.engine_name,
                 "values": list(settings.SUPPORTED_MERGING_ENGINES),
-                "command": lambda: (
-                    settings.update_config(
-                        "SETTINGS", "merging_engine", self.engine_name
-                    ),
+                "command": lambda engine_name=self.engine_name: (
+                    settings.update_config("SETTINGS", "merging_engine", engine_name),
                 ),
                 "anchor": "w",
             },
@@ -328,8 +333,6 @@ class GUI_SettingsMenu(GUI_Toplevel):
                 "padx": (0, self.padding),
                 "pady": self.padding / 5,
             },
-            row_weights=None,
-            column_weights=None,
         )
 
         self.create_spacer(group_frame)
@@ -369,8 +372,6 @@ class GUI_SettingsMenu(GUI_Toplevel):
                 "sticky": "w",
                 "padx": self.padding,
             },
-            row_weights=None,
-            column_weights=None,
         )
 
         entry_variable = ctk.StringVar(
@@ -393,8 +394,6 @@ class GUI_SettingsMenu(GUI_Toplevel):
                 "padx": (0, self.padding),
                 "pady": self.padding / 5,
             },
-            row_weights=None,
-            column_weights=None,
         )
 
         self._store_temp_path_and_apply_style(
@@ -478,8 +477,6 @@ class GUI_SettingsMenu(GUI_Toplevel):
                 "sticky": "w",
                 "padx": self.padding,
             },
-            row_weights=None,
-            column_weights=None,
         )
 
         self.selected_theme = ctk.StringVar(master=self, value=settings.THEME_NAME)
@@ -501,15 +498,15 @@ class GUI_SettingsMenu(GUI_Toplevel):
                 "padx": (0, self.padding),
                 "pady": self.padding / 5,
             },
-            row_weights=None,
-            column_weights=None,
         )
 
+        self.dark_mode = ctk.BooleanVar(value=settings.DARK_MODE)
         self.dark_mode_widget = self.create_ctk_widget(
             ctk_widget=ctk.CTkSwitch,
             widget_args={
                 "master": group_frame,
                 "text": translate("settings_appearance_dark_mode"),
+                "variable": self.dark_mode,
                 "onvalue": True,
                 "offvalue": False,
                 "command": self._switch_dark_mode,
@@ -521,8 +518,6 @@ class GUI_SettingsMenu(GUI_Toplevel):
                 "padx": (0, self.padding),
                 "pady": self.padding / 5,
             },
-            row_weights=None,
-            column_weights=None,
         )
 
         self.create_spacer(group_frame)
@@ -547,8 +542,6 @@ class GUI_SettingsMenu(GUI_Toplevel):
                 "sticky": "w",
                 "padx": self.padding,
             },
-            row_weights=None,
-            column_weights=None,
         )
 
         self.selected_lang = ctk.StringVar(master=self, value=settings.LANG_NAME)
@@ -570,8 +563,6 @@ class GUI_SettingsMenu(GUI_Toplevel):
                 "padx": (0, self.padding),
                 "pady": self.padding / 5,
             },
-            row_weights=None,
-            column_weights=None,
         )
 
         self.create_spacer(group_frame)
@@ -596,8 +587,6 @@ class GUI_SettingsMenu(GUI_Toplevel):
                 "sticky": "w",
                 "padx": self.padding,
             },
-            row_weights=None,
-            column_weights=None,
         )
 
         self.show_hints = ctk.BooleanVar(value=settings.SHOW_HINTS)
@@ -618,8 +607,6 @@ class GUI_SettingsMenu(GUI_Toplevel):
                 "padx": (0, self.padding),
                 "pady": self.padding / 5,
             },
-            row_weights=None,
-            column_weights=None,
         )
 
     def _switch_dark_mode(self):
@@ -627,6 +614,7 @@ class GUI_SettingsMenu(GUI_Toplevel):
             ctk.set_appearance_mode("dark")
         else:
             ctk.set_appearance_mode("light")
+        settings.update_config("SETTINGS", "dark_mode", self.dark_mode_widget.get())
 
     def _switch_hints(self):
         settings.update_config("SETTINGS", "show_hints", self.show_hints_widget.get())

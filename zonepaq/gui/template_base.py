@@ -1,15 +1,20 @@
+from pathlib import Path
+import sys
 from backend.logger import handle_exception, log
+from backend.tools import Files
 from backend.tools_manager import ToolsManager
 from config.settings import settings
 from config.metadata import APP_NAME, APP_VERSION
 from config.themes import StyleManager, ThemeManager
 from gui.ctk_wraps import CTk
-
 import customtkinter as ctk
+import tkinter as tk
 
 
 import json
 from unittest.mock import mock_open, patch
+
+from gui.window_settings_menu import GUI_SettingsMenu
 
 
 class GUI_Base(CTk):
@@ -24,17 +29,13 @@ class GUI_Base(CTk):
         self.theme_manager = ThemeManager
         self.style_manager = StyleManager
 
+        self.padding = 20
+
         self._restyle()
 
         self.report_callback_exception = handle_exception
 
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
-
-        from gui.menus import MenuRibbon
-
-        self.menu = MenuRibbon(self)
-
-        self.padding = 20
 
     def on_closing(self):
         raise NotImplementedError("Subclasses must implement the 'on_closing' method.")
@@ -49,17 +50,81 @@ class GUI_Base(CTk):
             self.theme_manager.dimensions_definitions,
         )
 
+        self.apply_color_theme(self.color_theme)
+
+        if eval(settings.DARK_MODE):
+            ctk.set_appearance_mode("dark")
+        else:
+            ctk.set_appearance_mode("light")
+
+        self.style_manager.define_custom_styles(color_palette)
+
+        self.cog_image = self.create_image_for_button(
+            "mdi-cog.png", color_palette, hover=False
+        )
+        self.cog_image_hover = self.create_image_for_button(
+            "mdi-cog.png", color_palette, hover=True
+        )
+        self.help_image = self.create_image_for_button(
+            "mdi-help.png", color_palette, hover=False
+        )
+        self.help_image_hover = self.create_image_for_button(
+            "mdi-help.png", color_palette, hover=True
+        )
+
         self.configure(
             fg_color=self.theme_manager.get_colors(
                 "color_background_primary", color_palette
             )
         )
 
-        self.apply_color_theme(self.color_theme)
-
-        self.style_manager.define_custom_styles(color_palette)
-
         log.debug(f"Color theme {color_palette} applied")
+
+    def create_image_for_button(self, img_name, color_palette, hover=False):
+        color_type = "color_accent_quaternary" if hover else "color_accent_tertiary"
+        colors = self.theme_manager.get_colors(color_type, color_palette)
+        light_color, dark_color = colors[0], colors[1]
+
+        def themed_image(img, color):
+            base_path = Files.get_base_path() / f"zonepaq/assets/icons/{img}"
+            return self.theme_manager.colorize_mask(base_path, color)
+
+        return ctk.CTkImage(
+            light_image=themed_image(img_name, light_color),
+            dark_image=themed_image(img_name, dark_color),
+            size=(self.padding * 1.5, self.padding * 1.5),
+        )
+
+    def create_header_button(self, master, command, image, image_hover, sticky):
+        button = self.create_ctk_widget(
+            ctk_widget=ctk.CTkButton,
+            widget_args={
+                "master": self.get_first_widget(master),
+                "text": "",
+                "image": image,
+                "width": int(self.padding * 1.5),
+                "height": int(self.padding * 1.5),
+                "command": command,
+            },
+            widget_style="HeaderImage.CTkButton",
+            grid_args={
+                "row": 0,
+                "columnspan": 999,
+                "padx": int(self.padding * 1.5),
+                "sticky": sticky,
+            },
+            row_weights=None,
+            column_weights=None,
+        )
+
+        def on_enter(event):
+            button.configure(image=image_hover)
+
+        def on_leave(event):
+            button.configure(image=image)
+
+        button.bind("<Enter>", on_enter)
+        button.bind("<Leave>", on_leave)
 
     def apply_color_theme(self, color_theme):
         ### Using mocked file
@@ -118,7 +183,7 @@ class GUI_Base(CTk):
     ):
         widget = ctk_widget(**widget_args)
         if widget_style:
-            StyleManager.apply_style(widget, widget_style)
+            self.style_manager.apply_style(widget, widget_style)
         widget.grid(**grid_args)
         if row_weights:
             for row_index, weight in row_weights:
@@ -139,7 +204,7 @@ class GUI_Base(CTk):
         elif isinstance(row, str) and row.startswith(("+", "-")):
             column = max(eval(f"{self._get_next_column(master)} {column}"), 0)
 
-        return self.create_ctk_widget(
+        header_label = self.create_ctk_widget(
             ctk_widget=ctk.CTkLabel,
             widget_args={
                 "master": master,
@@ -149,7 +214,6 @@ class GUI_Base(CTk):
             },
             widget_style="Header.CTkLabel",
             grid_args={
-                "row": self._get_next_row(master),
                 "column": 0,
                 "columnspan": 999,
                 "sticky": "nsew",
@@ -157,6 +221,8 @@ class GUI_Base(CTk):
             row_weights=None,
             column_weights=None,
         )
+
+        return header_label
 
     def create_subheader(self, master, text="", row="current", column=0):
         if row == "current":
@@ -169,10 +235,18 @@ class GUI_Base(CTk):
         elif isinstance(row, str) and row.startswith(("+", "-")):
             column = max(eval(f"{self._get_next_column(master)} {column}"), 0)
 
-        return self.create_ctk_widget(
+        frame = self.create_frame(
+            master,
+            style="SubHeader.CTkFrame",
+            row=row,
+            column=column,
+            column_weights=[(0, 0), (1, 1)],
+        )
+
+        label = self.create_ctk_widget(
             ctk_widget=ctk.CTkLabel,
             widget_args={
-                "master": master,
+                "master": frame,
                 "text": text,
                 "anchor": "w",
                 "padx": self.padding,
@@ -180,14 +254,17 @@ class GUI_Base(CTk):
             },
             widget_style="SubHeader.CTkLabel",
             grid_args={
-                "row": row,
-                "column": column,
-                "columnspan": 999,
                 "sticky": "nsew",
+                "row": 0,
+                "column": 0,
             },
             row_weights=None,
             column_weights=None,
         )
+
+        self.create_separator(frame, padx=self.padding, row=0, column=1)
+
+        return
 
     def create_frame(
         self,
@@ -281,6 +358,52 @@ class GUI_Base(CTk):
             column_weights=column_weights,
         )
 
+    def create_separator(
+        self,
+        master,
+        style="Separator.CTkFrame",
+        row="current",
+        column=0,
+        rowspan=1,
+        columnspan=999,
+        sticky="ew",
+        padx=0,
+        pady=0,
+        row_weights=None,
+        column_weights=None,
+        **kwargs,
+    ):
+        if row == "current":
+            row = self._get_next_row(master)
+        elif isinstance(row, str) and row.startswith(("+", "-")):
+            row = max(eval(f"{self._get_next_row(master)} {row}"), 0)
+
+        if column == "current":
+            column = self._get_next_column(master)
+        elif isinstance(row, str) and row.startswith(("+", "-")):
+            column = max(eval(f"{self._get_next_column(master)} {column}"), 0)
+
+        widget_args = {"master": master, "height": 2}
+
+        widget_args.update(kwargs)
+
+        return self.create_ctk_widget(
+            ctk_widget=ctk.CTkFrame,
+            widget_args=widget_args,
+            widget_style=style,
+            grid_args={
+                "row": row,
+                "column": column,
+                "rowspan": rowspan,
+                "columnspan": columnspan,
+                "sticky": sticky,
+                "padx": padx,
+                "pady": pady,
+            },
+            row_weights=row_weights,
+            column_weights=column_weights,
+        )
+
     def create_hints(self, master, hints, row="current", column=0):
         if eval(settings.SHOW_HINTS) and hints:
             if row == "current":
@@ -311,6 +434,14 @@ class GUI_Base(CTk):
                 row_weights=[(0, 0)],
                 column_weights=None,
             )
+
+    def get_first_widget(self, parent):
+        for widget in parent.winfo_children():
+            if str(widget.winfo_manager()) == "grid":
+                grid_info = widget.grid_info()
+                if grid_info["row"] == 0 and grid_info["column"] == 0:
+                    return widget
+        return None
 
     def _get_next_row(self, root=None):
         root = root or self
@@ -382,4 +513,13 @@ class GUI_Base(CTk):
             },
             row_weights=row_weights,
             column_weights=column_weights,
+        )
+
+    def create_settings_button(self, master):
+        return self.create_header_button(
+            master,
+            command=lambda: GUI_SettingsMenu(master),
+            image=self.cog_image,
+            image_hover=self.cog_image_hover,
+            sticky="e",
         )

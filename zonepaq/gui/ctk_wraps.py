@@ -5,13 +5,11 @@ from pathlib import Path
 import customtkinter as ctk
 from config.metadata import APP_ICONS
 from tkinterdnd2 import TkinterDnD
+from backend.tools import Files
 
 
 def custom_set_titlebar_icon(self):
-    try:
-        base_path = Path(sys._MEIPASS)
-    except Exception:
-        base_path = Path(".")
+    base_path = Files.get_base_path()
     try:
         resource_path = base_path / APP_ICONS["png"]
         self.iconphoto(True, tk.PhotoImage(file=resource_path))

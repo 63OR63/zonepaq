@@ -2,6 +2,9 @@ import colorsys
 from logging import log
 import customtkinter as ctk
 
+from backend.tools import Files
+from PIL import Image, ImageTk
+
 
 class ThemeManager:
     # First color in a list is for light mode, second one is for dark mode
@@ -14,31 +17,105 @@ class ThemeManager:
             "color_background_primary": ["#eceff4", "#2e3440"],
             "color_background_secondary": ["#e5e9f0", "#3b4252"],
             "color_background_tertiary": ["#d8dee9", "#434c5e"],
-            "color_accent_primary": "#88c0d0",
-            "color_accent_secondary": "#8fbcbb",
+            "color_accent_primary": ["#88c0d0", "#88c0d0"],
+            "color_accent_secondary": ["#8fbcbb", "#8fbcbb"],
             "color_accent_tertiary": ["#81a1c1", "#5e81ac"],
+            "color_accent_quaternary": ["#5e81ac", "#81a1c1"],
             "color_error": "#bf616a",
             "color_warning": "#d08770",
             "color_attention": "#ebcb8b",
             "color_success": "#a3be8c",
             "color_highlight": "#b48ead",
         },
-        "STALKER": {
-            "color_text_primary": ["#c8c8c8", "#d1d1d1"],
-            "color_text_secondary": ["#a0a0a0", "#b3b3b3"],
-            "color_text_accent": ["#8b8b8b", "#8f8f8f"],
-            "color_text_muted": ["#6a6a6a", "#4e4e4e"],
-            "color_background_primary": ["#1c1c1c", "#0a0a0a"],
-            "color_background_secondary": ["#282828", "#1f1f1f"],
-            "color_background_tertiary": ["#3d3d3d", "#2c2c2c"],
-            "color_accent_primary": "#4e6b34",  # Muted olive green
-            "color_accent_secondary": "#7b9a2d",  # Vibrant green
-            "color_accent_tertiary": ["#9e9e9e", "#666666"],  # Dusty grey
-            "color_error": "#a33737",  # Rusty red
-            "color_warning": "#ff7b00",  # Yellowish warning
-            "color_attention": "#e2b34b",  # Bright orange
-            "color_success": "#4caf50",  # Muted green success
-            "color_highlight": "#daaa00",  # Faded yellow
+        "S.T.A.L.K.E.R.": {
+            "color_text_primary": ["#1b1f22", "#fff7e1"],
+            "color_text_secondary": ["#272a28", "#fbe6bd"],
+            "color_text_accent": ["#353533", "#f0d0b0"],
+            "color_text_muted": ["#7a7d81", "#5b5b57"],
+            "color_background_primary": ["#f5eaf0", "#1b1e22"],
+            "color_background_secondary": ["#cfc6cb", "#191b1f"],
+            "color_background_tertiary": ["#b7afaa", "#5d705e"],
+            "color_accent_primary": ["#96bb98", "#7a947a"],
+            "color_accent_secondary": ["#9fcda1", "#a8c8a5"],
+            "color_accent_tertiary": ["#719888", "#14161a"],
+            "color_accent_quaternary": ["#7cb49d", "#15181c"],
+            "color_error": "#a64441",
+            "color_warning": "#d77c37",
+            "color_attention": "#e8b847",
+            "color_success": "#609f5f",
+            "color_highlight": "#8a7295",
+        },
+        "Half-Life": {
+            "color_text_primary": ["#1c1c1c", "#f7f7f7"],
+            "color_text_secondary": ["#282828", "#dcdcdc"],
+            "color_text_accent": ["#303030", "#e6e6e6"],
+            "color_text_muted": ["#747474", "#8c8c8c"],
+            "color_background_primary": ["#c1c9b7", "#1a1a1a"],
+            "color_background_secondary": ["#b4bca9", "#262626"],
+            "color_background_tertiary": ["#a8b09d", "#333333"],
+            "color_accent_primary": ["#fb991e", "#fb991e"],
+            "color_accent_secondary": ["#ffb91e", "#ffb91e"],
+            "color_accent_tertiary": ["#fb620a", "#fb620a"],
+            "color_accent_quaternary": ["#fb821b", "#fb821b"],
+            "color_error": "#b8160a",
+            "color_warning": "#fb620a",
+            "color_attention": "#ffb91e",
+            "color_success": "#2ecc71",
+            "color_highlight": "#9b59b6",
+        },
+        "Mass Effect": {
+            "color_text_primary": ["#1a2633", "#d6e0ed"],
+            "color_text_secondary": ["#233645", "#c1c9d6"],
+            "color_text_accent": ["#2b3d4f", "#eef4fa"],
+            "color_text_muted": ["#4a5866", "#6d7584"],
+            "color_background_primary": ["#e9efff", "#1a2633"],
+            "color_background_secondary": ["#d1ddfb", "#233645"],
+            "color_background_tertiary": ["#a4b0cf", "#2b3d4f"],
+            "color_accent_primary": ["#698aff", "#568fa0"],
+            "color_accent_secondary": ["#6182dc", "#6ab1c6"],
+            "color_accent_tertiary": ["#ff2f2f", "#a11429"],
+            "color_accent_quaternary": ["#e62b2d", "#cd142d"],
+            "color_error": "#e03b4e",
+            "color_warning": "#f79420",
+            "color_attention": "#ffd700",
+            "color_success": "#59a84e",
+            "color_highlight": "#9157c1",
+        },
+        "Cyberpunk": {
+            "color_text_primary": ["#132025", "#00e6ef"],
+            "color_text_secondary": ["#35181d", "#4db0a4"],
+            "color_text_accent": ["#ffffff", "#00fff7"],
+            "color_text_muted": ["#5e6f24", "#596f72"],
+            "color_background_primary": ["#fee909", "#0f121a"],
+            "color_background_secondary": ["#c3e357", "#1f1a22"],
+            "color_background_tertiary": ["#19d7b1", "#35181d"],
+            "color_accent_primary": ["#ff2e4c", "#8c0c2c"],
+            "color_accent_secondary": ["#ff171b", "#c70842"],
+            "color_accent_tertiary": ["#00fff7", "#00716f"],
+            "color_accent_quaternary": ["#5aebd5", "#00a4a1"],
+            "color_error": "#fa675b",
+            "color_warning": "#ffaa00",
+            "color_attention": "#cef05b",
+            "color_success": "#17deaf",
+            "color_highlight": "#902ac7",
+        },
+        "Space Rangers": {
+            "color_text_primary": ["#124643", "#99b8b7"],
+            "color_text_secondary": ["#002637", "#8c9ea9"],
+            "color_text_accent": ["#024c6f", "#69b1bf"],
+            "color_text_muted": ["#134643", "#95a5a6"],
+            "color_background_primary": ["#9fbfbe", "#061f1f"],
+            "color_background_secondary": ["#88abaf", "#002637"],
+            "color_background_tertiary": ["#689193", "#024c6f"],
+            "color_accent_primary": ["#00d5cc", "#003758"],
+            "color_accent_secondary": ["#3bded3", "#006490"],
+            "color_accent_tertiary": ["#31b8af", "#002d3d"],
+            "color_accent_quaternary": ["#05cac0", "#06485b"],
+            "color_error": "#f25c50",
+            "color_warning": "#f39c12",
+            "color_attention": "#f1c40f",
+            "color_success": "#129c19",
+            "color_highlight": "#2ca5bf",
         },
     }
 
@@ -173,11 +250,9 @@ class ThemeManager:
             },
             "CTkButton": {
                 "fg_color": cls.get_colors("color_accent_tertiary", color_palette),
-                "hover_color": cls.get_colors(
-                    "color_accent_tertiary", color_palette, True
-                ),
+                "hover_color": cls.get_colors("color_accent_quaternary", color_palette),
                 "border_color": cls.get_colors(
-                    "color_accent_tertiary", color_palette, True
+                    "color_accent_quaternary", color_palette
                 ),
                 "text_color": cls.get_colors("color_text_primary", color_palette),
                 "text_color_disabled": cls.get_colors(
@@ -279,7 +354,7 @@ class ThemeManager:
                 "fg_color": "transparent",
                 "button_color": cls.get_colors("color_accent_tertiary", color_palette),
                 "button_hover_color": cls.get_colors(
-                    "color_accent_tertiary", color_palette, True
+                    "color_accent_quaternary", color_palette
                 ),
             },
             "CTkSegmentedButton": {
@@ -288,7 +363,7 @@ class ThemeManager:
                     "color_accent_tertiary", color_palette
                 ),
                 "selected_hover_color": cls.get_colors(
-                    "color_accent_tertiary", color_palette, True
+                    "color_accent_quaternary", color_palette
                 ),
                 "unselected_color": cls.get_colors(
                     "color_background_secondary", color_palette
@@ -308,7 +383,7 @@ class ThemeManager:
                 ),
                 "button_color": cls.get_colors("color_accent_tertiary", color_palette),
                 "button_hover_color": cls.get_colors(
-                    "color_accent_tertiary", color_palette, True
+                    "color_accent_quaternary", color_palette
                 ),
             },
             "CTkSwitch": {
@@ -318,7 +393,7 @@ class ThemeManager:
                 ),
                 "button_color": cls.get_colors("color_accent_tertiary", color_palette),
                 "button_hover_color": cls.get_colors(
-                    "color_accent_tertiary", color_palette, True
+                    "color_accent_quaternary", color_palette
                 ),
                 "text_color": cls.get_colors("color_text_primary", color_palette),
                 "text_color_disabled": cls.get_colors(
@@ -345,6 +420,23 @@ class ThemeManager:
             },
         }
         return ctk_color_theme
+
+    @classmethod
+    def colorize_mask(cls, input_image_path, hex_color):
+        output_color = cls._hex_to_rgb(hex_color)
+
+        img = Image.open(input_image_path).convert("RGBA")
+
+        data = img.getdata()
+        new_data = []
+        for pixel in data:
+            if pixel[3] > 0:
+                new_data.append((*output_color, 255))
+            else:
+                new_data.append((0, 0, 0, 0))
+
+        img.putdata(new_data)
+        return img
 
     @staticmethod
     def _hex_to_rgb(hex_color):
@@ -513,6 +605,20 @@ class StyleManager:
         )
 
         cls.define_style(
+            "SubHeader.CTkFrame",
+            fg_color=ThemeManager.get_colors(
+                "color_background_secondary", color_palette
+            ),
+        )
+
+        cls.define_style(
+            "Separator.CTkFrame",
+            fg_color=ThemeManager.get_colors("color_text_muted", color_palette),
+            # border_color="red",
+            # border_width=1,
+        )
+
+        cls.define_style(
             "Primary.CTkFrame",
             fg_color=ThemeManager.get_colors("color_background_primary", color_palette),
             # border_color="red",
@@ -538,13 +644,26 @@ class StyleManager:
         )
 
         cls.define_style(
+            "HeaderImage.CTkButton",
+            fg_color=ThemeManager.get_colors(
+                "color_background_tertiary", color_palette
+            ),
+            hover_color=ThemeManager.get_colors(
+                "color_background_tertiary", color_palette
+            ),
+            border_color=ThemeManager.get_colors(
+                "color_background_tertiary", color_palette
+            ),
+        )
+
+        cls.define_style(
             "Generic.CTkButton",
             fg_color=ThemeManager.get_colors("color_accent_tertiary", color_palette),
             hover_color=ThemeManager.get_colors(
-                "color_accent_tertiary", color_palette, True
+                "color_accent_quaternary", color_palette
             ),
             border_color=ThemeManager.get_colors(
-                "color_accent_tertiary", color_palette, True
+                "color_accent_quaternary", color_palette
             ),
             font=ctk.CTkFont(
                 family=ctk.ThemeManager.theme["Generic.Button.CustomFont"]["family"],
@@ -591,10 +710,10 @@ class StyleManager:
                 "color_background_secondary", color_palette
             ),
             hover_color=ThemeManager.get_colors(
-                "color_background_tertiary", color_palette
+                "color_accent_quaternary", color_palette
             ),
             border_color=ThemeManager.get_colors(
-                "color_background_tertiary", color_palette
+                "color_accent_quaternary", color_palette
             ),
             font=ctk.CTkFont(
                 family=ctk.ThemeManager.theme["Generic.Button.CustomFont"]["family"],
@@ -648,7 +767,7 @@ class StyleManager:
             text_color=ThemeManager.get_colors("color_text_primary", color_palette),
             button_color="transparent",
             hover_color=ThemeManager.get_colors(
-                "color_accent_tertiary", color_palette, True
+                "color_accent_quaternary", color_palette
             ),
             highlight_color=ThemeManager.get_colors(
                 "color_accent_tertiary", color_palette

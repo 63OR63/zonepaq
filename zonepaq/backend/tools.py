@@ -9,6 +9,14 @@ from backend.logger import log
 class Files:
     """Utility class for files/folders analysis and management."""
 
+    @staticmethod
+    def get_base_path():
+        try:
+            base_path = Path(sys._MEIPASS)
+        except Exception:
+            base_path = Path(".")
+        return base_path
+
     @classmethod
     def is_existing_folder(cls, folder_path):
         try:
