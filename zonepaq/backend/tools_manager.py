@@ -170,7 +170,10 @@ class ToolsManager:
                 )
 
                 # Copy all from temp_unpack_dir to output_dir
-                Files.copy_folder_contents(temp_unpack_dir, output_dir)
+                source_dir = temp_unpack_dir
+                if extract_parameter:
+                    source_dir /= extract_parameter
+                Files.copy_folder_contents(source_dir, output_dir)
 
             log.debug(f"Extraction of {installer_path} complete.")
             return True
@@ -211,7 +214,10 @@ class ToolsManager:
                     zip_ref.extractall(temp_unpack_dir, members=files_to_extract)
 
                 # Copy all from temp_unpack_dir to output_dir
-                Files.copy_folder_contents(temp_unpack_dir, output_dir)
+                source_dir = temp_unpack_dir
+                if extract_parameter:
+                    source_dir /= extract_parameter
+                Files.copy_folder_contents(source_dir, output_dir)
 
             log.debug(f"Extraction of {installer_path} complete.")
             return True

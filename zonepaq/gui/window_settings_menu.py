@@ -633,6 +633,7 @@ class GUI_SettingsMenu(GUI_Toplevel):
         skip_extract=False,
         auto_mode=False,
         check_platform=True,
+        skip_search=True,
     ):
         # Check platform compatibility
         if check_platform and sys.platform != "win32":
@@ -657,12 +658,14 @@ class GUI_SettingsMenu(GUI_Toplevel):
         entry_variable = install_metadata.get("entry_variable", None)
 
         # Try to find existing installation
-        try:
-            found_exe = Files.find_app_installation(
-                exe_name, local_exe, winreg_path, winreg_key, fallback_exe
-            )
-        except:
-            pass
+        found_exe = None
+        if not skip_search:
+            try:
+                found_exe = Files.find_app_installation(
+                    exe_name, local_exe, winreg_path, winreg_key, fallback_exe
+                )
+            except:
+                pass
 
         if found_exe:
             log.info(

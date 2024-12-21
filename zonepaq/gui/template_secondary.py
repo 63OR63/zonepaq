@@ -164,6 +164,7 @@ class GUI_Secondary(GUI_Toplevel):
                 path = path.replace("{", "").replace("}", "")
                 path = Path(path.strip())
                 if str(path) not in listbox.get("all"):
+                    dnd.grid_forget()
                     if (
                         mode == "pak"
                         and path.is_file()
@@ -177,7 +178,7 @@ class GUI_Secondary(GUI_Toplevel):
                         list(listbox.buttons.values())[-1].configure(
                             anchor="w", height=0
                         )
-                        log.debug(f"Added {str(path)} to {listbox}")
+                        log.debug(f"Added {str(path)} to listbox")
                     elif mode == "folder" and path.is_dir():
                         listbox.insert("END", str(path))
                         # !WORKAROUND for lacking anchor option in the text Label
@@ -187,14 +188,17 @@ class GUI_Secondary(GUI_Toplevel):
                         list(listbox.buttons.values())[-1].configure(
                             anchor="w", height=0
                         )
-                        log.debug(f"Added {str(path)} to {listbox}")
+                        log.debug(f"Added {str(path)} to listbox")
                     else:
                         log.debug(f"Invalid path: {str(path)} (Mode: {mode})")
-
         except Exception as e:
             log.error(f"DnD error: {e}")
-        if listbox.get("all"):
-            dnd.grid_forget()
+
+        if not listbox.get("all"):
+            dnd.grid(
+                row=0,
+                column=0,
+            )
 
     def _add_file_to_listbox(self, listbox, dnd):
         files = filedialog.askopenfilenames(
@@ -203,26 +207,34 @@ class GUI_Secondary(GUI_Toplevel):
         for file in files:
             file = Path(file.strip())
             if str(file) not in listbox.get("all"):
+                dnd.grid_forget()
                 listbox.insert("END", str(file))
                 # !WORKAROUND for lacking anchor option in the text Label
                 list(listbox.buttons.values())[-1]._text_label.configure(anchor="w")
                 list(listbox.buttons.values())[-1].configure(anchor="w", height=0)
-                log.debug(f"Added {str(file)} to {listbox}")
-        if listbox.get("all"):
-            dnd.grid_forget()
+                log.debug(f"Added {str(file)} to listbox")
+        if not listbox.get("all"):
+            dnd.grid(
+                row=0,
+                column=0,
+            )
 
     def _add_folder_to_listbox(self, listbox, dnd):
         folder = filedialog.askdirectory()
         if folder:
             folder = Path(folder.strip())
             if str(folder) not in listbox.get("all"):
+                dnd.grid_forget()
                 listbox.insert("END", str(folder))
                 # !WORKAROUND for lacking anchor option in the text Label
                 list(listbox.buttons.values())[-1]._text_label.configure(anchor="w")
                 list(listbox.buttons.values())[-1].configure(anchor="w", height=0)
-                log.debug(f"Added {str(folder)} to {listbox}")
-        if listbox.get("all"):
-            dnd.grid_forget()
+                log.debug(f"Added {str(folder)} to listbox")
+        if not listbox.get("all"):
+            dnd.grid(
+                row=0,
+                column=0,
+            )
 
     def _remove_from_listbox(self, listbox, dnd):
         try:
@@ -233,7 +245,7 @@ class GUI_Secondary(GUI_Toplevel):
 
             for index in reversed(selected_indices):
                 listbox.delete(index)
-            log.debug(f"Removed items at indices {selected_indices} from {listbox}")
+                log.debug(f"Removed {listbox.get(index)} from listbox")
         except Exception as e:
             log.error(f"Error removing selected items: {e}")
         if not listbox.get("all"):
@@ -244,7 +256,7 @@ class GUI_Secondary(GUI_Toplevel):
 
     def _clear_listbox(self, listbox, dnd):
         listbox.delete("all")
-        log.debug(f"Cleared {listbox}")
+        log.debug(f"Cleared listbox")
 
         dnd.grid(
             row=0,
