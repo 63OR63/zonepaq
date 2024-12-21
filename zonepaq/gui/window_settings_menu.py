@@ -451,75 +451,118 @@ class GUI_SettingsMenu(GUI_Toplevel):
 
     def _add_appearance_tabview(self, master):
 
+        def create_labeled_option_menu(
+            group_frame, label_text, variable, values, command, row, column
+        ):
+            self.create_ctk_widget(
+                ctk_widget=ctk.CTkLabel,
+                widget_args={
+                    "master": group_frame,
+                    "text": label_text,
+                    "anchor": "w",
+                    "pady": self.padding / 5,
+                },
+                grid_args={
+                    "row": row,
+                    "column": column,
+                    "sticky": "w",
+                    "padx": self.padding,
+                },
+            )
+
+            return self.create_ctk_widget(
+                ctk_widget=ctk.CTkOptionMenu,
+                widget_args={
+                    "master": group_frame,
+                    "variable": variable,
+                    "values": values,
+                    "command": command,
+                    "anchor": "w",
+                },
+                grid_args={
+                    "row": row,
+                    "column": column + 1,
+                    "sticky": "w",
+                    "padx": (0, self.padding),
+                    "pady": self.padding / 5,
+                },
+            )
+
+        def create_labeled_switch(
+            group_frame, label_label, switch_text, variable, command, row, column
+        ):
+            self.create_ctk_widget(
+                ctk_widget=ctk.CTkLabel,
+                widget_args={
+                    "master": group_frame,
+                    "text": label_label,
+                    "anchor": "w",
+                    "pady": self.padding / 5,
+                },
+                grid_args={
+                    "row": row,
+                    "column": column,
+                    "sticky": "w",
+                    "padx": self.padding,
+                },
+            )
+
+            return self.create_ctk_widget(
+                ctk_widget=ctk.CTkSwitch,
+                widget_args={
+                    "master": group_frame,
+                    "text": switch_text,
+                    "variable": variable,
+                    "onvalue": True,
+                    "offvalue": False,
+                    "command": command,
+                },
+                grid_args={
+                    "row": row,
+                    "column": column + 1,
+                    "sticky": "w",
+                    "padx": (0, self.padding),
+                    "pady": self.padding / 5,
+                },
+            )
+
         group_frame = self.create_frame(
             master,
             column_weights=[(4, 1)],
         )
 
+        # Section: Customization
         self.create_subheader(
             group_frame, text=translate("settings_appearance_customization")
         )
         self.create_spacer(group_frame)
 
         current_row = self._get_next_row(group_frame)
-
-        self.create_ctk_widget(
-            ctk_widget=ctk.CTkLabel,
-            widget_args={
-                "master": group_frame,
-                "text": f"{translate('settings_appearance_color_theme')} *:",
-                "anchor": "w",
-                "pady": self.padding / 5,
-            },
-            grid_args={
-                "row": current_row,
-                "column": 0,
-                "sticky": "w",
-                "padx": self.padding,
-            },
-        )
-
         self.selected_theme = ctk.StringVar(master=self, value=settings.THEME_NAME)
-        self.create_ctk_widget(
-            ctk_widget=ctk.CTkOptionMenu,
-            widget_args={
-                "master": group_frame,
-                "variable": self.selected_theme,
-                "values": settings.ALL_THEME_NAMES,
-                "command": lambda selected_theme=self.selected_theme: (
-                    settings.update_config("SETTINGS", "theme_name", selected_theme),
-                ),
-                "anchor": "w",
-            },
-            grid_args={
-                "row": current_row,
-                "column": 1,
-                "sticky": "w",
-                "padx": (0, self.padding),
-                "pady": self.padding / 5,
-            },
+        create_labeled_option_menu(
+            group_frame,
+            label_text=f"{translate('settings_appearance_color_theme')} *:",
+            variable=self.selected_theme,
+            values=settings.ALL_THEME_NAMES,
+            command=lambda selected_theme: settings.update_config(
+                "SETTINGS", "theme_name", selected_theme
+            ),
+            row=current_row,
+            column=0,
         )
 
         self.dark_mode = ctk.BooleanVar(value=settings.DARK_MODE)
-        self.dark_mode_widget = self.create_ctk_widget(
-            ctk_widget=ctk.CTkSwitch,
-            widget_args={
-                "master": group_frame,
-                "text": translate("settings_appearance_dark_mode"),
-                "variable": self.dark_mode,
-                "onvalue": True,
-                "offvalue": False,
-                "command": self._switch_dark_mode,
-            },
-            grid_args={
-                "row": current_row,
-                "column": 2,
-                "sticky": "w",
-                "padx": (0, self.padding),
-                "pady": self.padding / 5,
-            },
+        self.dark_mode_widget = create_labeled_switch(
+            group_frame,
+            label_label="",
+            switch_text=translate("settings_appearance_dark_mode"),
+            variable=self.dark_mode,
+            command=self._switch_dark_mode,
+            row=current_row,
+            column=2,
         )
 
+        # Section: Localization
         self.create_spacer(group_frame)
         self.create_subheader(
             group_frame, text=translate("settings_appearance_localization")
@@ -527,44 +570,20 @@ class GUI_SettingsMenu(GUI_Toplevel):
         self.create_spacer(group_frame)
 
         current_row = self._get_next_row(group_frame)
-
-        self.create_ctk_widget(
-            ctk_widget=ctk.CTkLabel,
-            widget_args={
-                "master": group_frame,
-                "text": f"{translate('settings_appearance_language')}:",
-                "anchor": "w",
-                "pady": self.padding / 5,
-            },
-            grid_args={
-                "row": current_row,
-                "column": 0,
-                "sticky": "w",
-                "padx": self.padding,
-            },
-        )
-
         self.selected_lang = ctk.StringVar(master=self, value=settings.LANG_NAME)
-        self.create_ctk_widget(
-            ctk_widget=ctk.CTkOptionMenu,
-            widget_args={
-                "master": group_frame,
-                "variable": self.selected_lang,
-                "values": list(settings.ALL_LANG_NAMES),
-                "command": lambda selected_lang=self.selected_lang: (
-                    settings.update_config("SETTINGS", "lang_name", selected_lang),
-                ),
-                "anchor": "w",
-            },
-            grid_args={
-                "row": current_row,
-                "column": 1,
-                "sticky": "w",
-                "padx": (0, self.padding),
-                "pady": self.padding / 5,
-            },
+        create_labeled_option_menu(
+            group_frame,
+            label_text=f"{translate('settings_appearance_language')}:",
+            variable=self.selected_lang,
+            values=list(settings.ALL_LANG_NAMES),
+            command=lambda selected_lang: settings.update_config(
+                "SETTINGS", "lang_name", selected_lang
+            ),
+            row=current_row,
+            column=0,
         )
 
+        # Section: Onboarding
         self.create_spacer(group_frame)
         self.create_subheader(
             group_frame, text=translate("settings_appearance_onboarding")
@@ -572,41 +591,15 @@ class GUI_SettingsMenu(GUI_Toplevel):
         self.create_spacer(group_frame)
 
         current_row = self._get_next_row(group_frame)
-
-        self.create_ctk_widget(
-            ctk_widget=ctk.CTkLabel,
-            widget_args={
-                "master": group_frame,
-                "text": f"{translate('settings_appearance_hints')}:",
-                "anchor": "w",
-                "pady": self.padding / 5,
-            },
-            grid_args={
-                "row": current_row,
-                "column": 0,
-                "sticky": "w",
-                "padx": self.padding,
-            },
-        )
-
         self.show_hints = ctk.BooleanVar(value=settings.SHOW_HINTS)
-        self.show_hints_widget = self.create_ctk_widget(
-            ctk_widget=ctk.CTkSwitch,
-            widget_args={
-                "master": group_frame,
-                "text": translate("settings_appearance_show_hints"),
-                "variable": self.show_hints,
-                "onvalue": True,
-                "offvalue": False,
-                "command": self._switch_hints,
-            },
-            grid_args={
-                "row": current_row,
-                "column": 1,
-                "sticky": "w",
-                "padx": (0, self.padding),
-                "pady": self.padding / 5,
-            },
+        self.show_hints_widget = create_labeled_switch(
+            group_frame,
+            label_label=f"{translate('settings_appearance_hints')}:",
+            switch_text=translate("settings_appearance_show_hints"),
+            variable=self.show_hints,
+            command=self._switch_hints,
+            row=current_row,
+            column=0,
         )
 
     def _switch_dark_mode(self):
@@ -639,10 +632,6 @@ class GUI_SettingsMenu(GUI_Toplevel):
 
         self.style_manager.apply_style(entry_widget, style)
 
-    def _get_highest_row(self, root):
-        root = root or self
-        return max(widget.grid_info()["row"] for widget in root.grid_slaves())
-
     def _open_path_browse_dialog(
         self, entry_variable, entry_type, entry_widget, settings_key
     ):
@@ -657,10 +646,14 @@ class GUI_SettingsMenu(GUI_Toplevel):
         if entry_type == "folder":
             selected_path = filedialog.askdirectory(parent=self, initialdir=initial_dir)
         else:
+            filetypes = [(f"{entry_type}", "*")]
+            if sys.platform == "win32":
+                filetypes[0] = (filetypes[0][0], filetypes[0][1] + ".exe")
+
             selected_path = filedialog.askopenfilenames(
                 parent=self,
                 initialdir=initial_dir,
-                filetypes=[(f"*{entry_type}", f"*{entry_type}")],
+                filetypes=filetypes,
             )
 
         if selected_path:
@@ -689,16 +682,17 @@ class GUI_SettingsMenu(GUI_Toplevel):
         download_args,
         installer_path,
         output_dir,
-        extract_method,
-        extract_parameter,
         local_path,
-        entry_variable,
-        entry_type,
-        entry_widget,
-        settings_key,
+        entry_variable=None,
+        entry_type=None,
+        entry_widget=None,
+        settings_key=None,
+        extract_method="zipfile",
+        extract_parameter="",
         auto_mode=False,
         check_platform=True,
     ):
+        # Check platform compatibility
         if check_platform and sys.platform != "win32":
             if not auto_mode:
                 messagebox.showerror(
@@ -708,50 +702,63 @@ class GUI_SettingsMenu(GUI_Toplevel):
                 )
             return False
 
-        if download_url := download_method(**download_args):
-            install_result, skipped = self.tools_manager.download_and_extract_tool(
-                url=download_url,
-                installer_path=installer_path,
-                output_dir=output_dir,
-                tool_name=tool_name,
-                prompt_callback=self.prompt_redownload,
-                extract_method=extract_method,
-                extract_parameter=extract_parameter,
-                auto_mode=auto_mode,
-            )
-            # if skipped:
-            #     return False
-            if install_result or skipped:
-                if Data.is_valid_data(local_path, entry_type):
-                    if not auto_mode:
-                        entry_variable.set(str(Path(local_path).resolve()))
-                        self._apply_style(True, entry_widget)
-                        settings.TOOLS_PATHS[settings_key] = local_path
-                        settings.save()
-                        messagebox.showinfo(
-                            translate("generic_info"),
-                            f'{tool_name} {translate("dialogue_install_success")} {output_dir}',
-                            parent=self,
-                        )
-                else:
-                    log.error(f"{tool_name} can't be located at {local_path}")
-                    if not auto_mode:
-                        messagebox.showerror(
-                            translate("generic_error"),
-                            f'{translate("dialogue_install_error")} {tool_name}\n{translate("dialogue_check_logs")}',
-                            parent=self,
-                        )
-                    return False
-                return True
+        # Download the tool
+        download_url = download_method(**download_args)
+        if not download_url:
+            if not auto_mode:
+                messagebox.showerror(
+                    translate("generic_error"),
+                    f'{translate("dialogue_install_error")} {tool_name}\n{translate("dialogue_check_logs")}',
+                    parent=self,
+                )
+            return False
 
-        if not auto_mode:
-            messagebox.showerror(
-                translate("generic_error"),
-                f'{translate("dialogue_install_error")} {tool_name}\n{translate("dialogue_check_logs")}',
-                parent=self,
-            )
+        # Extract and install the tool
+        install_result, skipped = self.tools_manager.download_and_extract_tool(
+            url=download_url,
+            installer_path=installer_path,
+            output_dir=output_dir,
+            tool_name=tool_name,
+            prompt_callback=self.prompt_redownload,
+            extract_method=extract_method,
+            extract_parameter=extract_parameter,
+            auto_mode=auto_mode,
+        )
 
-        return False
+        if not install_result and not skipped:
+            if not auto_mode:
+                messagebox.showerror(
+                    translate("generic_error"),
+                    f'{translate("dialogue_install_error")} {tool_name}\n{translate("dialogue_check_logs")}',
+                    parent=self,
+                )
+            return False
+
+        # Validate and finalize installation
+        if entry_variable and entry_type and entry_widget and settings_key:
+            resolved_path = str(Path(local_path).resolve())
+            if Data.is_valid_data(local_path, entry_type):
+                if not auto_mode:
+                    entry_variable.set(resolved_path)
+                    self._apply_style(True, entry_widget)
+                    settings.TOOLS_PATHS[settings_key] = resolved_path
+                    settings.save()
+                    messagebox.showinfo(
+                        translate("generic_info"),
+                        f'{tool_name} {translate("dialogue_install_success")} {output_dir}',
+                        parent=self,
+                    )
+            else:
+                log.error(f"{tool_name} can't be located at {resolved_path}")
+                if not auto_mode:
+                    messagebox.showerror(
+                        translate("generic_error"),
+                        f'{translate("dialogue_install_error")} {tool_name}\n{translate("dialogue_check_logs")}',
+                        parent=self,
+                    )
+                return False
+
+        return True
 
     def _install_repak(
         self, entry_variable, entry_type, entry_widget, settings_key, auto_mode=False
@@ -765,13 +772,13 @@ class GUI_SettingsMenu(GUI_Toplevel):
             },
             installer_path=self.tools_manager.repak_installer,
             output_dir=self.tools_manager.repak_output_dir,
-            extract_method=self.tools_manager.repak_extract_method,
-            extract_parameter=self.tools_manager.repak_extract_parameter,
             local_path=self.tools_manager.repak_local_path,
             entry_variable=entry_variable,
             entry_type=entry_type,
             entry_widget=entry_widget,
             settings_key=settings_key,
+            extract_method=self.tools_manager.repak_extract_method,
+            extract_parameter=self.tools_manager.repak_extract_parameter,
             auto_mode=auto_mode,
         )
 
@@ -784,13 +791,13 @@ class GUI_SettingsMenu(GUI_Toplevel):
             download_args={"base_url": settings.TOOLS["kdiff3"]["base_url"]},
             installer_path=self.tools_manager.kdiff3_installer,
             output_dir=self.tools_manager.kdiff3_output_dir,
-            extract_method=self.tools_manager.kdiff3_extract_method,
-            extract_parameter=self.tools_manager.kdiff3_extract_parameter,
             local_path=self.tools_manager.kdiff3_local_path,
             entry_variable=entry_variable,
             entry_type=entry_type,
             entry_widget=entry_widget,
             settings_key=settings_key,
+            extract_method=self.tools_manager.kdiff3_extract_method,
+            extract_parameter=self.tools_manager.kdiff3_extract_parameter,
             auto_mode=auto_mode,
         )
 
@@ -806,20 +813,33 @@ class GUI_SettingsMenu(GUI_Toplevel):
             },
             installer_path=self.tools_manager.winmerge_installer,
             output_dir=self.tools_manager.winmerge_output_dir,
-            extract_method=self.tools_manager.winmerge_extract_method,
-            extract_parameter=self.tools_manager.winmerge_extract_parameter,
             local_path=self.tools_manager.winmerge_local_path,
             entry_variable=entry_variable,
             entry_type=entry_type,
             entry_widget=entry_widget,
             settings_key=settings_key,
+            extract_method=self.tools_manager.winmerge_extract_method,
+            extract_parameter=self.tools_manager.winmerge_extract_parameter,
             auto_mode=auto_mode,
         )
 
-    def _unpack_files(self, entry_variable):
-        print(entry_variable.get())
-        pass
+    def _unpack_files(self, *args, **kwargs):
+        raise NotImplementedError
 
-    def _get_aes_key(self, entry_variable):
-        print(entry_variable.get())
-        pass
+    def _get_aes_key(self, *args, **kwargs):
+        raise NotImplementedError
+
+    def _download_aes_dumpster(self, entry_variable):
+        return self._install_tool(
+            tool_name="AESDumpster",
+            download_method=self.tools_manager.get_latest_github_release_asset,
+            download_args={
+                "github_repo": settings.TOOLS["aes_dumpster"]["github_repo"],
+                "asset_regex": self.tools_manager.aes_dumpster_asset_regex,
+            },
+            installer_path=self.tools_manager.aes_dumpster_local_path,
+            output_dir=self.tools_manager.aes_dumpster_output_dir,
+            local_path=self.tools_manager.aes_dumpster_local_path,
+            extract_method=None,
+            auto_mode=True,
+        )

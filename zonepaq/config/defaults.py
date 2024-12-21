@@ -65,6 +65,10 @@ TOOLS = {
         "github_repo": "winmerge/winmerge",
         "exe": "WinMergeU",
     },
+    "aes_dumpster": {
+        "github_repo": "GHFear/AESDumpster",
+        "exe": "AESDumpster-Win64",
+    },
 }
 
 SUPPORTED_MERGING_ENGINES = {
@@ -89,6 +93,9 @@ DEFAULT_TOOLS_PATHS = {
         local_path=TOOLS["tools_base"] / "WinMerge",
         default_path=Path.home() / "AppData" / "Local" / "Programs" / "WinMerge",
     ),
+    "aes_dumpster": Path(TOOLS["tools_base"])
+    / "AESDumpster"
+    / f'{TOOLS["aes_dumpster"]["exe"]}.exe',
 }
 
 DEFAULT_SETTINGS = {

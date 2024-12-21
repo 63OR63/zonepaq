@@ -56,28 +56,34 @@ class ToolsManager:
             self.winmerge_output_dir / f'{settings.TOOLS["winmerge"]["exe"]}.exe'
         )
 
+        self.aes_dumpster_asset_regex = r"AESDumpster-Win64.exe$"
+        self.aes_dumpster_extract_method = None
+        self.aes_dumpster_output_dir = self.tools_base / "aes_dumpster"
+        self.aes_dumpster_local_path = (
+            self.aes_dumpster_output_dir
+            / f'{settings.TOOLS["aes_dumpster"]["exe"]}.exe'
+        )
+
     def download_file(self, url, target_file):
         try:
-            Path(target_file).parent.mkdir(parents=True, exist_ok=True)
             log.info(f"Downloading {url}...")
+
+            # Use a context manager to safely handle the response
             with requests.get(url, stream=True) as response:
-                response.raise_for_status()
+                response.raise_for_status()  # Raise an error for HTTP errors
+
+                # Open the target file and write the content in chunks
                 with open(target_file, "wb") as f:
-                    shutil.copyfileobj(response.raw, f, length=1024 * 1024)
+                    for chunk in response.iter_content(chunk_size=1024 * 1024):
+                        if chunk:  # Filter out keep-alive chunks
+                            f.write(chunk)
+
             log.debug(f"Downloaded to {target_file}")
             return True
+
         except requests.RequestException as e:
             log.error(f"Download failed: {e}")
             return False
-
-    def confirm_and_prepare_file(self, path, tool_name, prompt_name):
-        if path.exists() and not self.prompt_callback(
-            prompt_name, auto_mode=self.auto_mode
-        ):
-            return False
-        Files.delete_path(path)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        return True
 
     @staticmethod
     def get_latest_kdiff3(base_url):
@@ -125,96 +131,113 @@ class ToolsManager:
             return None
 
     def check_and_download_installer(self, url, target_file, tool_name):
-        if not self.confirm_and_prepare_file(
-            target_file,
-            tool_name,
-            f'{tool_name} {translate("dialogue_tools_redowndload_installer")}',
-        ):
-            log.info(f"Using existing {tool_name} installer.")
-            return True
-        return self.download_file(url, target_file)
+        # Check if the installer needs to be confirmed and prepared
+        if target_file.exists():
+            user_confirmation = self.prompt_callback(
+                f'{tool_name} {translate("dialogue_tools_redowndload_installer")}',
+                auto_mode=self.auto_mode,
+            )
+
+            if not user_confirmation:
+                log.info(f"Using existing {tool_name} installer.")
+                return True
+
+        # Prepare the target file directory
+        Files.delete_path(target_file)
+        target_file.parent.mkdir(parents=True, exist_ok=True)
+
+        # Download the file
+        download_success = self.download_file(url, target_file)
+
+        return download_success
 
     def extract_installer(
         self, installer_path, output_dir, extract_method="zipfile", extract_parameter=""
     ):
-        if extract_method == "7zr":
-            if not Files.is_existing_file(self.seven_zip_local_path):
-                log.debug(f"Downloading 7z...")
-                if not self.download_file(
-                    settings.TOOLS["7zr"]["direct_link"], self.seven_zip_local_path
-                ):
-                    log.error(f"7z failed to download, aborting.")
-                    return False
-            try:
-                log.debug(f"Extracting installer with 7zr: {installer_path}...")
-                with tempfile.TemporaryDirectory() as temp_unpack_dir:
-                    temp_unpack_dir = Path(temp_unpack_dir)
-                    command = [
-                        str(self.seven_zip_local_path),
-                        "x",
-                        str(installer_path),
-                        "-aoa",
-                        f"-o{temp_unpack_dir}",
-                    ]
-                    if extract_parameter:  # Only append if not empty
-                        command.insert(3, extract_parameter)
-                    subprocess.run(
-                        command,
-                        check=True,
-                        stdout=subprocess.PIPE,
-                        stderr=subprocess.PIPE,
-                    )
-                    shutil.copytree(
-                        temp_unpack_dir / extract_parameter,
-                        output_dir,
-                        dirs_exist_ok=True,
-                    )
-                log.debug(f"Extraction of {installer_path} complete.")
-                return True
-            except subprocess.CalledProcessError as e:
-                log.error(
-                    f"Extraction failed: {e}\nSTDOUT: {e.stdout}\nSTDERR: {e.stderr}"
-                )
-                return False
-
-        elif extract_method == "zipfile":
-            if not zipfile.is_zipfile(installer_path):
-                log.error(f"{installer_path} is not a valid ZIP file.")
-                return False
-            try:
-                log.debug(f"Extracting installer with ZIP: {installer_path}...")
-                with tempfile.TemporaryDirectory() as temp_unpack_dir:
-                    temp_unpack_dir = Path(temp_unpack_dir)
-                    with zipfile.ZipFile(installer_path, "r") as zip_ref:
-                        if extract_parameter:
-                            files_to_extract = [
-                                f
-                                for f in zip_ref.namelist()
-                                if f.startswith(f"{extract_parameter}/")
-                            ]
-                        else:
-                            files_to_extract = zip_ref.namelist()
-
-                        if not files_to_extract:
-                            log.error(
-                                f"No files found matching parameter: {extract_parameter}/"
-                            )
-                            return False
-
-                        # Extract the necessary files
-                        zip_ref.extractall(temp_unpack_dir, members=files_to_extract)
-                    shutil.copytree(
-                        temp_unpack_dir / extract_parameter,
-                        output_dir,
-                        dirs_exist_ok=True,
-                    )
-                log.debug(f"Extraction of {installer_path} complete.")
-                return True
-            except Exception as e:
-                log.error(f"Extraction failed: {e}")
-                return False
-        else:
+        if extract_method not in {"7zr", "zipfile"}:
             log.error(f"Unsupported extract method: {extract_method}")
+            return False
+
+        if extract_method == "7zr":
+            return self._extract_with_7zr(installer_path, output_dir, extract_parameter)
+
+        if extract_method == "zipfile":
+            return self._extract_with_zipfile(
+                installer_path, output_dir, extract_parameter
+            )
+
+    def _extract_with_7zr(self, installer_path, output_dir, extract_parameter):
+        if not Files.is_existing_file(self.seven_zip_local_path):
+            log.debug("Downloading 7z...")
+            if not self.download_file(
+                settings.TOOLS["7zr"]["direct_link"], self.seven_zip_local_path
+            ):
+                log.error("7z failed to download, aborting.")
+                return False
+
+        try:
+            log.debug(f"Extracting installer with 7zr: {installer_path}...")
+            with tempfile.TemporaryDirectory() as temp_unpack_dir:
+                temp_unpack_dir = Path(temp_unpack_dir)
+                command = [
+                    str(self.seven_zip_local_path),
+                    "x",
+                    str(installer_path),
+                    "-aoa",
+                    f"-o{temp_unpack_dir}",
+                ]
+                if extract_parameter:
+                    command.insert(3, extract_parameter)
+
+                subprocess.run(
+                    command,
+                    check=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                )
+                shutil.copytree(
+                    temp_unpack_dir / extract_parameter, output_dir, dirs_exist_ok=True
+                )
+            log.debug(f"Extraction of {installer_path} complete.")
+            return True
+        except subprocess.CalledProcessError as e:
+            log.error(f"Extraction failed: {e}\nSTDOUT: {e.stdout}\nSTDERR: {e.stderr}")
+            return False
+
+    def _extract_with_zipfile(self, installer_path, output_dir, extract_parameter):
+        if not zipfile.is_zipfile(installer_path):
+            log.error(f"{installer_path} is not a valid ZIP file.")
+            return False
+
+        try:
+            log.debug(f"Extracting installer with ZIP: {installer_path}...")
+            with tempfile.TemporaryDirectory() as temp_unpack_dir:
+                temp_unpack_dir = Path(temp_unpack_dir)
+                with zipfile.ZipFile(installer_path, "r") as zip_ref:
+                    files_to_extract = (
+                        [
+                            f
+                            for f in zip_ref.namelist()
+                            if f.startswith(f"{extract_parameter}/")
+                        ]
+                        if extract_parameter
+                        else zip_ref.namelist()
+                    )
+
+                    if not files_to_extract:
+                        log.error(
+                            f"No files found matching parameter: {extract_parameter}/"
+                        )
+                        return False
+
+                    zip_ref.extractall(temp_unpack_dir, members=files_to_extract)
+                shutil.copytree(
+                    temp_unpack_dir / extract_parameter, output_dir, dirs_exist_ok=True
+                )
+            log.debug(f"Extraction of {installer_path} complete.")
+            return True
+        except Exception as e:
+            log.error(f"Extraction failed: {e}")
             return False
 
     def download_and_extract_tool(
@@ -231,24 +254,45 @@ class ToolsManager:
         self.auto_mode = auto_mode
         self.prompt_callback = prompt_callback
 
+        # Check if output directory is not empty
         if not Files.is_folder_empty(output_dir):
-            if not prompt_callback(
+            user_wants_reinstall = prompt_callback(
                 f'{tool_name} {translate("dialogue_tools_reinstall")}',
                 auto_mode=auto_mode,
-            ):
+            )
+
+            if not user_wants_reinstall:
                 log.info(
                     f"{tool_name} already exists. Skipping download and installation."
                 )
                 return False, True
+
+            # User agreed to reinstall; delete existing directory
             Files.delete_path(output_dir)
+
+        # Ensure the output directory exists
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        if self.check_and_download_installer(
+        # Download installer
+        download_success = self.check_and_download_installer(
             url, installer_path, tool_name
-        ) and self.extract_installer(
-            installer_path, output_dir, extract_method, extract_parameter
-        ):
-            log.info(f"{tool_name} installation complete.")
+        )
+
+        if not download_success:
+            return False, False
+
+        # Skip extraction if it's a direct executable
+        if extract_method == None:
+            log.info(f"{tool_name} executable downloaded successfully.")
             return True, False
 
-        return False, False
+        # Extract installer
+        extraction_success = self.extract_installer(
+            installer_path, output_dir, extract_method, extract_parameter
+        )
+
+        if not extraction_success:
+            return False, False
+
+        log.info(f"{tool_name} installation complete.")
+        return True, False
