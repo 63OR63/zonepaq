@@ -426,7 +426,9 @@ class GUI_SettingsMenu(GUI_Toplevel):
                 ctk_widget=ctk.CTkButton,
                 widget_args={
                     "master": master,
-                    "command": lambda cmd=command, kw=resolved_params: cmd(**kw),
+                    "command": lambda cmd=command, kw=resolved_params: cmd(
+                        widget_data=kw
+                    ),
                     "text": button["text"],
                     "width": 0,
                 },
@@ -632,10 +634,8 @@ class GUI_SettingsMenu(GUI_Toplevel):
 
         self.style_manager.apply_style(entry_widget, style)
 
-    def _open_path_browse_dialog(
-        self, entry_variable, entry_type, entry_widget, settings_key
-    ):
-        path = Path(entry_variable.get())
+    def _open_path_browse_dialog(self, widget_data):
+        path = Path(widget_data["entry_variable"].get())
         if path.is_file():
             initial_dir = path.parent
         elif path.is_dir():
@@ -643,10 +643,10 @@ class GUI_SettingsMenu(GUI_Toplevel):
         else:
             initial_dir = Path.cwd()
 
-        if entry_type == "folder":
+        if widget_data["entry_type"] == "folder":
             selected_path = filedialog.askdirectory(parent=self, initialdir=initial_dir)
         else:
-            filetypes = [(f"{entry_type}", "*")]
+            filetypes = [(f'{widget_data["entry_type"]}', "*")]
             if sys.platform == "win32":
                 filetypes[0] = (filetypes[0][0], filetypes[0][1] + ".exe")
 
@@ -659,10 +659,13 @@ class GUI_SettingsMenu(GUI_Toplevel):
         if selected_path:
             if isinstance(selected_path, tuple):
                 selected_path = ";".join(selected_path)
-            entry_variable.set(Files.get_relative_path(selected_path))
+            widget_data["entry_variable"].set(Files.get_relative_path(selected_path))
 
             self._store_temp_path_and_apply_style(
-                settings_key, entry_variable.get(), entry_type, entry_widget
+                widget_data["settings_key"],
+                widget_data["entry_variable"].get(),
+                widget_data["entry_type"],
+                widget_data["entry_widget"],
             )
 
     def prompt_redownload(self, text, auto_mode):
@@ -681,10 +684,7 @@ class GUI_SettingsMenu(GUI_Toplevel):
         download_method,
         download_args,
         local_path,
-        entry_variable=None,
-        entry_type=None,
-        entry_widget=None,
-        settings_key=None,
+        widget_data=None,
         skip_extract=False,
         extract_parameter="",
         auto_mode=False,
@@ -732,13 +732,13 @@ class GUI_SettingsMenu(GUI_Toplevel):
             return False
 
         # Validate and finalize installation
-        if entry_variable and entry_type and entry_widget and settings_key:
+        if widget_data:
             path = Files.get_relative_path(local_path)
-            if Data.is_valid_data(local_path, entry_type):
+            if Data.is_valid_data(local_path, widget_data["entry_type"]):
                 if not auto_mode:
-                    entry_variable.set(path)
-                    self._apply_style(True, entry_widget)
-                    settings.TOOLS_PATHS[settings_key] = path
+                    widget_data["entry_variable"].set(path)
+                    self._apply_style(True, widget_data["entry_widget"])
+                    settings.TOOLS_PATHS[widget_data["settings_key"]] = path
                     settings.save()
                     messagebox.showinfo(
                         translate("generic_info"),
@@ -757,9 +757,7 @@ class GUI_SettingsMenu(GUI_Toplevel):
 
         return True
 
-    def _install_repak(
-        self, entry_variable, entry_type, entry_widget, settings_key, auto_mode=False
-    ):
+    def _install_repak(self, widget_data, auto_mode=False):
         return self._install_tool(
             tool_name="repak_cli",
             download_method=self.tools_manager.get_latest_github_release_asset,
@@ -768,33 +766,23 @@ class GUI_SettingsMenu(GUI_Toplevel):
                 "asset_regex": settings.TOOLS["repak_cli"]["asset_regex"],
             },
             local_path=settings.TOOLS["repak_cli"]["local_path"],
-            entry_variable=entry_variable,
-            entry_type=entry_type,
-            entry_widget=entry_widget,
-            settings_key=settings_key,
+            widget_data=widget_data,
             extract_parameter=settings.TOOLS["repak_cli"]["extract_parameter"],
             auto_mode=auto_mode,
         )
 
-    def _install_kdiff3(
-        self, entry_variable, entry_type, entry_widget, settings_key, auto_mode=False
-    ):
+    def _install_kdiff3(self, widget_data, auto_mode=False):
         return self._install_tool(
             tool_name="KDiff3",
             download_method=self.tools_manager.get_latest_kdiff3,
             download_args={"base_url": settings.TOOLS["kdiff3"]["base_url"]},
             local_path=settings.TOOLS["kdiff3"]["local_path"],
-            entry_variable=entry_variable,
-            entry_type=entry_type,
-            entry_widget=entry_widget,
-            settings_key=settings_key,
+            widget_data=widget_data,
             extract_parameter=settings.TOOLS["kdiff3"]["extract_parameter"],
             auto_mode=auto_mode,
         )
 
-    def _install_winmerge(
-        self, entry_variable, entry_type, entry_widget, settings_key, auto_mode=False
-    ):
+    def _install_winmerge(self, widget_data, auto_mode=False):
         return self._install_tool(
             tool_name="WinMerge",
             download_method=self.tools_manager.get_latest_github_release_asset,
@@ -803,18 +791,15 @@ class GUI_SettingsMenu(GUI_Toplevel):
                 "asset_regex": settings.TOOLS["winmerge"]["asset_regex"],
             },
             local_path=settings.TOOLS["winmerge"]["local_path"],
-            entry_variable=entry_variable,
-            entry_type=entry_type,
-            entry_widget=entry_widget,
-            settings_key=settings_key,
+            widget_data=widget_data,
             extract_parameter=settings.TOOLS["winmerge"]["extract_parameter"],
             auto_mode=auto_mode,
         )
 
-    def _unpack_files(self, *args, **kwargs):
+    def _unpack_files(self, widget_data):
         raise NotImplementedError
 
-    def _get_aes_key(self, entry_variable):
+    def _get_aes_key(self, widget_data):
         if not Files.is_existing_file(settings.TOOLS_PATHS["aes_dumpster"]):
             self._download_aes_dumpster()
 
