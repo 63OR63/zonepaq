@@ -78,20 +78,60 @@ class Files:
     @staticmethod
     def delete_path(path):
         try:
-            path = Path(path)
+            path = Path(path).resolve()
             if not path.exists():
                 return False
             if path.is_dir():
                 shutil.rmtree(path)
-                log.debug(f"Deleted folder: {path}")
+                log.debug(f"Deleted folder: {str(path)}")
                 return True
             else:
                 path.unlink()
-                log.debug(f"Deleted file: {path}")
+                log.debug(f"Deleted file: {str(path)}")
                 return True
         except Exception as e:
-            log.error(f"Deletion failed for {path}: {e}")
+            log.error(f"Deletion failed for {str(path)}: {e}")
             return False
+
+    @staticmethod
+    def get_relative_path(path):
+        resolved_path = Path(path).resolve()
+        try:
+            relative_path = resolved_path.relative_to(Path.cwd())
+            return str(relative_path)
+        except ValueError:
+            return str(resolved_path)
+
+    @classmethod
+    def copy_folder_contents(cls, source_folder, destination_folder):
+        try:
+            source_path = Path(source_folder)
+            destination_path = Path(destination_folder)
+
+            # Validate source folder
+            if not cls.is_existing_folder(source_path):
+                raise FileNotFoundError(
+                    f"Source folder '{source_folder}' does not exist or is invalid."
+                )
+
+            # Ensure the destination folder exists
+            destination_path.mkdir(parents=True, exist_ok=True)
+
+            # Copy contents of the source folder to the destination folder
+            for item in source_path.iterdir():
+                destination_item = destination_path / item.name
+
+                if item.is_dir():
+                    shutil.copytree(item, destination_item, dirs_exist_ok=True)
+                else:
+                    shutil.copy2(item, destination_item)
+
+            log.debug(
+                f"All contents copied from '{source_folder}' to '{destination_folder}'."
+            )
+
+        except Exception as e:
+            log.exception(f"Error during folder copy operation: {e}")
 
 
 class Data:

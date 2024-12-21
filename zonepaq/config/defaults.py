@@ -52,22 +52,33 @@ TOOLS = {
     "7zr": {
         "direct_link": "https://7-zip.org/a/7zr.exe",
         "exe": "7zr",
+        "local_path": Path("zonepaq/tools/7zr/7zr.exe"),
     },
     "repak_cli": {
         "github_repo": "trumank/repak",
         "exe": "repak",
+        "asset_regex": r"repak_cli-x86_64-pc-windows-msvc.zip$",
+        "extract_parameter": "",
+        "local_path": Path("zonepaq/tools/repak_cli/repak.exe"),
     },
     "kdiff3": {
         "base_url": "https://download.kde.org/stable/kdiff3/",
         "exe": "kdiff3",
+        "extract_parameter": "bin",
+        "local_path": Path("zonepaq/tools/KDiff3/kdiff3.exe"),
     },
     "winmerge": {
         "github_repo": "winmerge/winmerge",
         "exe": "WinMergeU",
+        "asset_regex": r"winmerge-\\d+(\\.\\d+)*-exe.zip$",
+        "extract_parameter": "WinMerge",
+        "local_path": Path("zonepaq/tools/WinMerge/WinMergeU.exe"),
     },
     "aes_dumpster": {
         "github_repo": "GHFear/AESDumpster",
         "exe": "AESDumpster-Win64",
+        "asset_regex": r"AESDumpster-Win64.exe$",
+        "local_path": Path("zonepaq/tools/aes_dumpster/AESDumpster-Win64.exe"),
     },
 }
 

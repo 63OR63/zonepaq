@@ -45,9 +45,9 @@ class GUI_SettingsMenu(GUI_Toplevel):
             if settings_key == "aes_key":
                 settings.AES_KEY = new_value
             elif settings_key in settings.GAME_PATHS:
-                settings.GAME_PATHS[settings_key] = new_value
+                settings.GAME_PATHS[settings_key] = Files.get_relative_path(new_value)
             elif settings_key in settings.TOOLS_PATHS:
-                settings.TOOLS_PATHS[settings_key] = new_value
+                settings.TOOLS_PATHS[settings_key] = Files.get_relative_path(new_value)
         settings.save()
         if close:
             self.destroy()
@@ -659,7 +659,7 @@ class GUI_SettingsMenu(GUI_Toplevel):
         if selected_path:
             if isinstance(selected_path, tuple):
                 selected_path = ";".join(selected_path)
-            entry_variable.set(str(Path(selected_path).resolve()))
+            entry_variable.set(Files.get_relative_path(selected_path))
 
             self._store_temp_path_and_apply_style(
                 settings_key, entry_variable.get(), entry_type, entry_widget
@@ -680,14 +680,12 @@ class GUI_SettingsMenu(GUI_Toplevel):
         tool_name,
         download_method,
         download_args,
-        installer_path,
-        output_dir,
         local_path,
         entry_variable=None,
         entry_type=None,
         entry_widget=None,
         settings_key=None,
-        extract_method="zipfile",
+        skip_extract=False,
         extract_parameter="",
         auto_mode=False,
         check_platform=True,
@@ -716,11 +714,10 @@ class GUI_SettingsMenu(GUI_Toplevel):
         # Extract and install the tool
         install_result, skipped = self.tools_manager.download_and_extract_tool(
             url=download_url,
-            installer_path=installer_path,
-            output_dir=output_dir,
+            local_path=local_path,
             tool_name=tool_name,
             prompt_callback=self.prompt_redownload,
-            extract_method=extract_method,
+            skip_extract=skip_extract,
             extract_parameter=extract_parameter,
             auto_mode=auto_mode,
         )
@@ -736,20 +733,20 @@ class GUI_SettingsMenu(GUI_Toplevel):
 
         # Validate and finalize installation
         if entry_variable and entry_type and entry_widget and settings_key:
-            resolved_path = str(Path(local_path).resolve())
+            path = Files.get_relative_path(local_path)
             if Data.is_valid_data(local_path, entry_type):
                 if not auto_mode:
-                    entry_variable.set(resolved_path)
+                    entry_variable.set(path)
                     self._apply_style(True, entry_widget)
-                    settings.TOOLS_PATHS[settings_key] = resolved_path
+                    settings.TOOLS_PATHS[settings_key] = path
                     settings.save()
                     messagebox.showinfo(
                         translate("generic_info"),
-                        f'{tool_name} {translate("dialogue_install_success")} {output_dir}',
+                        f'{tool_name} {translate("dialogue_install_success")} {local_path}',
                         parent=self,
                     )
             else:
-                log.error(f"{tool_name} can't be located at {resolved_path}")
+                log.error(f"{tool_name} can't be located at {path}")
                 if not auto_mode:
                     messagebox.showerror(
                         translate("generic_error"),
@@ -768,17 +765,14 @@ class GUI_SettingsMenu(GUI_Toplevel):
             download_method=self.tools_manager.get_latest_github_release_asset,
             download_args={
                 "github_repo": settings.TOOLS["repak_cli"]["github_repo"],
-                "asset_regex": self.tools_manager.repak_asset_regex,
+                "asset_regex": settings.TOOLS["repak_cli"]["asset_regex"],
             },
-            installer_path=self.tools_manager.repak_installer,
-            output_dir=self.tools_manager.repak_output_dir,
-            local_path=self.tools_manager.repak_local_path,
+            local_path=settings.TOOLS["repak_cli"]["local_path"],
             entry_variable=entry_variable,
             entry_type=entry_type,
             entry_widget=entry_widget,
             settings_key=settings_key,
-            extract_method=self.tools_manager.repak_extract_method,
-            extract_parameter=self.tools_manager.repak_extract_parameter,
+            extract_parameter=settings.TOOLS["repak_cli"]["extract_parameter"],
             auto_mode=auto_mode,
         )
 
@@ -789,15 +783,12 @@ class GUI_SettingsMenu(GUI_Toplevel):
             tool_name="KDiff3",
             download_method=self.tools_manager.get_latest_kdiff3,
             download_args={"base_url": settings.TOOLS["kdiff3"]["base_url"]},
-            installer_path=self.tools_manager.kdiff3_installer,
-            output_dir=self.tools_manager.kdiff3_output_dir,
-            local_path=self.tools_manager.kdiff3_local_path,
+            local_path=settings.TOOLS["kdiff3"]["local_path"],
             entry_variable=entry_variable,
             entry_type=entry_type,
             entry_widget=entry_widget,
             settings_key=settings_key,
-            extract_method=self.tools_manager.kdiff3_extract_method,
-            extract_parameter=self.tools_manager.kdiff3_extract_parameter,
+            extract_parameter=settings.TOOLS["kdiff3"]["extract_parameter"],
             auto_mode=auto_mode,
         )
 
@@ -809,37 +800,33 @@ class GUI_SettingsMenu(GUI_Toplevel):
             download_method=self.tools_manager.get_latest_github_release_asset,
             download_args={
                 "github_repo": settings.TOOLS["winmerge"]["github_repo"],
-                "asset_regex": self.tools_manager.winmerge_asset_regex,
+                "asset_regex": settings.TOOLS["winmerge"]["asset_regex"],
             },
-            installer_path=self.tools_manager.winmerge_installer,
-            output_dir=self.tools_manager.winmerge_output_dir,
-            local_path=self.tools_manager.winmerge_local_path,
+            local_path=settings.TOOLS["winmerge"]["local_path"],
             entry_variable=entry_variable,
             entry_type=entry_type,
             entry_widget=entry_widget,
             settings_key=settings_key,
-            extract_method=self.tools_manager.winmerge_extract_method,
-            extract_parameter=self.tools_manager.winmerge_extract_parameter,
+            extract_parameter=settings.TOOLS["winmerge"]["extract_parameter"],
             auto_mode=auto_mode,
         )
 
     def _unpack_files(self, *args, **kwargs):
         raise NotImplementedError
 
-    def _get_aes_key(self, *args, **kwargs):
-        raise NotImplementedError
+    def _get_aes_key(self, entry_variable):
+        if not Files.is_existing_file(settings.TOOLS_PATHS["aes_dumpster"]):
+            self._download_aes_dumpster()
 
-    def _download_aes_dumpster(self, entry_variable):
+    def _download_aes_dumpster(self):
         return self._install_tool(
             tool_name="AESDumpster",
             download_method=self.tools_manager.get_latest_github_release_asset,
             download_args={
                 "github_repo": settings.TOOLS["aes_dumpster"]["github_repo"],
-                "asset_regex": self.tools_manager.aes_dumpster_asset_regex,
+                "asset_regex": settings.TOOLS["aes_dumpster"]["asset_regex"],
             },
-            installer_path=self.tools_manager.aes_dumpster_local_path,
-            output_dir=self.tools_manager.aes_dumpster_output_dir,
-            local_path=self.tools_manager.aes_dumpster_local_path,
-            extract_method=None,
+            local_path=settings.TOOLS["aes_dumpster"]["local_path"],
+            skip_extract=True,
             auto_mode=True,
         )
