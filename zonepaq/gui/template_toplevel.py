@@ -58,7 +58,7 @@ class GUI_Toplevel(CTkToplevel):
                         f"Bound '{name}' from {self.master.__class__.__name__} to {self.__class__.__name__}"
                     )
                 except AttributeError as e:
-                    log.error(f"Failed to bind '{name}': {e}")
+                    log.exception(f"Failed to bind '{name}': {e}")
             else:
                 log.warning(
                     f"'{name}' does not exist in {self.master.__class__.__name__}. Skipping."

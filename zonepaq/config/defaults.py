@@ -1,112 +1,75 @@
 from pathlib import Path
-import shutil
-import sys
 
-from backend.logger import log
-
-
-def check_app_installed(
-    app_exe, local_path=None, winreg_path=None, winreg_key="", default_path=""
-):
-    if sys.platform == "win32":
-        app_exe = f"{app_exe}.exe"
-
-    # 1. Check for local installation
-    if local_path:
-        local_path = Path(local_path) / app_exe
-        if local_path.exists():
-            log.debug(
-                f"{app_exe} found in zonepaq/tools/{local_path}: {str(local_path)}"
-            )
-            return str(local_path)
-
-    # 2. Check if app is in system PATH
-    if path := shutil.which(app_exe):
-        log.debug(f"{app_exe} found: {str(Path(path))}")
-        return str(Path(path))
-
-    # 3. Check in Windows Registry
-    if winreg_path and sys.platform == "win32":
-        try:
-            import winreg
-
-            with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, winreg_path) as key:
-                install_dir, _ = winreg.QueryValueEx(key, winreg_key)
-                path = Path(install_dir) / app_exe
-                if path.exists():
-                    log.debug(f"{app_exe} found in Registry: {str(path)}")
-                    return str(path)
-        except (FileNotFoundError, OSError):
-            log.warning(
-                f"{app_exe} not found in the Windows Registry at {winreg_path}."
-            )
-
-    # 4. Fallback to default path
-    default_path = str(Path(default_path) / app_exe)
-    log.debug(f"Using default {app_exe} path: {default_path}")
-    return default_path
+from backend.tools import Files
 
 
 TOOLS = {
     "tools_base": Path("zonepaq/tools"),
     "7zr": {
+        "display_name": "7zr",
         "direct_link": "https://7-zip.org/a/7zr.exe",
-        "exe": "7zr",
-        "local_path": Path("zonepaq/tools/7zr/7zr.exe"),
+        "exe_name": "7zr.exe",
+        "local_exe": Path("zonepaq/tools/7zr/7zr.exe"),
     },
     "repak_cli": {
+        "display_name": "repak cli",
         "github_repo": "trumank/repak",
-        "exe": "repak",
+        "exe_name": "repak.exe",
         "asset_regex": r"repak_cli-x86_64-pc-windows-msvc.zip$",
         "extract_parameter": "",
-        "local_path": Path("zonepaq/tools/repak_cli/repak.exe"),
+        "local_exe": Path("zonepaq/tools/repak_cli/repak.exe"),
+        "fallback_exe": Path("C:/Program Files/repak_cli/bin/repak.exe"),
     },
     "kdiff3": {
+        "display_name": "KDiff3",
         "base_url": "https://download.kde.org/stable/kdiff3/",
-        "exe": "kdiff3",
+        "exe_name": "kdiff3.exe",
         "extract_parameter": "bin",
-        "local_path": Path("zonepaq/tools/KDiff3/kdiff3.exe"),
+        "local_exe": Path("zonepaq/tools/KDiff3/kdiff3.exe"),
+        "winreg_path": r"SOFTWARE\KDiff3",
+        "fallback_exe": Path("C:/Program Files/KDiff3/kdiff3.exe"),
     },
     "winmerge": {
+        "display_name": "WinMerge",
         "github_repo": "winmerge/winmerge",
-        "exe": "WinMergeU",
-        "asset_regex": r"winmerge-\\d+(\\.\\d+)*-exe.zip$",
+        "exe_name": "WinMergeU.exe",
+        "asset_regex": r"winmerge-\d+(\.\d+)*-exe.zip$",
         "extract_parameter": "WinMerge",
-        "local_path": Path("zonepaq/tools/WinMerge/WinMergeU.exe"),
+        "local_exe": Path("zonepaq/tools/WinMerge/WinMergeU.exe"),
+        "fallback_exe": Path.home() / "AppData/Local/Programs/WinMerge/WinMergeU.exe",
     },
     "aes_dumpster": {
+        "display_name": "AESDumpster",
         "github_repo": "GHFear/AESDumpster",
-        "exe": "AESDumpster-Win64",
+        "exe_name": "AESDumpster-Win64.exe",
         "asset_regex": r"AESDumpster-Win64.exe$",
-        "local_path": Path("zonepaq/tools/aes_dumpster/AESDumpster-Win64.exe"),
+        "local_exe": Path("zonepaq/tools/AESDumpster/AESDumpster-Win64.exe"),
     },
 }
 
 SUPPORTED_MERGING_ENGINES = {
-    "kdiff3": {"name": "KDiff3"},
-    "winmerge": {"name": "WinMerge"},
+    "kdiff3": {"name": TOOLS["kdiff3"]["display_name"]},
+    "winmerge": {"name": TOOLS["winmerge"]["display_name"]},
 }
 
 DEFAULT_TOOLS_PATHS = {
-    "repak_cli": check_app_installed(
-        app_exe=TOOLS["repak_cli"]["exe"],
-        local_path=TOOLS["tools_base"] / "repak_cli",
-        default_path=r"C:\Program Files\repak_cli\bin",
+    "repak_cli": Files.find_app_installation(
+        exe_name=TOOLS["repak_cli"]["exe_name"],
+        local_exe=TOOLS["repak_cli"]["local_exe"],
+        fallback_exe=TOOLS["repak_cli"]["fallback_exe"],
     ),
-    "kdiff3": check_app_installed(
-        app_exe=TOOLS["kdiff3"]["exe"],
-        local_path=TOOLS["tools_base"] / "KDiff3",
-        winreg_path=r"SOFTWARE\KDiff3",
-        default_path=r"C:\Program Files\KDiff3",
+    "kdiff3": Files.find_app_installation(
+        exe_name=TOOLS["kdiff3"]["exe_name"],
+        local_exe=TOOLS["kdiff3"]["local_exe"],
+        winreg_path=TOOLS["kdiff3"]["winreg_path"],
+        fallback_exe=TOOLS["kdiff3"]["fallback_exe"],
     ),
-    "winmerge": check_app_installed(
-        app_exe=TOOLS["winmerge"]["exe"],
-        local_path=TOOLS["tools_base"] / "WinMerge",
-        default_path=Path.home() / "AppData" / "Local" / "Programs" / "WinMerge",
+    "winmerge": Files.find_app_installation(
+        exe_name=TOOLS["winmerge"]["exe_name"],
+        local_exe=TOOLS["winmerge"]["local_exe"],
+        fallback_exe=TOOLS["winmerge"]["fallback_exe"],
     ),
-    "aes_dumpster": Path(TOOLS["tools_base"])
-    / "AESDumpster"
-    / f'{TOOLS["aes_dumpster"]["exe"]}.exe',
+    "aes_dumpster": TOOLS["aes_dumpster"]["local_exe"],
 }
 
 DEFAULT_SETTINGS = {
@@ -120,11 +83,15 @@ DEFAULT_SETTINGS = {
 
 
 DEFAULT_GAME = "S.T.A.L.K.E.R. 2"
-DEFAULT_VANILLA_FOLDER_SUFFIX = r"Stalker2\Content\Paks\pakchunk0-Windows"
+DEFAULT_VANILLA_FOLDER_SUFFIX = str(Path("Stalker2/Content/Paks/pakchunk0-Windows"))
 
 GAMES = {
     "S.T.A.L.K.E.R. 2": {
         "steam_id": "1643320",
-        "fallback_path": r"C:\Program Files (x86)\Steam\steamapps\common\S.T.A.L.K.E.R. 2 Heart of Chornobyl",
+        "fallback_path": str(
+            Path(
+                "C:/Program Files (x86)/Steam/steamapps/common/S.T.A.L.K.E.R. 2 Heart of Chornobyl"
+            )
+        ),
     },
 }

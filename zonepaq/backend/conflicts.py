@@ -121,10 +121,10 @@ class ConflictProcessor:
                         )
 
                 except KeyError as e:
-                    log.error(f"Missing key for item '{item_name}': {e}")
+                    log.exception(f"Missing key for item '{item_name}': {e}")
                     self.not_processed.append(f"{item_name} (missing key)")
                 except Exception as e:
-                    log.error(f"Error processing '{item_name}': {e}")
+                    log.exception(f"Error processing '{item_name}': {e}")
                     self.not_processed.append(f"{item_name} (processing error)")
 
             if not self.processed_conflicts and self.not_processed:
@@ -232,11 +232,13 @@ class ConflictProcessor:
                 else:
                     log.error(f"Unpack failed for {item_source_path}")
             except FileNotFoundError as e:
-                log.error(
+                log.exception(
                     f"File not found: {item_sources_names[i]} -> {item_source_path}: {e}"
                 )
             except Exception as e:
-                log.error(f"Unexpected error unpacking {item_sources_names[i]}: {e}")
+                log.exception(
+                    f"Unexpected error unpacking {item_sources_names[i]}: {e}"
+                )
 
         return unpacked_files
 

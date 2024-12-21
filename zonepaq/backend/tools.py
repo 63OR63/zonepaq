@@ -90,7 +90,7 @@ class Files:
                 log.debug(f"Deleted file: {str(path)}")
                 return True
         except Exception as e:
-            log.error(f"Deletion failed for {str(path)}: {e}")
+            log.exception(f"Deletion failed for {str(path)}: {e}")
             return False
 
     @staticmethod
@@ -133,6 +133,50 @@ class Files:
         except Exception as e:
             log.exception(f"Error during folder copy operation: {e}")
 
+    @staticmethod
+    def find_app_installation(
+        exe_name, local_exe=None, winreg_path=None, winreg_key="", fallback_exe=None
+    ):
+        if sys.platform != "win32":
+            exe_name = Path(exe_name).stem
+            local_exe = Path(local_exe).stem
+
+        # 1. Check for local installation
+        if local_exe:
+            local_exe = Path(local_exe)
+            if local_exe.exists():
+                log.debug(f"{exe_name} found: {str(local_exe)}")
+                return str(local_exe)
+
+        # 2. Check if app is in system PATH
+        if env_exe := shutil.which(exe_name):
+            log.debug(f"{exe_name} found: {str(Path(env_exe))}")
+            return str(Path(env_exe))
+
+        # 3. Check in Windows Registry
+        if winreg_path and sys.platform == "win32":
+            try:
+                import winreg
+
+                with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, winreg_path) as key:
+                    install_dir, _ = winreg.QueryValueEx(key, winreg_key)
+                    winreg_exe = Path(install_dir) / exe_name
+                    if winreg_exe.exists():
+                        log.debug(f"{exe_name} found in Registry: {str(winreg_exe)}")
+                        return str(winreg_exe)
+            except (FileNotFoundError, OSError):
+                log.warning(
+                    f"{exe_name} not found in the Windows Registry at {winreg_path}."
+                )
+
+        # 4. Fallback to default path
+        if fallback_exe:
+            log.debug(f"Using default {exe_name} path: {str(fallback_exe)}")
+            return str(fallback_exe)
+
+        log.warning(f"No path for {exe_name} was found!")
+        return ""
+
 
 class Data:
     """Utility class for data analysis."""
@@ -145,27 +189,22 @@ class Data:
                     log.debug(f"{data} is a valid AES key")
                     return True
                 else:
-                    log.debug(f"{data} isn't a valid AES key")
+                    log.warning(f"{data} isn't a valid AES key")
                     return False
             elif data_type == "folder":
                 if Files.is_existing_folder(data):
                     log.debug(f"{data} is an existing folder")
                     return True
                 else:
-                    return False
-            elif Files.is_existing_file(data):
-                is_windows = sys.platform == "win32"
-                if (is_windows and Path(data).name == f"{data_type}.exe") or Path(
-                    data
-                ).stem == data_type:
-                    log.debug(f'{data} is a valid path to "{data_type}"')
-                    return True
-                else:
-                    log.warning(f'{data} isn\'t a valid path to "{data_type}"')
+                    log.warning(f"{data} isn't an existing folder")
                     return False
             else:
-                log.warning(f'{data} isn\'t a valid "{data_type}"')
-                return False
+                if Files.is_existing_file(data):
+                    log.debug(f"{data} is a valid path to `{data_type}`")
+                    return True
+                else:
+                    log.warning(f"{data} isn't a valid path to `{data_type}`")
+                    return False
         except Exception as e:
             log.exception(f"Error during data validation: {e}")
             return False

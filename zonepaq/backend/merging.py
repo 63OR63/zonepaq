@@ -53,4 +53,4 @@ class Merging:
         except FileNotFoundError as e:
             log.error(f"Merging tool not found: {e}")
         except Exception as e:
-            log.error(f"Error during merging: {e}")
+            log.exception(f"Error during merging: {e}")

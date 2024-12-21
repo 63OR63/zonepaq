@@ -24,23 +24,24 @@ class ToolsManager:
         self.auto_mode = False
         self.prompt_callback = None
 
-        self.tools_base = settings.TOOLS["tools_base"]
+        self.tools_base = Path(settings.TOOLS["tools_base"])
         self.tools_base.mkdir(parents=True, exist_ok=True)
 
-        self.seven_zip_local_path = settings.TOOLS["7zr"]["local_path"]
+        self.seven_zip_local_exe = settings.TOOLS["7zr"]["local_exe"]
 
     def download_file(self, url, target_file):
         try:
-            Path(target_file).parent.mkdir(parents=True, exist_ok=True)
+            target_file = Path(target_file)
+            target_file.parent.mkdir(parents=True, exist_ok=True)
             log.info(f"Downloading {url}...")
             with requests.get(url, stream=True) as response:
                 response.raise_for_status()
                 with open(target_file, "wb") as f:
                     shutil.copyfileobj(response.raw, f, length=1024 * 1024)
-            log.debug(f"Downloaded to {target_file}")
+            log.debug(f"Downloaded to {str(target_file)}")
             return True
         except requests.RequestException as e:
-            log.error(f"Download failed: {e}")
+            log.exception(f"Download failed: {e}")
             return False
 
     @staticmethod
@@ -72,11 +73,11 @@ class ToolsManager:
                 return latest_url
 
         except requests.Timeout:
-            log.error(f"Request to {base_url} timed out after {timeout} seconds.")
+            log.exception(f"Request to {base_url} timed out after {timeout} seconds.")
         except requests.RequestException as e:
-            log.error(f"Error fetching KDiff3 URL: {e}")
+            log.exception(f"Error fetching KDiff3 URL: {e}")
         except ValueError as e:
-            log.error(f"Error parsing version information: {e}")
+            log.exception(f"Error parsing version information: {e}")
 
         return None
 
@@ -98,19 +99,19 @@ class ToolsManager:
             return None
 
         except requests.exceptions.RequestException as e:
-            log.error(f"Error fetching release data: {e}")
+            log.exception(f"Error fetching release data: {e}")
             return None
 
-    def check_and_download_installer(self, url, target_file, tool_name):
+    def check_and_download_installer(self, url, target_file, display_name):
         # Check if the installer needs to be confirmed and prepared
         if target_file.exists():
             user_confirmation = self.prompt_callback(
-                f'{tool_name} {translate("dialogue_tools_redowndload_installer")}',
+                f'{display_name} {translate("dialogue_tools_redowndload_installer")}',
                 auto_mode=self.auto_mode,
             )
 
             if not user_confirmation:
-                log.info(f"Using existing {tool_name} installer.")
+                log.info(f"Using existing {display_name} installer.")
                 return True
 
         # Prepare the target file directory
@@ -118,9 +119,9 @@ class ToolsManager:
         target_file.parent.mkdir(parents=True, exist_ok=True)
 
         # Download the file
-        download_success = self.download_file(url, target_file)
+        downloaded_file = self.download_file(url, target_file)
 
-        return download_success
+        return downloaded_file
 
     def extract_installer(self, installer_path, output_dir, extract_parameter=""):
         file_extension = installer_path.suffix[1:] if installer_path.suffix else None
@@ -138,10 +139,10 @@ class ToolsManager:
             return False
 
     def _extract_with_7zr(self, installer_path, output_dir, extract_parameter=None):
-        if not Files.is_existing_file(self.seven_zip_local_path):
+        if not Files.is_existing_file(self.seven_zip_local_exe):
             log.debug("Downloading 7z...")
             if not self.download_file(
-                settings.TOOLS["7zr"]["direct_link"], self.seven_zip_local_path
+                settings.TOOLS["7zr"]["direct_link"], self.seven_zip_local_exe
             ):
                 log.error("7z failed to download, aborting.")
                 return False
@@ -151,7 +152,7 @@ class ToolsManager:
             with tempfile.TemporaryDirectory() as temp_unpack_dir:
                 temp_unpack_dir = Path(temp_unpack_dir)
                 command = [
-                    str(self.seven_zip_local_path),
+                    str(self.seven_zip_local_exe),
                     "x",
                     str(installer_path),
                     "-aoa",
@@ -174,7 +175,9 @@ class ToolsManager:
             log.debug(f"Extraction of {installer_path} complete.")
             return True
         except subprocess.CalledProcessError as e:
-            log.error(f"Extraction failed: {e}\nSTDOUT: {e.stdout}\nSTDERR: {e.stderr}")
+            log.exception(
+                f"Extraction failed: {e}\nSTDOUT: {e.stdout}\nSTDERR: {e.stderr}"
+            )
             return False
 
     def _extract_with_zipfile(self, installer_path, output_dir, extract_parameter=None):
@@ -213,14 +216,14 @@ class ToolsManager:
             log.debug(f"Extraction of {installer_path} complete.")
             return True
         except Exception as e:
-            log.error(f"Extraction failed: {e}")
+            log.exception(f"Extraction failed: {e}")
             return False
 
     def download_and_extract_tool(
         self,
         url,
-        local_path,
-        tool_name,
+        local_exe,
+        display_name,
         prompt_callback,
         skip_extract,
         extract_parameter,
@@ -229,41 +232,36 @@ class ToolsManager:
         self.auto_mode = auto_mode
         self.prompt_callback = prompt_callback
 
-        output_dir = local_path.parent
+        output_dir = Path(local_exe).parent
         file_extension = re.search(r"\.([a-zA-Z0-9]+)(?:\?|#|$)", url).group(1)
-        installer_path = self.tools_base / f"{tool_name}_installer.{file_extension}"
+        if file_extension == "exe":
+            installer_suffix = "Installer"
+        else:
+            installer_suffix = "Archive"
+        installer_path = (
+            self.tools_base / f"{display_name} {installer_suffix}.{file_extension}"
+        )
 
-        # Check if output directory is not empty
+        # Detele the output directory is not empty
         if not Files.is_folder_empty(output_dir):
-            user_wants_reinstall = prompt_callback(
-                f'{tool_name} {translate("dialogue_tools_reinstall")}',
-                auto_mode=auto_mode,
-            )
-
-            if not user_wants_reinstall:
-                log.info(
-                    f"{tool_name} already exists. Skipping download and installation."
-                )
-                return False, True
-
-            # User agreed to reinstall; delete existing directory
             Files.delete_path(output_dir)
 
         # Ensure the output directory exists
         output_dir.mkdir(parents=True, exist_ok=True)
 
         # Download installer
-        download_success = self.check_and_download_installer(
-            url, installer_path, tool_name
+        downloaded_file = self.check_and_download_installer(
+            url, installer_path, display_name
         )
 
-        if not download_success:
-            return False, False
+        if not downloaded_file:
+            return False
 
         # Skip extraction if it's a direct executable
         if skip_extract:
-            log.info(f"{tool_name} executable downloaded successfully.")
-            return True, False
+            log.debug(f"Skipping extraction of {display_name}.")
+            shutil.move(installer_path, local_exe)
+            return True
 
         # Extract installer
         extraction_success = self.extract_installer(
@@ -271,7 +269,7 @@ class ToolsManager:
         )
 
         if not extraction_success:
-            return False, False
+            return False
 
-        log.info(f"{tool_name} installation complete.")
-        return True, False
+        log.info(f"{display_name} installation complete.")
+        return True

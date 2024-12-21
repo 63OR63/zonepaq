@@ -155,28 +155,16 @@ class GUI_SettingsMenu(GUI_Toplevel):
             translate("settings_general_path_tools"): {
                 "repak_cli": {
                     "path_dict": settings.TOOLS_PATHS,
-                    "title": f'{settings.TOOLS["repak_cli"]["exe"]}.exe',
-                    "type": settings.TOOLS["repak_cli"]["exe"],
-                    "buttons": [
+                    "entry_title": f'{settings.TOOLS["repak_cli"]["display_name"]}',
+                    "entry_type": settings.TOOLS["repak_cli"]["exe_name"],
+                    "entry_buttons": [
                         {
                             "command": self._open_path_browse_dialog,
-                            "params": (
-                                "entry_variable",
-                                "entry_type",
-                                "entry_widget",
-                                "settings_key",
-                            ),
                             "text": translate("settings_general_browse"),
                             "style": "Generic.CTkButton",
                         },
                         {
                             "command": self._install_repak,
-                            "params": (
-                                "entry_variable",
-                                "entry_type",
-                                "entry_widget",
-                                "settings_key",
-                            ),
                             "text": translate("settings_general_install"),
                             "style": "Alt.CTkButton",
                         },
@@ -184,28 +172,16 @@ class GUI_SettingsMenu(GUI_Toplevel):
                 },
                 "kdiff3": {
                     "path_dict": settings.TOOLS_PATHS,
-                    "title": f'{settings.TOOLS["kdiff3"]["exe"]}.exe',
-                    "type": settings.TOOLS["kdiff3"]["exe"],
-                    "buttons": [
+                    "entry_title": f'{settings.TOOLS["kdiff3"]["display_name"]}',
+                    "entry_type": settings.TOOLS["kdiff3"]["exe_name"],
+                    "entry_buttons": [
                         {
                             "command": self._open_path_browse_dialog,
-                            "params": (
-                                "entry_variable",
-                                "entry_type",
-                                "entry_widget",
-                                "settings_key",
-                            ),
                             "text": translate("settings_general_browse"),
                             "style": "Generic.CTkButton",
                         },
                         {
                             "command": self._install_kdiff3,
-                            "params": (
-                                "entry_variable",
-                                "entry_type",
-                                "entry_widget",
-                                "settings_key",
-                            ),
                             "text": translate("settings_general_install"),
                             "style": "Alt.CTkButton",
                         },
@@ -213,28 +189,16 @@ class GUI_SettingsMenu(GUI_Toplevel):
                 },
                 "winmerge": {
                     "path_dict": settings.TOOLS_PATHS,
-                    "title": f'{settings.TOOLS["winmerge"]["exe"]}.exe',
-                    "type": settings.TOOLS["winmerge"]["exe"],
-                    "buttons": [
+                    "entry_title": f'{settings.TOOLS["winmerge"]["display_name"]}',
+                    "entry_type": settings.TOOLS["winmerge"]["exe_name"],
+                    "entry_buttons": [
                         {
                             "command": self._open_path_browse_dialog,
-                            "params": (
-                                "entry_variable",
-                                "entry_type",
-                                "entry_widget",
-                                "settings_key",
-                            ),
                             "text": translate("settings_general_browse"),
                             "style": "Generic.CTkButton",
                         },
                         {
                             "command": self._install_winmerge,
-                            "params": (
-                                "entry_variable",
-                                "entry_type",
-                                "entry_widget",
-                                "settings_key",
-                            ),
                             "text": translate("settings_general_install"),
                             "style": "Alt.CTkButton",
                         },
@@ -244,23 +208,16 @@ class GUI_SettingsMenu(GUI_Toplevel):
             translate("settings_general_path_game"): {
                 "vanilla_unpacked": {
                     "path_dict": settings.GAME_PATHS,
-                    "title": translate("settings_general_vanilla_unpacked"),
-                    "type": "folder",
-                    "buttons": [
+                    "entry_title": translate("settings_general_vanilla_unpacked"),
+                    "entry_type": "folder",
+                    "entry_buttons": [
                         {
                             "command": self._open_path_browse_dialog,
-                            "params": (
-                                "entry_variable",
-                                "entry_type",
-                                "entry_widget",
-                                "settings_key",
-                            ),
                             "text": translate("settings_general_browse"),
                             "style": "Generic.CTkButton",
                         },
                         {
                             "command": self._unpack_files,
-                            "params": ("entry_variable"),
                             "text": translate("settings_general_unpack"),
                             "style": "Alt.CTkButton",
                         },
@@ -270,12 +227,11 @@ class GUI_SettingsMenu(GUI_Toplevel):
             translate("settings_general_keys"): {
                 "aes_key": {
                     "path_dict": {"aes_key": settings.AES_KEY},
-                    "title": translate("settings_general_aes_key"),
-                    "type": "aes",
-                    "buttons": [
+                    "entry_title": translate("settings_general_aes_key"),
+                    "entry_type": "aes",
+                    "entry_buttons": [
                         {
                             "command": self._get_aes_key,
-                            "params": ("entry_variable"),
                             "text": translate("settings_general_get"),
                             "style": "Alt.CTkButton",
                         },
@@ -347,14 +303,14 @@ class GUI_SettingsMenu(GUI_Toplevel):
                 master,
                 path_dict=entry_data["path_dict"],
                 settings_key=settings_key,
-                path_title=entry_data["title"],
-                entry_type=entry_data["type"],
-                entry_buttons=entry_data["buttons"],
+                entry_title=entry_data["entry_title"],
+                entry_type=entry_data["entry_type"],
+                entry_buttons=entry_data["entry_buttons"],
             )
         self.create_spacer(master)
 
     def _create_entry_line(
-        self, master, path_dict, settings_key, path_title, entry_type, entry_buttons
+        self, master, path_dict, settings_key, entry_title, entry_type, entry_buttons
     ):
         current_row = self._get_next_row(master)
 
@@ -362,7 +318,7 @@ class GUI_SettingsMenu(GUI_Toplevel):
             ctk_widget=ctk.CTkLabel,
             widget_args={
                 "master": master,
-                "text": f"{path_title}:",
+                "text": f"{entry_title}:",
                 "anchor": "w",
                 "pady": self.padding / 5,
             },
@@ -404,31 +360,20 @@ class GUI_SettingsMenu(GUI_Toplevel):
             column_index = 2 + index
 
             command = button["command"]
-            params = button.get("params", ())
 
-            if not isinstance(params, (list, tuple)):
-                params = (params,)
-
-            resolved_params = {}
-            for param in params:
-                if param == "entry_variable":
-                    resolved_params["entry_variable"] = entry_variable
-                elif param == "entry_type":
-                    resolved_params["entry_type"] = entry_type
-                elif param == "entry_widget":
-                    resolved_params["entry_widget"] = entry_widget
-                elif param == "settings_key":
-                    resolved_params["settings_key"] = settings_key
-                else:
-                    resolved_params[param] = param
+            params = {
+                "settings_key": settings_key,
+                # "entry_title": entry_title,
+                "entry_type": entry_type,
+                "entry_variable": entry_variable,
+                "entry_widget": entry_widget,
+            }
 
             self.create_ctk_widget(
                 ctk_widget=ctk.CTkButton,
                 widget_args={
                     "master": master,
-                    "command": lambda cmd=command, kw=resolved_params: cmd(
-                        widget_data=kw
-                    ),
+                    "command": lambda cmd=command, p=params: cmd(install_metadata=p),
                     "text": button["text"],
                     "width": 0,
                 },
@@ -634,8 +579,8 @@ class GUI_SettingsMenu(GUI_Toplevel):
 
         self.style_manager.apply_style(entry_widget, style)
 
-    def _open_path_browse_dialog(self, widget_data):
-        path = Path(widget_data["entry_variable"].get())
+    def _open_path_browse_dialog(self, install_metadata):
+        path = Path(install_metadata["entry_variable"].get())
         if path.is_file():
             initial_dir = path.parent
         elif path.is_dir():
@@ -643,10 +588,10 @@ class GUI_SettingsMenu(GUI_Toplevel):
         else:
             initial_dir = Path.cwd()
 
-        if widget_data["entry_type"] == "folder":
+        if install_metadata["entry_type"] == "folder":
             selected_path = filedialog.askdirectory(parent=self, initialdir=initial_dir)
         else:
-            filetypes = [(f'{widget_data["entry_type"]}', "*")]
+            filetypes = [(f'{install_metadata["entry_type"]}', "*")]
             if sys.platform == "win32":
                 filetypes[0] = (filetypes[0][0], filetypes[0][1] + ".exe")
 
@@ -659,13 +604,15 @@ class GUI_SettingsMenu(GUI_Toplevel):
         if selected_path:
             if isinstance(selected_path, tuple):
                 selected_path = ";".join(selected_path)
-            widget_data["entry_variable"].set(Files.get_relative_path(selected_path))
+            install_metadata["entry_variable"].set(
+                Files.get_relative_path(selected_path)
+            )
 
             self._store_temp_path_and_apply_style(
-                widget_data["settings_key"],
-                widget_data["entry_variable"].get(),
-                widget_data["entry_type"],
-                widget_data["entry_widget"],
+                install_metadata["settings_key"],
+                install_metadata["entry_variable"].get(),
+                install_metadata["entry_type"],
+                install_metadata["entry_widget"],
             )
 
     def prompt_redownload(self, text, auto_mode):
@@ -680,13 +627,10 @@ class GUI_SettingsMenu(GUI_Toplevel):
 
     def _install_tool(
         self,
-        tool_name,
         download_method,
         download_args,
-        local_path,
-        widget_data=None,
+        install_metadata,
         skip_extract=False,
-        extract_parameter="",
         auto_mode=False,
         check_platform=True,
     ):
@@ -700,118 +644,149 @@ class GUI_SettingsMenu(GUI_Toplevel):
                 )
             return False
 
-        # Download the tool
-        download_url = download_method(**download_args)
-        if not download_url:
-            if not auto_mode:
-                messagebox.showerror(
-                    translate("generic_error"),
-                    f'{translate("dialogue_install_error")} {tool_name}\n{translate("dialogue_check_logs")}',
-                    parent=self,
-                )
-            return False
+        # Extract variables from metadata dict
+        settings_key = install_metadata.get("settings_key", None)
+        display_name = install_metadata.get("display_name", None)
+        exe_name = install_metadata.get("exe_name", None)
+        local_exe = install_metadata.get("local_exe", None)
+        fallback_exe = install_metadata.get("fallback_exe", None)
+        extract_parameter = install_metadata.get("extract_parameter", None)
+        winreg_path = install_metadata.get("winreg_path", None)
+        winreg_key = install_metadata.get("winreg_key", None)
+        entry_widget = install_metadata.get("entry_widget", None)
+        entry_variable = install_metadata.get("entry_variable", None)
 
-        # Extract and install the tool
-        install_result, skipped = self.tools_manager.download_and_extract_tool(
-            url=download_url,
-            local_path=local_path,
-            tool_name=tool_name,
-            prompt_callback=self.prompt_redownload,
-            skip_extract=skip_extract,
-            extract_parameter=extract_parameter,
-            auto_mode=auto_mode,
-        )
+        # Try to find existing installation
+        try:
+            found_exe = Files.find_app_installation(
+                exe_name, local_exe, winreg_path, winreg_key, fallback_exe
+            )
+        except:
+            pass
 
-        if not install_result and not skipped:
-            if not auto_mode:
-                messagebox.showerror(
-                    translate("generic_error"),
-                    f'{translate("dialogue_install_error")} {tool_name}\n{translate("dialogue_check_logs")}',
-                    parent=self,
-                )
-            return False
+        if found_exe:
+            log.info(
+                f"{display_name} found at: {found_exe}\nSkipping download and installation."
+            )
+            exe_location = found_exe
 
-        # Validate and finalize installation
-        if widget_data:
-            path = Files.get_relative_path(local_path)
-            if Data.is_valid_data(local_path, widget_data["entry_type"]):
-                if not auto_mode:
-                    widget_data["entry_variable"].set(path)
-                    self._apply_style(True, widget_data["entry_widget"])
-                    settings.TOOLS_PATHS[widget_data["settings_key"]] = path
-                    settings.save()
-                    messagebox.showinfo(
-                        translate("generic_info"),
-                        f'{tool_name} {translate("dialogue_install_success")} {local_path}',
-                        parent=self,
-                    )
-            else:
-                log.error(f"{tool_name} can't be located at {path}")
+        else:
+            # Download the tool
+            download_url = download_method(**download_args)
+            if not download_url:
                 if not auto_mode:
                     messagebox.showerror(
                         translate("generic_error"),
-                        f'{translate("dialogue_install_error")} {tool_name}\n{translate("dialogue_check_logs")}',
+                        f'{translate("dialogue_install_error")} {display_name}\n{translate("dialogue_check_logs")}',
                         parent=self,
                     )
                 return False
 
+            # Extract and install the tool
+            install_result = self.tools_manager.download_and_extract_tool(
+                url=download_url,
+                local_exe=local_exe,
+                display_name=display_name,
+                prompt_callback=self.prompt_redownload,
+                skip_extract=skip_extract,
+                extract_parameter=extract_parameter,
+                auto_mode=auto_mode,
+            )
+
+            if not install_result:
+                if not auto_mode:
+                    messagebox.showerror(
+                        translate("generic_error"),
+                        f'{translate("dialogue_install_error")} {display_name}\n{translate("dialogue_check_logs")}',
+                        parent=self,
+                    )
+                return False
+
+            # Validate download
+            if Files.is_existing_file(local_exe):
+                exe_location = local_exe
+            else:
+                log.error(f"{display_name} can't be located at {local_exe}")
+                if not auto_mode:
+                    messagebox.showerror(
+                        translate("generic_error"),
+                        f'{translate("dialogue_install_error")} {display_name}\n{translate("dialogue_check_logs")}',
+                        parent=self,
+                    )
+                return False
+
+        # Finalize installation
+        path = Files.get_relative_path(exe_location)
+        settings.TOOLS_PATHS[settings_key] = path
+        settings.save()
+
+        if entry_variable and entry_widget:
+            entry_variable.set(path)
+            self._apply_style(True, entry_widget)
+
+        if not auto_mode:
+            if found_exe:
+                message = translate("dialogue_install_found")
+            else:
+                message = translate("dialogue_install_success")
+
+            messagebox.showinfo(
+                translate("generic_info"),
+                f"{display_name} {message} {exe_location}",
+                parent=self,
+            )
+
         return True
 
-    def _install_repak(self, widget_data, auto_mode=False):
+    def _install_repak(self, install_metadata={}, auto_mode=False):
+        install_metadata.update(settings.TOOLS["repak_cli"])
         return self._install_tool(
-            tool_name="repak_cli",
             download_method=self.tools_manager.get_latest_github_release_asset,
             download_args={
                 "github_repo": settings.TOOLS["repak_cli"]["github_repo"],
                 "asset_regex": settings.TOOLS["repak_cli"]["asset_regex"],
             },
-            local_path=settings.TOOLS["repak_cli"]["local_path"],
-            widget_data=widget_data,
-            extract_parameter=settings.TOOLS["repak_cli"]["extract_parameter"],
+            install_metadata=install_metadata,
             auto_mode=auto_mode,
         )
 
-    def _install_kdiff3(self, widget_data, auto_mode=False):
+    def _install_kdiff3(self, install_metadata={}, auto_mode=False):
+        install_metadata.update(settings.TOOLS["kdiff3"])
         return self._install_tool(
-            tool_name="KDiff3",
             download_method=self.tools_manager.get_latest_kdiff3,
             download_args={"base_url": settings.TOOLS["kdiff3"]["base_url"]},
-            local_path=settings.TOOLS["kdiff3"]["local_path"],
-            widget_data=widget_data,
-            extract_parameter=settings.TOOLS["kdiff3"]["extract_parameter"],
+            install_metadata=install_metadata,
             auto_mode=auto_mode,
         )
 
-    def _install_winmerge(self, widget_data, auto_mode=False):
+    def _install_winmerge(self, install_metadata={}, auto_mode=False):
+        install_metadata.update(settings.TOOLS["winmerge"])
         return self._install_tool(
-            tool_name="WinMerge",
             download_method=self.tools_manager.get_latest_github_release_asset,
             download_args={
                 "github_repo": settings.TOOLS["winmerge"]["github_repo"],
                 "asset_regex": settings.TOOLS["winmerge"]["asset_regex"],
             },
-            local_path=settings.TOOLS["winmerge"]["local_path"],
-            widget_data=widget_data,
-            extract_parameter=settings.TOOLS["winmerge"]["extract_parameter"],
+            install_metadata=install_metadata,
             auto_mode=auto_mode,
         )
 
-    def _unpack_files(self, widget_data):
-        raise NotImplementedError
+    def _unpack_files(self, install_metadata):
+        print("raise NotImplementedError")
 
-    def _get_aes_key(self, widget_data):
+    def _get_aes_key(self, install_metadata):
         if not Files.is_existing_file(settings.TOOLS_PATHS["aes_dumpster"]):
-            self._download_aes_dumpster()
+            self._install_aes_dumpster()
 
-    def _download_aes_dumpster(self):
+    def _install_aes_dumpster(self, install_metadata={}, auto_mode=False):
+        install_metadata.update(settings.TOOLS["aes_dumpster"])
         return self._install_tool(
-            tool_name="AESDumpster",
             download_method=self.tools_manager.get_latest_github_release_asset,
             download_args={
                 "github_repo": settings.TOOLS["aes_dumpster"]["github_repo"],
                 "asset_regex": settings.TOOLS["aes_dumpster"]["asset_regex"],
             },
-            local_path=settings.TOOLS["aes_dumpster"]["local_path"],
+            install_metadata=install_metadata,
             skip_extract=True,
             auto_mode=True,
         )

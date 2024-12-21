@@ -131,8 +131,8 @@ TRANSLATIONS = {
         "dialogue_tools_redowndload_installer": (
             "installer exists.\n" "Do you want to redownload the latest version?"
         ),
-        "dialogue_tools_reinstall": ("exists.\n" "Do you want to reinstall it?"),
         "dialogue_only_windows": "This function is available only on Windows.",
+        "dialogue_install_found": "was found at",
         "dialogue_install_success": "was successfully installed to",
         "dialogue_install_error": "Failed to install",
         "dialogue_check_logs": "Check logs for details.",
@@ -268,8 +268,8 @@ TRANSLATIONS = {
         "dialogue_tools_redowndload_installer": (
             "(архив) найден.\n" "Вы хотите перекачать последнюю версию?"
         ),
-        "dialogue_tools_reinstall": ("найден.\n" "Вы хотите переустановить его?"),
         "dialogue_only_windows": "Функция доступна только на Windows.",
+        "dialogue_install_found": "был найден в",
         "dialogue_install_success": "был успешно установлен в",
         "dialogue_install_error": "Не удалось установить",
         "dialogue_check_logs": "Подробная информация в логах.",
