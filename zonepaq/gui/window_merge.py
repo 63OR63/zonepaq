@@ -1,9 +1,9 @@
 from backend.logger import log
 from backend.repak import Repak
-from backend.tools import Files, Data
+from backend.utilities import Files, Data
 from config.settings import translate
-from gui.window_conflicts import GUI_ConflictsReport
-from gui.template_secondary import GUI_Secondary
+from gui.window_conflicts import WindowConflicts
+from gui.template_secondary import WindowTemplateSecondary
 
 
 from concurrent.futures import as_completed
@@ -11,7 +11,7 @@ from pathlib import Path
 from tkinter import messagebox
 
 
-class GUI_MergeScreen(GUI_Secondary):
+class WindowMerge(WindowTemplateSecondary):
     """GUI for analyzing and reporting file conflicts during merging."""
 
     def __init__(self, master):
@@ -79,8 +79,8 @@ class GUI_MergeScreen(GUI_Secondary):
             content_tree = Data.build_content_tree(results_ok)
 
             log.debug("Opening conflicts resolver screen...")
-            GUI_ConflictsReport(parent=self, content_tree=content_tree)
-            # self.open_gui("GUI_ConflictsReport")
+            WindowConflicts(parent=self, content_tree=content_tree)
+            # self.open_gui("WindowConflicts")
 
         else:
             messagebox.showwarning(

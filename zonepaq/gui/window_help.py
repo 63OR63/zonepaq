@@ -8,11 +8,11 @@ from config.metadata import (
     LEGAL_NOTICE,
 )
 from config.settings import translate
-from gui.template_toplevel import GUI_Toplevel
+from gui.template_toplevel import WindowTemplateToplevel
 import customtkinter as ctk
 
 
-class GUI_HelpScreen(GUI_Toplevel):
+class WindowHelp(WindowTemplateToplevel):
     """Popup window for configuring and saving application settings."""
 
     def __init__(self, master):

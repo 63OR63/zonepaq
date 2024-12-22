@@ -1,17 +1,17 @@
 from tkinter import messagebox
 from backend.logger import log
-from backend.tools import Data
+from backend.utilities import Data
 from config.defaults import DEFAULT_TOOLS_PATHS, TOOLS
 from config.metadata import (
     APP_NAME,
 )
 from config.settings import settings, translate
-from gui.template_base import GUI_Base
+from gui.template_base import WindowTemplateBase
 
 import customtkinter as ctk
 
 
-class WindowFirstLaunch(GUI_Base):
+class WindowFirstLaunch(WindowTemplateBase):
 
     def __init__(self, master=None):
         super().__init__(title=translate("first_launch_sequence_title"))

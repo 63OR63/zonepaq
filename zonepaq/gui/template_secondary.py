@@ -7,10 +7,10 @@ from tkinterdnd2 import DND_FILES
 from backend.logger import log
 from config.settings import settings, translate
 
-from gui.template_toplevel import GUI_Toplevel
+from gui.template_toplevel import WindowTemplateToplevel
 
 
-class GUI_Secondary(GUI_Toplevel):
+class WindowTemplateSecondary(WindowTemplateToplevel):
 
     def __init__(self, master, title):
         super().__init__(master, title=title)

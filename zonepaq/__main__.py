@@ -1,7 +1,7 @@
 from backend.logger import log
 from config.settings import settings, translate
 from gui.window_first_launch import WindowFirstLaunch
-from gui.window_launch_screen import GUI_LaunchScreen
+from gui.window_main import WindowMain
 
 import platform
 import os
@@ -97,7 +97,7 @@ if __name__ == "__main__":
         gui = WindowFirstLaunch()
         gui.mainloop()
 
-    gui = GUI_LaunchScreen()
+    gui = WindowMain()
     gui.mainloop()
 
     log.debug("Application finished.")

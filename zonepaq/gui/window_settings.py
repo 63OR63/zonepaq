@@ -1,18 +1,18 @@
 import sys
 from backend.logger import log
-from backend.tools import Data, Files
+from backend.utilities import Data, Files
 from config.settings import settings, translate
-from gui.template_toplevel import GUI_Toplevel
+from gui.template_toplevel import WindowTemplateToplevel
 import customtkinter as ctk
 
 # import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, messagebox
 
-from gui.window_help import GUI_HelpScreen
+from gui.window_help import WindowHelp
 
 
-class GUI_SettingsMenu(GUI_Toplevel):
+class WindowSettings(WindowTemplateToplevel):
     """Popup window for configuring and saving application settings."""
 
     def __init__(self, master):
@@ -24,7 +24,7 @@ class GUI_SettingsMenu(GUI_Toplevel):
 
         self.create_header_button(
             self,
-            command=lambda: GUI_HelpScreen(self),
+            command=lambda: WindowHelp(self),
             image=self.help_image,
             image_hover=self.help_image_hover,
             sticky="e",

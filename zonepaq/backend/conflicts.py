@@ -8,7 +8,7 @@ from tkinter import filedialog, messagebox
 from backend.logger import log
 from backend.merging import Merging
 from backend.repak import Repak
-from backend.tools import Files
+from backend.utilities import Files
 from config.settings import settings, translate
 
 
@@ -250,9 +250,14 @@ class ConflictProcessor:
             save_path.parent.mkdir(parents=True, exist_ok=True)
 
             if use_vanilla:
-                vanilla_file = (
-                    Path(settings.GAME_PATHS.get("vanilla_unpacked")) / item_path
-                )
+                vanilla_paths = settings.GAME_PATHS.get("vanilla_unpacked")
+                if isinstance(vanilla_paths, list):
+                    vanilla_path = max(vanilla_paths)
+                else:
+                    vanilla_path = vanilla_paths
+
+                vanilla_file = Path(vanilla_path) / item_path
+
                 if vanilla_file.exists() and vanilla_file.is_file():
                     unpacked_files.appendleft(vanilla_file)
 

@@ -2,7 +2,7 @@ from pathlib import Path
 import sys
 from backend.logger import handle_exception, log
 from backend.games_manager import GamesManager
-from backend.tools import Files
+from backend.utilities import Files
 from backend.tools_manager import ToolsManager
 from config.settings import settings
 from config.metadata import APP_NAME, APP_VERSION
@@ -15,10 +15,10 @@ import tkinter as tk
 import json
 from unittest.mock import mock_open, patch
 
-from gui.window_settings_menu import GUI_SettingsMenu
+from gui.window_settings import WindowSettings
 
 
-class GUI_Base(CTk):
+class WindowTemplateBase(CTk):
     """Base class for all GUI windows with common functionalities."""
 
     def __init__(self, title):
@@ -520,7 +520,7 @@ class GUI_Base(CTk):
     def create_settings_button(self, master):
         return self.create_header_button(
             master,
-            command=lambda: GUI_SettingsMenu(master),
+            command=lambda: WindowSettings(master),
             image=self.cog_image,
             image_hover=self.cog_image_hover,
             sticky="e",

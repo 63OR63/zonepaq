@@ -3,7 +3,7 @@ from config.metadata import APP_NAME, APP_VERSION
 from gui.ctk_wraps import CTkToplevel
 
 
-class GUI_Toplevel(CTkToplevel):
+class WindowTemplateToplevel(CTkToplevel):
     def __init__(self, master, title):
         super().__init__(master)
         self.master = master

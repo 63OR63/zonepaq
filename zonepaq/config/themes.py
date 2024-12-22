@@ -1,8 +1,8 @@
 import colorsys
-from logging import log
+from backend.logger import log
 import customtkinter as ctk
 
-from backend.tools import Files
+from backend.utilities import Files
 from PIL import Image, ImageTk
 
 

@@ -1,14 +1,14 @@
 import sys
 from backend.logger import log
 from config.settings import settings, translate
-from gui.template_base import GUI_Base
+from gui.template_base import WindowTemplateBase
 import customtkinter as ctk
 from tkinter import messagebox
 
-from gui.window_settings_menu import GUI_SettingsMenu
+from gui.window_settings import WindowSettings
 
 
-class GUI_LaunchScreen(GUI_Base):
+class WindowMain(WindowTemplateBase):
     """Launch screen GUI for navigating to primary application features."""
 
     def __init__(self, master=None):
@@ -24,16 +24,16 @@ class GUI_LaunchScreen(GUI_Base):
         self.destroy()
 
     def _open_repak_gui(self):
-        from gui.window_repak_screen import GUI_RepakScreen
+        from gui.window_repak import WindowRepak
 
         self.withdraw()
-        GUI_RepakScreen(self)
+        WindowRepak(self)
 
     def _open_merge_gui(self):
-        from gui.window_merge_screen import GUI_MergeScreen
+        from gui.window_merge import WindowMerge
 
         self.withdraw()
-        GUI_MergeScreen(self)
+        WindowMerge(self)
 
     # !RENAME method
     def _setup2(self):

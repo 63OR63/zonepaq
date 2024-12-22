@@ -5,7 +5,7 @@ from pathlib import Path
 import customtkinter as ctk
 from config.metadata import APP_ICONS
 from tkinterdnd2 import TkinterDnD
-from backend.tools import Files
+from backend.utilities import Files
 
 
 def custom_set_titlebar_icon(self):

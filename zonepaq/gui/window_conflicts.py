@@ -7,10 +7,10 @@ from backend.conflicts import ConflictProcessor
 from backend.logger import log
 from config.metadata import APP_NAME, APP_VERSION
 from config.settings import settings, translate
-from gui.template_toplevel import GUI_Toplevel
+from gui.template_toplevel import WindowTemplateToplevel
 
 
-class GUI_ConflictsReport(GUI_Toplevel):
+class WindowConflicts(WindowTemplateToplevel):
     """Displays conflict reports and provides tools to analyze and merge files."""
 
     def __init__(self, parent, content_tree):
