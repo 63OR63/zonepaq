@@ -164,7 +164,7 @@ class WindowSettings(WindowTemplateToplevel):
                             "style": "Generic.CTkButton",
                         },
                         {
-                            "command": self._install_repak,
+                            "command": self.tools_manager._install_repak,
                             "text": translate("settings_general_install"),
                             "style": "Alt.CTkButton",
                         },
@@ -181,7 +181,7 @@ class WindowSettings(WindowTemplateToplevel):
                             "style": "Generic.CTkButton",
                         },
                         {
-                            "command": self._install_kdiff3,
+                            "command": self.tools_manager._install_kdiff3,
                             "text": translate("settings_general_install"),
                             "style": "Alt.CTkButton",
                         },
@@ -198,7 +198,7 @@ class WindowSettings(WindowTemplateToplevel):
                             "style": "Generic.CTkButton",
                         },
                         {
-                            "command": self._install_winmerge,
+                            "command": self.tools_manager._install_winmerge,
                             "text": translate("settings_general_install"),
                             "style": "Alt.CTkButton",
                         },
@@ -217,7 +217,7 @@ class WindowSettings(WindowTemplateToplevel):
                             "style": "Generic.CTkButton",
                         },
                         {
-                            "command": self._unpack_files,
+                            "command": self.tools_manager._unpack_files,
                             "text": translate("settings_general_unpack"),
                             "style": "Alt.CTkButton",
                         },
@@ -231,7 +231,7 @@ class WindowSettings(WindowTemplateToplevel):
                     "entry_type": "aes",
                     "entry_buttons": [
                         {
-                            "command": self._get_aes_key,
+                            "command": self.tools_manager._get_aes_key,
                             "text": translate("settings_general_get"),
                             "style": "Alt.CTkButton",
                         },
@@ -373,7 +373,9 @@ class WindowSettings(WindowTemplateToplevel):
                 ctk_widget=ctk.CTkButton,
                 widget_args={
                     "master": master,
-                    "command": lambda cmd=command, p=params: cmd(install_metadata=p),
+                    "command": lambda cmd=command, p=params: cmd(
+                        parent=self, install_metadata=p
+                    ),
                     "text": button["text"],
                     "width": 0,
                 },
@@ -579,7 +581,7 @@ class WindowSettings(WindowTemplateToplevel):
 
         self.style_manager.apply_style(entry_widget, style)
 
-    def _open_path_browse_dialog(self, install_metadata):
+    def _open_path_browse_dialog(self, parent, install_metadata):
         path = Path(install_metadata["entry_variable"].get())
         if path.is_file():
             initial_dir = path.parent
@@ -589,14 +591,16 @@ class WindowSettings(WindowTemplateToplevel):
             initial_dir = Path.cwd()
 
         if install_metadata["entry_type"] == "folder":
-            selected_path = filedialog.askdirectory(parent=self, initialdir=initial_dir)
+            selected_path = filedialog.askdirectory(
+                parent=parent, initialdir=initial_dir
+            )
         else:
             filetypes = [(f'{install_metadata["entry_type"]}', "*")]
             if sys.platform == "win32":
                 filetypes[0] = (filetypes[0][0], filetypes[0][1] + ".exe")
 
             selected_path = filedialog.askopenfilenames(
-                parent=self,
+                parent=parent,
                 initialdir=initial_dir,
                 filetypes=filetypes,
             )
@@ -614,70 +618,3 @@ class WindowSettings(WindowTemplateToplevel):
                 install_metadata["entry_type"],
                 install_metadata["entry_widget"],
             )
-
-    def prompt_redownload(self, text, auto_mode):
-        if auto_mode:
-            return True
-        result = messagebox.askquestion(
-            translate("generic_question"), text, parent=self
-        )
-        if result == "yes":
-            return True
-        return False
-
-    def _install_repak(self, install_metadata={}, auto_mode=False):
-        install_metadata.update(settings.TOOLS["repak_cli"])
-        return self.tools_manager._install_tool(
-            self,
-            download_method=self.tools_manager.get_latest_github_release_asset,
-            download_args={
-                "github_repo": settings.TOOLS["repak_cli"]["github_repo"],
-                "asset_regex": settings.TOOLS["repak_cli"]["asset_regex"],
-            },
-            install_metadata=install_metadata,
-            auto_mode=auto_mode,
-        )
-
-    def _install_kdiff3(self, install_metadata={}, auto_mode=False):
-        install_metadata.update(settings.TOOLS["kdiff3"])
-        return self.tools_manager._install_tool(
-            self,
-            download_method=self.tools_manager.get_latest_kdiff3,
-            download_args={"base_url": settings.TOOLS["kdiff3"]["base_url"]},
-            install_metadata=install_metadata,
-            auto_mode=auto_mode,
-        )
-
-    def _install_winmerge(self, install_metadata={}, auto_mode=False):
-        install_metadata.update(settings.TOOLS["winmerge"])
-        return self.tools_manager._install_tool(
-            self,
-            download_method=self.tools_manager.get_latest_github_release_asset,
-            download_args={
-                "github_repo": settings.TOOLS["winmerge"]["github_repo"],
-                "asset_regex": settings.TOOLS["winmerge"]["asset_regex"],
-            },
-            install_metadata=install_metadata,
-            auto_mode=auto_mode,
-        )
-
-    def _unpack_files(self, install_metadata):
-        print("raise NotImplementedError")
-
-    def _get_aes_key(self, install_metadata):
-        if not Files.is_existing_file(settings.TOOLS_PATHS["aes_dumpster"]):
-            self._install_aes_dumpster()
-
-    def _install_aes_dumpster(self, install_metadata={}, auto_mode=False):
-        install_metadata.update(settings.TOOLS["aes_dumpster"])
-        return self.tools_manager._install_tool(
-            self,
-            download_method=self.tools_manager.get_latest_github_release_asset,
-            download_args={
-                "github_repo": settings.TOOLS["aes_dumpster"]["github_repo"],
-                "asset_regex": settings.TOOLS["aes_dumpster"]["asset_regex"],
-            },
-            install_metadata=install_metadata,
-            skip_extract=True,
-            auto_mode=True,
-        )

@@ -8,6 +8,8 @@ from gui.template_base import WindowTemplateBase
 
 import customtkinter as ctk
 
+from backend.tools_manager import ToolsManager
+
 
 class WindowFirstLaunch(WindowTemplateBase):
 

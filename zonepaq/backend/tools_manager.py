@@ -11,7 +11,6 @@ import zipfile
 
 from backend.utilities import Files
 from config.settings import settings, translate
-from urllib.parse import urlparse
 
 
 class ToolsManager:
@@ -24,7 +23,6 @@ class ToolsManager:
 
     def __init__(self):
         self.auto_mode = False
-        self.prompt_callback = None
 
         self.tools_base = Path(settings.TOOLS["tools_base"])
         self.tools_base.mkdir(parents=True, exist_ok=True)
@@ -104,13 +102,21 @@ class ToolsManager:
             log.exception(f"Error fetching release data: {e}")
             return None
 
-    def check_and_download_installer(self, url, target_file, display_name):
+    def check_and_download_installer(self, parent, url, target_file, display_name):
         # Check if the installer needs to be confirmed and prepared
         if target_file.exists():
-            user_confirmation = self.prompt_callback(
-                f'{display_name} {translate("dialogue_tools_redowndload_installer")}',
-                auto_mode=self.auto_mode,
-            )
+            if self.auto_mode:
+                user_confirmation = True
+            else:
+                result = messagebox.askquestion(
+                    translate("generic_question"),
+                    f'{display_name} {translate("dialogue_tools_redowndload_installer")}',
+                    parent=parent,
+                )
+                if result == "yes":
+                    user_confirmation = True
+                else:
+                    user_confirmation = False
 
             if not user_confirmation:
                 log.info(f"Using existing {display_name} installer.")
@@ -227,6 +233,63 @@ class ToolsManager:
             log.exception(f"Extraction failed: {e}")
             return False
 
+    def _install_repak(self, parent, install_metadata={}, auto_mode=False):
+        install_metadata.update(settings.TOOLS["repak_cli"])
+        return self._install_tool(
+            parent,
+            download_method=self.get_latest_github_release_asset,
+            download_args={
+                "github_repo": settings.TOOLS["repak_cli"]["github_repo"],
+                "asset_regex": settings.TOOLS["repak_cli"]["asset_regex"],
+            },
+            install_metadata=install_metadata,
+            auto_mode=auto_mode,
+        )
+
+    def _install_kdiff3(self, parent, install_metadata={}, auto_mode=False):
+        install_metadata.update(settings.TOOLS["kdiff3"])
+        return self._install_tool(
+            parent,
+            download_method=self.get_latest_kdiff3,
+            download_args={"base_url": settings.TOOLS["kdiff3"]["base_url"]},
+            install_metadata=install_metadata,
+            auto_mode=auto_mode,
+        )
+
+    def _install_winmerge(self, parent, install_metadata={}, auto_mode=False):
+        install_metadata.update(settings.TOOLS["winmerge"])
+        return self._install_tool(
+            parent,
+            download_method=self.get_latest_github_release_asset,
+            download_args={
+                "github_repo": settings.TOOLS["winmerge"]["github_repo"],
+                "asset_regex": settings.TOOLS["winmerge"]["asset_regex"],
+            },
+            install_metadata=install_metadata,
+            auto_mode=auto_mode,
+        )
+
+    def _unpack_files(self, parent, install_metadata):
+        print("raise NotImplementedError")
+
+    def _get_aes_key(self, parent, install_metadata):
+        if not Files.is_existing_file(settings.TOOLS_PATHS["aes_dumpster"]):
+            self._install_aes_dumpster(parent)
+
+    def _install_aes_dumpster(self, parent, install_metadata={}, auto_mode=False):
+        install_metadata.update(settings.TOOLS["aes_dumpster"])
+        return self._install_tool(
+            parent,
+            download_method=self.get_latest_github_release_asset,
+            download_args={
+                "github_repo": settings.TOOLS["aes_dumpster"]["github_repo"],
+                "asset_regex": settings.TOOLS["aes_dumpster"]["asset_regex"],
+            },
+            install_metadata=install_metadata,
+            skip_extract=True,
+            auto_mode=True,
+        )
+
     def _install_tool(
         self,
         parent,
@@ -290,10 +353,10 @@ class ToolsManager:
 
             # Download and extract the tool
             install_result = self.download_and_extract_tool(
+                parent,
                 url=download_url,
                 local_exe=local_exe,
                 display_name=display_name,
-                prompt_callback=parent.prompt_redownload,
                 skip_extract=skip_extract,
                 extract_parameter=extract_parameter,
                 auto_mode=auto_mode,
@@ -346,16 +409,15 @@ class ToolsManager:
 
     def download_and_extract_tool(
         self,
+        parent,
         url,
         local_exe,
         display_name,
-        prompt_callback,
         skip_extract,
         extract_parameter,
         auto_mode=False,
     ):
         self.auto_mode = auto_mode
-        self.prompt_callback = prompt_callback
 
         output_dir = Path(local_exe).parent
         file_extension = re.search(r"\.([a-zA-Z0-9]+)(?:\?|#|$)", url).group(1)
@@ -376,7 +438,7 @@ class ToolsManager:
 
         # Download installer
         downloaded_file = self.check_and_download_installer(
-            url, installer_path, display_name
+            parent, url, installer_path, display_name
         )
 
         if not downloaded_file:
