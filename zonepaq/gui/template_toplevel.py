@@ -24,6 +24,7 @@ class GUI_Toplevel(CTkToplevel):
     def _bind_master_attributes(self):
 
         attribute_names = [
+            "games_manager",
             "tools_manager",
             "theme_manager",
             "style_manager",

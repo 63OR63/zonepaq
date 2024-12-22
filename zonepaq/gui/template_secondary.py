@@ -179,7 +179,7 @@ class GUI_Secondary(GUI_Toplevel):
                             anchor="w", height=0
                         )
                         log.debug(f"Added {str(path)} to listbox")
-                    elif mode == "folder" and path.is_dir():
+                    elif mode == "folders" and path.is_dir():
                         listbox.insert("END", str(path))
                         # !WORKAROUND for lacking anchor option in the text Label
                         list(listbox.buttons.values())[-1]._text_label.configure(

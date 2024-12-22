@@ -206,9 +206,9 @@ class GUI_SettingsMenu(GUI_Toplevel):
                 },
             },
             translate("settings_general_path_game"): {
-                "vanilla_unpacked": {
+                self.games_manager.game_name: {
                     "path_dict": settings.GAME_PATHS,
-                    "entry_title": translate("settings_general_vanilla_unpacked"),
+                    "entry_title": self.games_manager.game_name,
                     "entry_type": "folder",
                     "entry_buttons": [
                         {
@@ -625,125 +625,10 @@ class GUI_SettingsMenu(GUI_Toplevel):
             return True
         return False
 
-    def _install_tool(
-        self,
-        download_method,
-        download_args,
-        install_metadata,
-        skip_extract=False,
-        auto_mode=False,
-        check_platform=True,
-        skip_search=True,
-    ):
-        # Check platform compatibility
-        if check_platform and sys.platform != "win32":
-            if not auto_mode:
-                messagebox.showerror(
-                    translate("generic_error"),
-                    translate("dialogue_only_windows"),
-                    parent=self,
-                )
-            return False
-
-        # Extract variables from metadata dict
-        settings_key = install_metadata.get("settings_key", None)
-        display_name = install_metadata.get("display_name", None)
-        exe_name = install_metadata.get("exe_name", None)
-        local_exe = install_metadata.get("local_exe", None)
-        fallback_exe = install_metadata.get("fallback_exe", None)
-        extract_parameter = install_metadata.get("extract_parameter", None)
-        winreg_path = install_metadata.get("winreg_path", None)
-        winreg_key = install_metadata.get("winreg_key", None)
-        entry_widget = install_metadata.get("entry_widget", None)
-        entry_variable = install_metadata.get("entry_variable", None)
-
-        # Try to find existing installation
-        found_exe = None
-        if not skip_search:
-            try:
-                found_exe = Files.find_app_installation(
-                    exe_name, local_exe, winreg_path, winreg_key, fallback_exe
-                )
-            except:
-                pass
-
-        if found_exe:
-            log.info(
-                f"{display_name} found at: {found_exe}\nSkipping download and installation."
-            )
-            exe_location = found_exe
-
-        else:
-            # Download the tool
-            download_url = download_method(**download_args)
-            if not download_url:
-                if not auto_mode:
-                    messagebox.showerror(
-                        translate("generic_error"),
-                        f'{translate("dialogue_install_error")} {display_name}\n{translate("dialogue_check_logs")}',
-                        parent=self,
-                    )
-                return False
-
-            # Extract and install the tool
-            install_result = self.tools_manager.download_and_extract_tool(
-                url=download_url,
-                local_exe=local_exe,
-                display_name=display_name,
-                prompt_callback=self.prompt_redownload,
-                skip_extract=skip_extract,
-                extract_parameter=extract_parameter,
-                auto_mode=auto_mode,
-            )
-
-            if not install_result:
-                if not auto_mode:
-                    messagebox.showerror(
-                        translate("generic_error"),
-                        f'{translate("dialogue_install_error")} {display_name}\n{translate("dialogue_check_logs")}',
-                        parent=self,
-                    )
-                return False
-
-            # Validate download
-            if Files.is_existing_file(local_exe):
-                exe_location = local_exe
-            else:
-                log.error(f"{display_name} can't be located at {local_exe}")
-                if not auto_mode:
-                    messagebox.showerror(
-                        translate("generic_error"),
-                        f'{translate("dialogue_install_error")} {display_name}\n{translate("dialogue_check_logs")}',
-                        parent=self,
-                    )
-                return False
-
-        # Finalize installation
-        path = Files.get_relative_path(exe_location)
-        settings.TOOLS_PATHS[settings_key] = path
-        settings.save()
-
-        if entry_variable and entry_widget:
-            entry_variable.set(path)
-            self._apply_style(True, entry_widget)
-
-        if not auto_mode:
-            if found_exe:
-                message = translate("dialogue_install_found")
-            else:
-                message = translate("dialogue_install_success")
-
-            messagebox.showinfo(
-                translate("generic_info"),
-                f"{display_name} {message} {exe_location}",
-                parent=self,
-            )
-
-        return True
-
     def _install_repak(self, install_metadata={}, auto_mode=False):
         install_metadata.update(settings.TOOLS["repak_cli"])
-        return self._install_tool(
+        return self.tools_manager._install_tool(
+            self,
             download_method=self.tools_manager.get_latest_github_release_asset,
             download_args={
                 "github_repo": settings.TOOLS["repak_cli"]["github_repo"],
@@ -755,7 +640,8 @@ class GUI_SettingsMenu(GUI_Toplevel):
 
     def _install_kdiff3(self, install_metadata={}, auto_mode=False):
         install_metadata.update(settings.TOOLS["kdiff3"])
-        return self._install_tool(
+        return self.tools_manager._install_tool(
+            self,
             download_method=self.tools_manager.get_latest_kdiff3,
             download_args={"base_url": settings.TOOLS["kdiff3"]["base_url"]},
             install_metadata=install_metadata,
@@ -764,7 +650,8 @@ class GUI_SettingsMenu(GUI_Toplevel):
 
     def _install_winmerge(self, install_metadata={}, auto_mode=False):
         install_metadata.update(settings.TOOLS["winmerge"])
-        return self._install_tool(
+        return self.tools_manager._install_tool(
+            self,
             download_method=self.tools_manager.get_latest_github_release_asset,
             download_args={
                 "github_repo": settings.TOOLS["winmerge"]["github_repo"],
@@ -783,7 +670,8 @@ class GUI_SettingsMenu(GUI_Toplevel):
 
     def _install_aes_dumpster(self, install_metadata={}, auto_mode=False):
         install_metadata.update(settings.TOOLS["aes_dumpster"])
-        return self._install_tool(
+        return self.tools_manager._install_tool(
+            self,
             download_method=self.tools_manager.get_latest_github_release_asset,
             download_args={
                 "github_repo": settings.TOOLS["aes_dumpster"]["github_repo"],

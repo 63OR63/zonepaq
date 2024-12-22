@@ -1,8 +1,9 @@
 import sys
 from backend.logger import log
-from config.settings import translate
+from config.settings import settings, translate
 from gui.template_base import GUI_Base
 import customtkinter as ctk
+from tkinter import messagebox
 
 from gui.window_settings_menu import GUI_SettingsMenu
 
@@ -11,6 +12,7 @@ class GUI_LaunchScreen(GUI_Base):
     """Launch screen GUI for navigating to primary application features."""
 
     def __init__(self, master=None):
+
         super().__init__(title=translate("launch_screen_title"))
         self._setup2()
 

@@ -562,6 +562,17 @@ class StyleManager:
         )
 
         cls.define_style(
+            "SubHeader2.CTkLabel",
+            fg_color="transparent",
+            text_color=ThemeManager.get_colors("color_text_primary", color_palette),
+            font=ctk.CTkFont(
+                family=ctk.ThemeManager.theme["SubHeader.CustomFont"]["family"],
+                size=ctk.ThemeManager.theme["SubHeader.CustomFont"]["size"],
+                weight=ctk.ThemeManager.theme["SubHeader.CustomFont"]["weight"],
+            ),
+        )
+
+        cls.define_style(
             "Hints.CTkLabel",
             fg_color="transparent",
             text_color=ThemeManager.get_colors("color_text_muted", color_palette),
@@ -581,6 +592,36 @@ class StyleManager:
                 size=ctk.ThemeManager.theme["Hints.CustomFont"]["size"],
                 weight=ctk.ThemeManager.theme["Hints.CustomFont"]["weight"],
             ),
+        )
+
+        cls.define_style(
+            "Error.CTkLabel",
+            fg_color="transparent",
+            text_color=ThemeManager.get_colors("color_error", color_palette),
+        )
+
+        cls.define_style(
+            "Warning.CTkLabel",
+            fg_color="transparent",
+            text_color=ThemeManager.get_colors("color_warning", color_palette),
+        )
+
+        cls.define_style(
+            "Attention.CTkLabel",
+            fg_color="transparent",
+            text_color=ThemeManager.get_colors("color_attention", color_palette),
+        )
+
+        cls.define_style(
+            "Success.CTkLabel",
+            fg_color="transparent",
+            text_color=ThemeManager.get_colors("color_success", color_palette),
+        )
+
+        cls.define_style(
+            "Highlight.CTkLabel",
+            fg_color="transparent",
+            text_color=ThemeManager.get_colors("color_highlight", color_palette),
         )
 
         cls.define_style(

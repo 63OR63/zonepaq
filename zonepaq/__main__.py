@@ -1,4 +1,6 @@
 from backend.logger import log
+from config.settings import settings, translate
+from gui.window_first_launch import WindowFirstLaunch
 from gui.window_launch_screen import GUI_LaunchScreen
 
 import platform
@@ -90,6 +92,12 @@ def get_system_info():
 if __name__ == "__main__":
     get_system_info()
     log.debug("Starting the application...")
+
+    if eval(settings.config.get("SETTINGS").get("first_launch")):
+        gui = WindowFirstLaunch()
+        gui.mainloop()
+
     gui = GUI_LaunchScreen()
     gui.mainloop()
+
     log.debug("Application finished.")

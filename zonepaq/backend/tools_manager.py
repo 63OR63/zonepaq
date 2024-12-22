@@ -1,5 +1,7 @@
 from pathlib import Path
+import sys
 import tempfile
+from tkinter import messagebox
 from backend.logger import log
 import requests
 import shutil
@@ -224,6 +226,123 @@ class ToolsManager:
         except Exception as e:
             log.exception(f"Extraction failed: {e}")
             return False
+
+    def _install_tool(
+        self,
+        parent,
+        download_method,
+        download_args,
+        install_metadata,
+        skip_extract=False,
+        auto_mode=False,
+        check_platform=True,
+        skip_search=False,
+    ):
+        # Check platform compatibility
+        if check_platform and sys.platform != "win32":
+            if not auto_mode:
+                messagebox.showerror(
+                    translate("generic_error"),
+                    translate("dialogue_only_windows"),
+                    parent=parent,
+                )
+            return False
+
+        # Extract variables from metadata dict
+        settings_key = install_metadata.get("settings_key", None)
+        display_name = install_metadata.get("display_name", None)
+        exe_name = install_metadata.get("exe_name", None)
+        local_exe = install_metadata.get("local_exe", None)
+        fallback_exe = install_metadata.get("fallback_exe", None)
+        extract_parameter = install_metadata.get("extract_parameter", None)
+        winreg_path = install_metadata.get("winreg_path", None)
+        winreg_key = install_metadata.get("winreg_key", None)
+        entry_widget = install_metadata.get("entry_widget", None)
+        entry_variable = install_metadata.get("entry_variable", None)
+
+        # Try to find existing installation
+        found_exe = None
+        if not skip_search:
+            try:
+                found_exe = Files.find_app_installation(
+                    exe_name, local_exe, winreg_path, winreg_key, fallback_exe
+                )
+            except:
+                pass
+
+        if found_exe:
+            log.info(
+                f"{display_name} found at: {found_exe}\nSkipping download and installation."
+            )
+            exe_location = found_exe
+
+        else:
+            # Download the tool
+            download_url = download_method(**download_args)
+            if not download_url:
+                if not auto_mode:
+                    messagebox.showerror(
+                        translate("generic_error"),
+                        f'{translate("dialogue_install_error")} {display_name}\n{translate("dialogue_check_logs")}',
+                        parent=parent,
+                    )
+                return False
+
+            # Download and extract the tool
+            install_result = self.download_and_extract_tool(
+                url=download_url,
+                local_exe=local_exe,
+                display_name=display_name,
+                prompt_callback=parent.prompt_redownload,
+                skip_extract=skip_extract,
+                extract_parameter=extract_parameter,
+                auto_mode=auto_mode,
+            )
+
+            if not install_result:
+                if not auto_mode:
+                    messagebox.showerror(
+                        translate("generic_error"),
+                        f'{translate("dialogue_install_error")} {display_name}\n{translate("dialogue_check_logs")}',
+                        parent=parent,
+                    )
+                return False
+
+            # Validate download
+            if Files.is_existing_file(local_exe):
+                exe_location = local_exe
+            else:
+                log.error(f"{display_name} can't be located at {local_exe}")
+                if not auto_mode:
+                    messagebox.showerror(
+                        translate("generic_error"),
+                        f'{translate("dialogue_install_error")} {display_name}\n{translate("dialogue_check_logs")}',
+                        parent=parent,
+                    )
+                return False
+
+        # Finalize installation
+        path = Files.get_relative_path(exe_location)
+        settings.TOOLS_PATHS[settings_key] = path
+        settings.save()
+
+        if entry_variable and entry_widget:
+            entry_variable.set(path)
+            parent._apply_style(True, entry_widget)
+
+        if not auto_mode:
+            if found_exe:
+                message = translate("dialogue_install_found")
+            else:
+                message = translate("dialogue_install_success")
+
+            messagebox.showinfo(
+                translate("generic_info"),
+                f"{display_name} {message} {exe_location}",
+                parent=parent,
+            )
+
+        return True
 
     def download_and_extract_tool(
         self,

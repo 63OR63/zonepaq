@@ -1,6 +1,7 @@
 from pathlib import Path
 import sys
 from backend.logger import handle_exception, log
+from backend.games_manager import GamesManager
 from backend.tools import Files
 from backend.tools_manager import ToolsManager
 from config.settings import settings
@@ -25,6 +26,7 @@ class GUI_Base(CTk):
 
         self.title(f"{APP_NAME} v{APP_VERSION} - {title}")
 
+        self.games_manager = GamesManager()
         self.tools_manager = ToolsManager()
         self.theme_manager = ThemeManager
         self.style_manager = StyleManager

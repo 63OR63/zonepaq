@@ -182,28 +182,22 @@ class Data:
     """Utility class for data analysis."""
 
     @staticmethod
-    def is_valid_data(data, data_type):
+    def is_valid_data(data, data_type=None):
         try:
             if data_type == "aes":
                 if Data.is_valid_aes_key(data):
-                    log.debug(f"{data} is a valid AES key")
                     return True
                 else:
-                    log.warning(f"{data} isn't a valid AES key")
                     return False
             elif data_type == "folder":
                 if Files.is_existing_folder(data):
-                    log.debug(f"{data} is an existing folder")
                     return True
                 else:
-                    log.warning(f"{data} isn't an existing folder")
                     return False
             else:
                 if Files.is_existing_file(data):
-                    log.debug(f"{data} is a valid path to `{data_type}`")
                     return True
                 else:
-                    log.warning(f"{data} isn't a valid path to `{data_type}`")
                     return False
         except Exception as e:
             log.exception(f"Error during data validation: {e}")
@@ -220,10 +214,12 @@ class Data:
                 key = key[2:]
 
             if not re.fullmatch(r"[0-9A-F]+", key):
+                log.warning(f"{key} isn't a valid AES key")
                 return False
 
             key_bytes = bytes.fromhex(key)
 
+            log.debug(f"{key} is a valid AES key")
             return len(key_bytes) in valid_lengths
 
         except Exception as e:

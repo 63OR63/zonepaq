@@ -2,13 +2,11 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 
 from backend.logger import log
-from backend.steam import SteamGameUtils
+from backend.games_manager import GamesManager
 from config.defaults import (
     DEFAULT_GAME,
     DEFAULT_SETTINGS,
     DEFAULT_TOOLS_PATHS,
-    DEFAULT_VANILLA_FOLDER_SUFFIX,
-    GAMES,
     TOOLS,
     SUPPORTED_MERGING_ENGINES,
 )
@@ -130,15 +128,11 @@ sources = [
     IniConfigSource(INI_SETTINGS_FILE),
 ]
 
+games_manager = GamesManager()
 defaults = {
     "SETTINGS": DEFAULT_SETTINGS,
     "TOOLS_PATHS": DEFAULT_TOOLS_PATHS,
-    "GAME_PATHS": {
-        "vanilla_unpacked": str(
-            Path(SteamGameUtils.get_game_path(DEFAULT_GAME, GAMES))
-            / DEFAULT_VANILLA_FOLDER_SUFFIX
-        )
-    },
+    "GAME_PATHS": {games_manager.game_name: str(Path(games_manager.install_path))},
 }
 
 settings = Settings(sources, defaults)
