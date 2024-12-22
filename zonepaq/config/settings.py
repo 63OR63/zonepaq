@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 
 from backend.logger import log
-from backend.games_manager import GamesManager
 from config.defaults import (
     DEFAULT_SETTINGS,
     DEFAULT_TOOLS_PATHS,
@@ -95,6 +94,8 @@ class SettingsManager:
             IniConfigSource(cls.INI_SETTINGS_FILE),
         ]
 
+        from backend.games_manager import GamesManager
+
         games_manager = GamesManager()
 
         defaults = {
@@ -103,9 +104,9 @@ class SettingsManager:
             "GAME_PATHS": {games_manager.game_name: str(Path(games_manager.game_path))},
         }
 
-        loader = ConfigurationLoader(sources, defaults)
+        cls.loader = ConfigurationLoader(sources, defaults)
 
-        cls.config = loader.load()
+        cls.config = cls.loader.load()
 
         cls.load()
 

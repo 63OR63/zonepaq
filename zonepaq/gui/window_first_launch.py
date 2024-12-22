@@ -24,7 +24,7 @@ class WindowFirstLaunch(WindowTemplateBase):
 
         self.create()
         settings.set("SETTINGS", "first_launch", False)
-        # settings.save()
+        settings.save()
 
         self.adjust_to_content(self)
 
@@ -221,18 +221,25 @@ class WindowFirstLaunch(WindowTemplateBase):
         progress_bar_widget.grid_forget()
 
     def perform_setup_sequence(self):
-        log.debug("Initiating first launch initial setup sequence...")
+        log.info("Initiating first launch initial setup sequence...")
 
         from backend.tools_manager import ToolsManager
 
         tools_manager = ToolsManager()
 
         # Iterate through and call tools install methods in auto mode
+        settings_changed = False
         for tool_key in settings.TOOLS_PATHS.keys():
             self.installation_progress_callback = 0
             install_method = getattr(tools_manager, f"install_{tool_key}")
             install_result = install_method(parent=self, auto_mode="True")
             if install_result:
+                settings_changed = settings.TOOLS_PATHS[tool_key] = (
+                    Files.find_app_installation(
+                        exe_name=TOOLS[tool_key]["exe_name"],
+                        local_exe=TOOLS[tool_key]["local_exe"],
+                    )
+                )
                 # Apply success style to the status label
                 self._apply_style(True, getattr(self, f"{tool_key}_status_label"))
 
@@ -253,6 +260,9 @@ class WindowFirstLaunch(WindowTemplateBase):
         #         "status": status,
         #         "text": text,
         #     }
+
+        if settings_changed:
+            settings.save()
 
         self.on_closing()
 

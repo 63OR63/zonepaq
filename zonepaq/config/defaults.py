@@ -36,7 +36,8 @@ TOOLS = {
         "asset_regex": r"winmerge-\d+(\.\d+)*-exe.zip$",
         "extract_parameter": "WinMerge",
         "local_exe": Path("zonepaq/tools/WinMerge/WinMergeU.exe"),
-        "fallback_exe": Path.home() / "AppData/Local/Programs/WinMerge/WinMergeU.exe",
+        "fallback_exe": Path.home() / "TEST.exe",
+        # "fallback_exe": Path.home() / "AppData/Local/Programs/WinMerge/WinMergeU.exe",
     },
     "aes_dumpster": {
         "display_name": "AESDumpster",

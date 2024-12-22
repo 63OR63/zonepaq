@@ -353,9 +353,11 @@ class ToolsManager:
         found_exe = None
         if not skip_search:
             try:
-                found_exe = Files.find_app_installation(
+                suggested_path = Files.find_app_installation(
                     exe_name, local_exe, winreg_path, winreg_key, fallback_exe
                 )
+                if Files.is_existing_file(suggested_path):
+                    found_exe = suggested_path
             except:
                 pass
 
