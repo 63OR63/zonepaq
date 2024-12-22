@@ -2,8 +2,7 @@ import colorsys
 from backend.logger import log
 import customtkinter as ctk
 
-from backend.utilities import Files
-from PIL import Image, ImageTk
+from PIL import Image
 
 
 class ThemeManager:

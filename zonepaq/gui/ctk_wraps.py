@@ -1,6 +1,4 @@
-import sys
 import tkinter as tk
-from pathlib import Path
 
 import customtkinter as ctk
 from config.metadata import APP_ICONS

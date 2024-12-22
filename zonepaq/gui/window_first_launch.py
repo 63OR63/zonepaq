@@ -1,10 +1,8 @@
-from tkinter import messagebox
 from backend.logger import log
 from backend.utilities import Data
-from config.defaults import DEFAULT_TOOLS_PATHS, TOOLS
-from config.metadata import (
-    APP_NAME,
-)
+from config.defaults import TOOLS
+from config.metadata import APP_NAME
+
 from config.settings import settings, translate
 from gui.template_base import WindowTemplateBase
 
@@ -16,7 +14,7 @@ class WindowFirstLaunch(WindowTemplateBase):
     def __init__(self, master=None):
         super().__init__(title=translate("first_launch_sequence_title"))
 
-        self.action = self.first_launch_sequence()
+        self.create()
         settings.set("SETTINGS", "first_launch", False)
         settings.save()
 
@@ -25,9 +23,10 @@ class WindowFirstLaunch(WindowTemplateBase):
         log.info("First launch window opened.")
 
     def on_closing(self):
+        log.debug("First launch window closed.")
         self.destroy()
 
-    def first_launch_sequence(self):
+    def create(self):
 
         def create_labeled_text(group_frame, label_text, status, text, row, column):
             self.create_ctk_widget(

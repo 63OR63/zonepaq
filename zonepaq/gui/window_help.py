@@ -22,9 +22,10 @@ class WindowHelp(WindowTemplateToplevel):
 
         self.adjust_to_content(self)
 
-        log.info("Info menu opened.")
+        log.info("Info window opened.")
 
     def on_closing(self):
+        log.debug("Info window closed.")
         self.destroy()
 
     def _create(self):

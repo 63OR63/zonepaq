@@ -171,6 +171,7 @@ def handle_exception(exc_type, exc_value, exc_traceback):
     messagebox.showerror(
         "Application Error", f"An unexpected error occurred:\n\n{error_message}"
     )
+    root.destroy()
 
     sys.exit(0)
 

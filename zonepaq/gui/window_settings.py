@@ -5,7 +5,6 @@ from config.settings import settings, translate
 from gui.template_toplevel import WindowTemplateToplevel
 import customtkinter as ctk
 
-# import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, messagebox
 
@@ -34,9 +33,10 @@ class WindowSettings(WindowTemplateToplevel):
 
         self.adjust_to_content(self, adjust_width=True)
 
-        log.info("Settings menu opened.")
+        log.info("Settings window opened.")
 
     def on_closing(self):
+        log.debug("Settings window closed.")
         self.destroy()
 
     def _save_settings_and_close(self, close=True):

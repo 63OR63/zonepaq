@@ -22,8 +22,7 @@ class WindowTemplateSecondary(WindowTemplateToplevel):
         return settings.TOOLS_PATHS["repak_cli"]
 
     def on_closing(self):
-        self.destroy()
-        self.master.deiconify()
+        raise NotImplementedError("Subclasses must implement the 'on_closing' method.")
 
     def create_section(
         self,

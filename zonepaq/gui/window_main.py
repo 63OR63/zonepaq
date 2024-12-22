@@ -1,11 +1,6 @@
-import sys
 from backend.logger import log
-from config.settings import settings, translate
+from config.settings import translate
 from gui.template_base import WindowTemplateBase
-import customtkinter as ctk
-from tkinter import messagebox
-
-from gui.window_settings import WindowSettings
 
 
 class WindowMain(WindowTemplateBase):
@@ -18,21 +13,24 @@ class WindowMain(WindowTemplateBase):
 
         self.adjust_to_content(self)
 
-        log.info("Launch screen opened.")
+        log.info("Main window opened.")
 
     def on_closing(self):
+        log.debug("Main window closed.")
         self.destroy()
 
     def _open_repak_gui(self):
         from gui.window_repak import WindowRepak
 
         self.withdraw()
+        log.debug("Main window withdrawn.")
         WindowRepak(self)
 
     def _open_merge_gui(self):
         from gui.window_merge import WindowMerge
 
         self.withdraw()
+        log.debug("Main window withdrawn.")
         WindowMerge(self)
 
     # !RENAME method

@@ -21,7 +21,12 @@ class WindowMerge(WindowTemplateSecondary):
 
         self.adjust_to_content(self, adjust_width=True, adjust_height=True)
 
-        log.info("Merge screen opened.")
+        log.info("Merge window opened.")
+
+    def on_closing(self):
+        log.debug("Merge window closed.")
+        self.destroy()
+        self.master.deiconify()
 
     def _create_sections(self):
         sections = [

@@ -1,21 +1,13 @@
-import ctypes
-import io
-import tempfile
 from concurrent.futures import as_completed
 from pathlib import Path
-from time import sleep
-import time
-from tkinter import PhotoImage, filedialog, messagebox
+from tkinter import filedialog, messagebox
 
 from backend.logger import log
 from backend.repak import Repak
 from backend.utilities import Files
-from config.settings import settings, translate
+from config.settings import translate
 from CTkListbox import *
-from gui.ctk_wraps import custom_set_titlebar_icon
 from gui.template_secondary import WindowTemplateSecondary
-import customtkinter as ctk
-import tkinter as tk
 
 
 class WindowRepak(WindowTemplateSecondary):
@@ -28,7 +20,12 @@ class WindowRepak(WindowTemplateSecondary):
 
         self.adjust_to_content(self, adjust_width=True, adjust_height=True)
 
-        log.info("Repak screen opened.")
+        log.info("Repak window opened.")
+
+    def on_closing(self):
+        log.debug("Repak window closed.")
+        self.destroy()
+        self.master.deiconify()
 
     def _create_sections(self):
         sections = [

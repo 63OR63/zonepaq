@@ -5,7 +5,6 @@ from tkinter import messagebox, ttk
 
 from backend.conflicts import ConflictProcessor
 from backend.logger import log
-from config.metadata import APP_NAME, APP_VERSION
 from config.settings import settings, translate
 from gui.template_toplevel import WindowTemplateToplevel
 

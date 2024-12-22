@@ -1,5 +1,3 @@
-from pathlib import Path
-import sys
 from backend.logger import handle_exception, log
 from backend.games_manager import GamesManager
 from backend.utilities import Files
@@ -9,7 +7,6 @@ from config.metadata import APP_NAME, APP_VERSION
 from config.themes import StyleManager, ThemeManager
 from gui.ctk_wraps import CTk
 import customtkinter as ctk
-import tkinter as tk
 
 
 import json
