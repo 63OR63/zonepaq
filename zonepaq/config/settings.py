@@ -4,7 +4,6 @@ from pathlib import Path
 from backend.logger import log
 from backend.games_manager import GamesManager
 from config.defaults import (
-    DEFAULT_GAME,
     DEFAULT_SETTINGS,
     DEFAULT_TOOLS_PATHS,
     TOOLS,
@@ -129,10 +128,11 @@ sources = [
 ]
 
 games_manager = GamesManager()
+
 defaults = {
     "SETTINGS": DEFAULT_SETTINGS,
     "TOOLS_PATHS": DEFAULT_TOOLS_PATHS,
-    "GAME_PATHS": {games_manager.game_name: str(Path(games_manager.install_path))},
+    "GAME_PATHS": {games_manager.game_name: str(Path(games_manager.game_path))},
 }
 
 settings = Settings(sources, defaults)

@@ -1,7 +1,7 @@
 import re
 from pathlib import Path
 
-from config.defaults import DEFAULT_GAME, GAMES
+from config.defaults import DEFAULT_SETTINGS, GAMES
 
 
 class GamesManager:
@@ -14,41 +14,40 @@ class GamesManager:
 
     def __init__(self):
 
-        self.games_meta = GAMES
-        self.game_name = DEFAULT_GAME
+        self.game_name = DEFAULT_SETTINGS["game"]
+        self.game_meta = GAMES[self.game_name]
+        self.game_display_name = self.game_meta["display_name"]
 
-        self.game_installation, self.install_path = self.detect_game_installation()
+        self.game_installation, self.game_path = self.detect_game_installation()
 
         if self.game_installation:
 
             self.shipping_exe = (
-                Path(self.install_path)
-                / self.games_meta[self.game_installation]["shipping_exe_suffix"]
+                Path(self.game_path)
+                / self.game_meta[self.game_installation]["shipping_exe_suffix"]
             )
             self.vanilla_archives = [
-                Path(self.install_path)
-                / self.games_meta[self.game_installation]["vanilla_archives_suffix"]
-                for suffix in self.games_meta[self.game_installation][
+                Path(self.game_path)
+                / self.game_meta[self.game_installation]["vanilla_archives_suffix"]
+                for suffix in self.game_meta[self.game_installation][
                     "vanilla_archives_suffix"
                 ]
             ]
             self.mods_path = (
-                Path(self.install_path)
-                / self.games_meta[self.game_installation]["mods_path_suffix"]
+                Path(self.game_path)
+                / self.game_meta[self.game_installation]["mods_path_suffix"]
             )
 
     def detect_game_installation(self):
 
-        if steam_path := self.find_steam_game_path(
-            self.games_meta[self.game_name]["steam"]["steam_id"]
-        ):
+        if steam_path := self.find_steam_game_path(self.game_meta["steam"]["steam_id"]):
             return "steam", str(Path(steam_path))
         # if game_pass_path := self.find_game_pass_game_path(
-        #     self.games_meta[self.game_name]["game_pass"]["game_pass_id"]
+        #     self.game_meta["game_pass"]["game_pass_id"]
         # ):
         #     return "game_pass", str(Path(game_pass_path))
 
-        return None, str(Path(self.games_meta[self.game_name]["fallback_path"]))
+        return None, str(Path(self.game_meta["fallback_path"]))
 
     def find_steam_game_path(self, game_id):
         try:

@@ -208,7 +208,7 @@ class GUI_SettingsMenu(GUI_Toplevel):
             translate("settings_general_path_game"): {
                 self.games_manager.game_name: {
                     "path_dict": settings.GAME_PATHS,
-                    "entry_title": self.games_manager.game_name,
+                    "entry_title": self.games_manager.game_display_name,
                     "entry_type": "folder",
                     "entry_buttons": [
                         {

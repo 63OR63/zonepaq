@@ -74,6 +74,7 @@ DEFAULT_TOOLS_PATHS = {
 
 DEFAULT_SETTINGS = {
     "first_launch": "True",
+    "game": "stalker_2",
     "merging_engine": "KDiff3",
     "lang_name": "English",
     "theme_name": "Nord",
@@ -86,12 +87,15 @@ GAMES = {
     "stalker_2": {
         "display_name": "S.T.A.L.K.E.R. 2",
         "steam": {
+            "display_name": "Steam",
             "steam_id": "1643320",
             "shipping_exe_suffix": "Stalker2/Binaries/Win64/Stalker2-Win64-Shipping.exe",
             "vanilla_archives_suffix": ["Stalker2/Content/Paks/pakchunk0-Windows.pak"],
             "mods_path_suffix": "Stalker2/Content/Paks/~mods",
         },
         "game_pass": {
+            "display_name": "Game Pass",
+            "game_pass_id": "",
             "shipping_exe_suffix": "Stalker2/Binaries/Win64/Stalker2-WinGDK-Shipping.exe",
             "vanilla_archives_suffix": ["Stalker2/Content/Paks/pakchunk0-WinGDK.pak"],
             "mods_path_suffix": "Stalker2/Content/Paks/~mods",
@@ -99,5 +103,3 @@ GAMES = {
         "fallback_path": "S.T.A.L.K.E.R. 2 Heart of Chornobyl",
     },
 }
-
-DEFAULT_GAME = "stalker_2"
