@@ -9,7 +9,8 @@ from backend.logger import log
 from backend.merging import Merging
 from backend.repak import Repak
 from backend.utilities import Files
-from config.settings import settings, translate
+from config.settings import SettingsManager
+from config.translations import translate
 
 
 class ConflictProcessor:
@@ -197,7 +198,7 @@ class ConflictProcessor:
 
         with tempfile.TemporaryDirectory() as temp_unpack_dir:
             temp_dir_path = Path(temp_unpack_dir)
-            unpacked_files = self._unpack_files(
+            unpacked_files = self.unpack_files(
                 item_sources_paths, item_sources_names, item_path, temp_dir_path
             )
             self._merge_files(
@@ -208,7 +209,7 @@ class ConflictProcessor:
                 use_vanilla,
             )
 
-    def _unpack_files(
+    def unpack_files(
         self, item_sources_paths, item_sources_names, item_path, temp_dir_path
     ):
         unpacked_files = deque()

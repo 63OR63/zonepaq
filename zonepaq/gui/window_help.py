@@ -7,7 +7,7 @@ from config.metadata import (
     APP_VERSION,
     LEGAL_NOTICE,
 )
-from config.settings import translate
+from config.translations import translate
 from gui.template_toplevel import WindowTemplateToplevel
 import customtkinter as ctk
 

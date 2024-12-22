@@ -5,8 +5,9 @@ from CTkListbox import CTkListbox
 import customtkinter as ctk
 from tkinterdnd2 import DND_FILES
 from backend.logger import log
-from config.settings import settings, translate
+from config.settings import SettingsManager
 
+from config.translations import translate
 from gui.template_toplevel import WindowTemplateToplevel
 
 

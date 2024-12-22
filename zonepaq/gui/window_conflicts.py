@@ -5,8 +5,12 @@ from tkinter import messagebox, ttk
 
 from backend.conflicts import ConflictProcessor
 from backend.logger import log
-from config.settings import settings, translate
+from config.settings import SettingsManager
+from config.translations import translate
 from gui.template_toplevel import WindowTemplateToplevel
+
+# Get SettingsManager class
+settings = SettingsManager()
 
 
 class WindowConflicts(WindowTemplateToplevel):

@@ -2,7 +2,7 @@ from backend.logger import handle_exception, log
 from backend.games_manager import GamesManager
 from backend.utilities import Files
 from backend.tools_manager import ToolsManager
-from config.settings import settings
+from config.settings import SettingsManager
 from config.metadata import APP_NAME, APP_VERSION
 from config.themes import StyleManager, ThemeManager
 from gui.ctk_wraps import CTk
@@ -13,6 +13,9 @@ import json
 from unittest.mock import mock_open, patch
 
 from gui.window_settings import WindowSettings
+
+# Get SettingsManager class
+settings = SettingsManager()
 
 
 class WindowTemplateBase(CTk):

@@ -1,7 +1,8 @@
 import sys
 from backend.logger import log
 from backend.utilities import Data, Files
-from config.settings import settings, translate
+from config.settings import SettingsManager
+from config.translations import translate
 from gui.template_toplevel import WindowTemplateToplevel
 import customtkinter as ctk
 
@@ -9,6 +10,9 @@ from pathlib import Path
 from tkinter import filedialog, messagebox
 
 from gui.window_help import WindowHelp
+
+# Get SettingsManager class
+settings = SettingsManager()
 
 
 class WindowSettings(WindowTemplateToplevel):
@@ -164,7 +168,7 @@ class WindowSettings(WindowTemplateToplevel):
                             "style": "Generic.CTkButton",
                         },
                         {
-                            "command": self.tools_manager._install_repak,
+                            "command": self.tools_manager.install_repak_cli,
                             "text": translate("settings_general_install"),
                             "style": "Alt.CTkButton",
                         },
@@ -181,7 +185,7 @@ class WindowSettings(WindowTemplateToplevel):
                             "style": "Generic.CTkButton",
                         },
                         {
-                            "command": self.tools_manager._install_kdiff3,
+                            "command": self.tools_manager.install_kdiff3,
                             "text": translate("settings_general_install"),
                             "style": "Alt.CTkButton",
                         },
@@ -198,7 +202,7 @@ class WindowSettings(WindowTemplateToplevel):
                             "style": "Generic.CTkButton",
                         },
                         {
-                            "command": self.tools_manager._install_winmerge,
+                            "command": self.tools_manager.install_winmerge,
                             "text": translate("settings_general_install"),
                             "style": "Alt.CTkButton",
                         },
@@ -217,7 +221,7 @@ class WindowSettings(WindowTemplateToplevel):
                             "style": "Generic.CTkButton",
                         },
                         {
-                            "command": self.tools_manager._unpack_files,
+                            "command": self.tools_manager.unpack_files,
                             "text": translate("settings_general_unpack"),
                             "style": "Alt.CTkButton",
                         },
@@ -231,7 +235,7 @@ class WindowSettings(WindowTemplateToplevel):
                     "entry_type": "aes",
                     "entry_buttons": [
                         {
-                            "command": self.tools_manager._get_aes_key,
+                            "command": self.tools_manager.get_aes_key,
                             "text": translate("settings_general_get"),
                             "style": "Alt.CTkButton",
                         },

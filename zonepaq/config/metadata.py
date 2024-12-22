@@ -1,4 +1,4 @@
-from config.settings import translate
+from config.translations import translate
 
 
 APP_NAME = "ZonePaq Toolkit"

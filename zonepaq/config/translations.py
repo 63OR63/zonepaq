@@ -294,3 +294,19 @@ def get_translation(lang):
 
 def get_available_languages():
     return TRANSLATIONS.keys()
+
+
+def translate(text, lang=None):
+    from config.settings import SettingsManager  # ! FIXME
+
+    # Get SettingsManager class
+    settings = SettingsManager()
+    # return settings.LANG_DICT[text]  # to debug raise errors
+    if lang:
+        try:
+            return get_translation(lang).get(text) or get_translation("English").get(
+                text
+            )
+        except:
+            return get_translation("English").get(text)
+    return get_translation(settings.LANG_NAME).get(text) or get_translation("English").get(text)

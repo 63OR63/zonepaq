@@ -73,78 +73,76 @@ class ConfigurationLoader:
             source.save(config)
 
 
-class Settings:
+class SettingsManager:
     _instance = None
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
+            cls.init()
         return cls._instance
 
-    def __init__(self, sources, defaults):
-        self.loader = ConfigurationLoader(sources, defaults)
-        self.load()
+    @classmethod
+    def reset_instance(cls):
+        cls._instance = None
 
-    def load(self):
-        self.config = self.loader.load()
-        self.MERGING_ENGINE = self.get("SETTINGS", "merging_engine")
-        self.LANG_NAME = self.get("SETTINGS", "lang_name")
-        self.THEME_NAME = self.get("SETTINGS", "theme_name")
-        self.SHOW_HINTS = self.get("SETTINGS", "show_hints")
-        self.DARK_MODE = self.get("SETTINGS", "dark_mode")
-        self.AES_KEY = self.get("SETTINGS", "aes_key")
-        self.TOOLS_PATHS = self.get("TOOLS_PATHS")
-        self.GAME_PATHS = self.get("GAME_PATHS")
-        self.LANG_DICT = get_translation(self.LANG_NAME)
-        self.ALL_LANG_NAMES = get_available_languages()
-        self.ALL_THEME_NAMES = ThemeManager.get_available_theme_names()
-        self.SUPPORTED_MERGING_ENGINES = [
+    @classmethod
+    def init(cls):
+        cls.INI_SETTINGS_FILE = r"zonepaq\settings.ini"
+        Path(cls.INI_SETTINGS_FILE).parent.mkdir(parents=True, exist_ok=True)
+
+        sources = [
+            IniConfigSource(cls.INI_SETTINGS_FILE),
+        ]
+
+        games_manager = GamesManager()
+
+        defaults = {
+            "SETTINGS": DEFAULT_SETTINGS,
+            "TOOLS_PATHS": DEFAULT_TOOLS_PATHS,
+            "GAME_PATHS": {games_manager.game_name: str(Path(games_manager.game_path))},
+        }
+
+        loader = ConfigurationLoader(sources, defaults)
+
+        cls.config = loader.load()
+
+        cls.load()
+
+    @classmethod
+    def load(cls):
+        cls.MERGING_ENGINE = cls.get("SETTINGS", "merging_engine")
+        cls.LANG_NAME = cls.get("SETTINGS", "lang_name")
+        cls.THEME_NAME = cls.get("SETTINGS", "theme_name")
+        cls.SHOW_HINTS = cls.get("SETTINGS", "show_hints")
+        cls.DARK_MODE = cls.get("SETTINGS", "dark_mode")
+        cls.AES_KEY = cls.get("SETTINGS", "aes_key")
+        cls.TOOLS_PATHS = cls.get("TOOLS_PATHS")
+        cls.GAME_PATHS = cls.get("GAME_PATHS")
+        cls.LANG_DICT = get_translation(cls.LANG_NAME)
+        cls.ALL_LANG_NAMES = get_available_languages()
+        cls.ALL_THEME_NAMES = ThemeManager.get_available_theme_names()
+        cls.SUPPORTED_MERGING_ENGINES = [
             engine["name"] for engine in SUPPORTED_MERGING_ENGINES.values()
         ]
-        self.TOOLS = TOOLS
+        cls.TOOLS = TOOLS
 
-    def update_config(self, section, key, value):
-        self.set(section, key, value)
-        self.save()
-        self.load()
+    @classmethod
+    def update_config(cls, section, key, value):
+        cls.set(section, key, value)
+        cls.save()
+        cls.load()
 
-    def set(self, section, key, value):
-        self.config[section][key] = str(value)
+    @classmethod
+    def set(cls, section, key, value):
+        cls.config[section][key] = str(value)
 
-    def get(self, section, key=None):
+    @classmethod
+    def get(cls, section, key=None):
         if key is None:
-            return self.config.get(section)
-        return self.config.get(section).get(key)
+            return cls.config.get(section)
+        return cls.config.get(section).get(key)
 
-    def save(self):
-        self.loader.save(self.config)
-
-
-INI_SETTINGS_FILE = r"zonepaq\settings.ini"
-Path(INI_SETTINGS_FILE).parent.mkdir(parents=True, exist_ok=True)
-
-sources = [
-    IniConfigSource(INI_SETTINGS_FILE),
-]
-
-games_manager = GamesManager()
-
-defaults = {
-    "SETTINGS": DEFAULT_SETTINGS,
-    "TOOLS_PATHS": DEFAULT_TOOLS_PATHS,
-    "GAME_PATHS": {games_manager.game_name: str(Path(games_manager.game_path))},
-}
-
-settings = Settings(sources, defaults)
-
-
-def translate(text, lang=None):
-    # return settings.LANG_DICT[text]  # to debug raise errors
-    if lang:
-        try:
-            return get_translation(lang).get(text) or get_translation("English").get(
-                text
-            )
-        except:
-            return get_translation("English").get(text)
-    return settings.LANG_DICT.get(text) or get_translation("English").get(text)
+    @classmethod
+    def save(cls):
+        cls.loader.save(cls.config)

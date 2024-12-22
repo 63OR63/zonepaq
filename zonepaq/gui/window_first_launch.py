@@ -1,14 +1,18 @@
+from tkinter import messagebox
 from backend.logger import log
-from backend.utilities import Data
+from backend.utilities import Data, Files
 from config.defaults import TOOLS
 from config.metadata import APP_NAME
 
-from config.settings import settings, translate
+from config.settings import SettingsManager
+from config.themes import StyleManager
+from config.translations import translate
 from gui.template_base import WindowTemplateBase
 
 import customtkinter as ctk
 
-from backend.tools_manager import ToolsManager
+# Get SettingsManager class
+settings = SettingsManager()
 
 
 class WindowFirstLaunch(WindowTemplateBase):
@@ -16,9 +20,11 @@ class WindowFirstLaunch(WindowTemplateBase):
     def __init__(self, master=None):
         super().__init__(title=translate("first_launch_sequence_title"))
 
+        self.style_manager = StyleManager
+
         self.create()
         settings.set("SETTINGS", "first_launch", False)
-        settings.save()
+        # settings.save()
 
         self.adjust_to_content(self)
 
@@ -30,14 +36,15 @@ class WindowFirstLaunch(WindowTemplateBase):
 
     def create(self):
 
-        def create_labeled_text(group_frame, label_text, status, text, row, column):
+        def create_labeled_text(
+            group_frame, label_text, tool_key, status, text, row, column
+        ):
             self.create_ctk_widget(
                 ctk_widget=ctk.CTkLabel,
                 widget_args={
                     "master": group_frame,
                     "text": f"{label_text}:",
                     "anchor": "w",
-                    "pady": self.padding / 5,
                 },
                 grid_args={
                     "row": row,
@@ -47,46 +54,75 @@ class WindowFirstLaunch(WindowTemplateBase):
                 },
             )
 
-            if status:
-                widget_style = "Success.CTkLabel"
-            else:
-                widget_style = "Error.CTkLabel"
-
-            self.create_ctk_widget(
+            status_label = self.create_ctk_widget(
                 ctk_widget=ctk.CTkLabel,
                 widget_args={
                     "master": group_frame,
                     "text": text,
                     "anchor": "w",
-                    "pady": self.padding / 5,
                 },
-                widget_style=widget_style,
                 grid_args={
                     "row": row,
                     "column": column + 1,
                     "sticky": "w",
                     "padx": (0, self.padding),
-                    "pady": self.padding / 5,
                 },
             )
+            setattr(self, f"{tool_key}_status_label", status_label)
+
+            self._apply_style(status, status_label)
+
+            progress_bar_grid_args = {
+                "row": row,
+                "column": column + 2,
+                "sticky": "w",
+                "padx": (0, self.padding),
+            }
+            progress_bar = self.create_ctk_widget(
+                ctk_widget=ctk.CTkProgressBar,
+                widget_args={
+                    "master": group_frame,
+                },
+                # widget_style=widget_style,
+                grid_args=progress_bar_grid_args,
+            )
+            setattr(self, f"{tool_key}_progress_bar", progress_bar)
+            setattr(self, f"{tool_key}_progress_bar_grid_args", progress_bar)
+
+            progress_bar.grid_forget()
 
         report = {}
 
+        # Add tools to the report
         for tool_key, tool_path in settings.TOOLS_PATHS.items():
             display_name = TOOLS.get(tool_key, {}).get("display_name", "Unknown")
             status = Data.is_valid_data(tool_path)
             text = "Installed" if status else "Not Installed"
-            report[display_name] = [status, text]
+            report[display_name] = {
+                "tool_key": tool_key,
+                "status": status,
+                "text": text,
+            }
 
+        # Add AES key to the report
         status = Data.is_valid_data(settings.AES_KEY, "aes")
         text = "Detected" if status else "Not Detected"
-        report[translate("settings_general_aes_key")] = [status, text]
+        report[translate("settings_general_aes_key")] = {
+            "tool_key": tool_key,
+            "status": status,
+            "text": text,
+        }
 
+        # Add vanilla files to the report
         for tool_key, tool_path in settings.GAME_PATHS.items():
             display_name = "Vanilla Files"
             status = Data.is_valid_data(tool_path, "folder")
             text = "Unpacked" if status else "Not Unpacked"
-            report[display_name] = [status, text]
+            report[display_name] = {
+                "tool_key": tool_key,
+                "status": status,
+                "text": text,
+            }
 
         # Intro Frame
         intro_frame = self.create_frame(
@@ -126,7 +162,15 @@ class WindowFirstLaunch(WindowTemplateBase):
 
         for key, value in report.items():
             current_row = self._get_next_row(report_frame)
-            create_labeled_text(report_frame, key, value[0], value[1], current_row, 0)
+            create_labeled_text(
+                report_frame,
+                label_text=key,
+                tool_key=value["tool_key"],
+                status=value["status"],
+                text=value["text"],
+                row=current_row,
+                column=0,
+            )
 
         self.create_separator(self, padx=self.padding)
 
@@ -154,7 +198,7 @@ class WindowFirstLaunch(WindowTemplateBase):
         self.create_button(
             question_frame,
             text=translate("generic_yes"),
-            command=None,
+            command=self.perform_setup_sequence,
             padx=(self.padding, 0),
             pady=(self.padding, 0),
             sticky="e",
@@ -164,10 +208,71 @@ class WindowFirstLaunch(WindowTemplateBase):
         self.create_button(
             question_frame,
             text=translate("generic_no"),
-            command=None,
+            command=self.skip_setup_sequence,
             padx=(self.padding, 0),
             pady=(self.padding, 0),
             sticky="e",
             row="-2",
             column=2,
         )
+
+    def installation_progress_callback(self, tool_key):
+        progress_bar_widget = getattr(self, f"{tool_key}_progress_bar")
+        progress_bar_widget.grid_forget()
+
+    def perform_setup_sequence(self):
+        log.debug("Initiating first launch initial setup sequence...")
+
+        from backend.tools_manager import ToolsManager
+
+        tools_manager = ToolsManager()
+
+        # Iterate through and call tools install methods in auto mode
+        for tool_key in settings.TOOLS_PATHS.keys():
+            self.installation_progress_callback = 0
+            install_method = getattr(tools_manager, f"install_{tool_key}")
+            install_result = install_method(parent=self, auto_mode="True")
+            if install_result:
+                # Apply success style to the status label
+                self._apply_style(True, getattr(self, f"{tool_key}_status_label"))
+
+        # status = Data.is_valid_data(settings.AES_KEY, "aes")
+        # text = "Detected" if status else "Not Detected"
+        # report[translate("settings_general_aes_key")] = {
+        #     "tool_key": tool_key,
+        #     "status": status,
+        #     "text": text,
+        # }
+
+        # for tool_key, tool_path in settings.GAME_PATHS.items():
+        #     display_name = "Vanilla Files"
+        #     status = Data.is_valid_data(tool_path, "folder")
+        #     text = "Unpacked" if status else "Not Unpacked"
+        #     report[display_name] = {
+        #         "tool_key": tool_key,
+        #         "status": status,
+        #         "text": text,
+        #     }
+
+        self.on_closing()
+
+        pass
+
+    def skip_setup_sequence(self):
+        log.debug("Skipping first launch initial setup sequence...")
+
+        messagebox.showinfo(
+            translate("generic_info"),
+            f"Skip",
+            parent=self,
+        )
+
+        self.on_closing()
+
+    def _apply_style(self, is_valid, entry_widget):
+        if is_valid:
+            style = "Success.CTkLabel"
+        else:
+            style = "Error.CTkLabel"
+
+        self.style_manager.apply_style(entry_widget, style)

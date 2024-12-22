@@ -1,5 +1,5 @@
 from backend.logger import log
-from config.settings import translate
+from config.translations import translate
 from gui.template_base import WindowTemplateBase
 
 

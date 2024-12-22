@@ -1,5 +1,6 @@
 from backend.logger import log
-from config.settings import settings, translate
+from backend.utilities import Files
+from config.settings import SettingsManager
 from gui.window_first_launch import WindowFirstLaunch
 from gui.window_main import WindowMain
 
@@ -93,7 +94,17 @@ if __name__ == "__main__":
     get_system_info()
     log.debug("Starting the application...")
 
+    # Init SettingsManager class
+    settings = SettingsManager()
+
     if eval(settings.config.get("SETTINGS").get("first_launch")):
+
+        # Delete settings file
+        Files.delete_path(settings.INI_SETTINGS_FILE)
+
+        # Reset Settings class
+        settings.reset_instance()
+
         gui = WindowFirstLaunch()
         gui.mainloop()
 

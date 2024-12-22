@@ -10,7 +10,11 @@ import re
 import zipfile
 
 from backend.utilities import Files
-from config.settings import settings, translate
+from config.settings import SettingsManager
+from config.translations import translate
+
+# Get SettingsManager class
+settings = SettingsManager()
 
 
 class ToolsManager:
@@ -19,17 +23,18 @@ class ToolsManager:
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
+            cls.init()
         return cls._instance
 
-    def __init__(self):
-        self.auto_mode = False
+    @classmethod
+    def init(cls):
+        cls.tools_base = Path(settings.TOOLS["tools_base"])
+        cls.tools_base.mkdir(parents=True, exist_ok=True)
 
-        self.tools_base = Path(settings.TOOLS["tools_base"])
-        self.tools_base.mkdir(parents=True, exist_ok=True)
+        cls.seven_zip_local_exe = settings.TOOLS["7zr"]["local_exe"]
 
-        self.seven_zip_local_exe = settings.TOOLS["7zr"]["local_exe"]
-
-    def download_file(self, url, target_file):
+    @classmethod
+    def download_file(cls, url, target_file):
         try:
             target_file = Path(target_file)
             target_file.parent.mkdir(parents=True, exist_ok=True)
@@ -102,11 +107,14 @@ class ToolsManager:
             log.exception(f"Error fetching release data: {e}")
             return None
 
-    def check_and_download_installer(self, parent, url, target_file, display_name):
+    @classmethod
+    def check_and_download_installer(
+        cls, parent, url, target_file, display_name, auto_mode
+    ):
         # Check if the installer needs to be confirmed and prepared
         if target_file.exists():
-            if self.auto_mode:
-                user_confirmation = True
+            if auto_mode:
+                user_confirmation = False
             else:
                 result = messagebox.askquestion(
                     translate("generic_question"),
@@ -127,18 +135,19 @@ class ToolsManager:
         target_file.parent.mkdir(parents=True, exist_ok=True)
 
         # Download the file
-        downloaded_file = self.download_file(url, target_file)
+        downloaded_file = cls.download_file(url, target_file)
 
         return downloaded_file
 
-    def extract_installer(self, installer_path, output_dir, extract_parameter=""):
+    @classmethod
+    def extract_installer(cls, installer_path, output_dir, extract_parameter=""):
         file_extension = installer_path.suffix[1:] if installer_path.suffix else None
 
         if file_extension in {"7z", "exe"}:
-            return self._extract_with_7zr(installer_path, output_dir, extract_parameter)
+            return cls._extract_with_7zr(installer_path, output_dir, extract_parameter)
 
         elif file_extension == "zip":
-            return self._extract_with_zipfile(
+            return cls._extract_with_zipfile(
                 installer_path, output_dir, extract_parameter
             )
 
@@ -146,11 +155,12 @@ class ToolsManager:
             log.error(f"Unsupported archive format: {file_extension}")
             return False
 
-    def _extract_with_7zr(self, installer_path, output_dir, extract_parameter=None):
-        if not Files.is_existing_file(self.seven_zip_local_exe):
+    @classmethod
+    def _extract_with_7zr(cls, installer_path, output_dir, extract_parameter=None):
+        if not Files.is_existing_file(cls.seven_zip_local_exe):
             log.debug("Downloading 7z...")
-            if not self.download_file(
-                settings.TOOLS["7zr"]["direct_link"], self.seven_zip_local_exe
+            if not cls.download_file(
+                settings.TOOLS["7zr"]["direct_link"], cls.seven_zip_local_exe
             ):
                 log.error("7z failed to download, aborting.")
                 return False
@@ -160,7 +170,7 @@ class ToolsManager:
             with tempfile.TemporaryDirectory() as temp_unpack_dir:
                 temp_unpack_dir = Path(temp_unpack_dir)
                 command = [
-                    str(self.seven_zip_local_exe),
+                    str(cls.seven_zip_local_exe),
                     "x",
                     str(installer_path),
                     "-aoa",
@@ -191,7 +201,8 @@ class ToolsManager:
             )
             return False
 
-    def _extract_with_zipfile(self, installer_path, output_dir, extract_parameter=None):
+    @classmethod
+    def _extract_with_zipfile(cls, installer_path, output_dir, extract_parameter=None):
         if not zipfile.is_zipfile(installer_path):
             log.error(f"{installer_path} is not a valid ZIP file.")
             return False
@@ -233,11 +244,14 @@ class ToolsManager:
             log.exception(f"Extraction failed: {e}")
             return False
 
-    def _install_repak(self, parent, install_metadata={}, auto_mode=False):
+    @classmethod
+    def install_repak_cli(
+        cls, parent, install_metadata={"settings_key": "repak_cli"}, auto_mode=False
+    ):
         install_metadata.update(settings.TOOLS["repak_cli"])
-        return self._install_tool(
+        return cls._install_tool(
             parent,
-            download_method=self.get_latest_github_release_asset,
+            download_method=cls.get_latest_github_release_asset,
             download_args={
                 "github_repo": settings.TOOLS["repak_cli"]["github_repo"],
                 "asset_regex": settings.TOOLS["repak_cli"]["asset_regex"],
@@ -246,21 +260,27 @@ class ToolsManager:
             auto_mode=auto_mode,
         )
 
-    def _install_kdiff3(self, parent, install_metadata={}, auto_mode=False):
+    @classmethod
+    def install_kdiff3(
+        cls, parent, install_metadata={"settings_key": "kdiff3"}, auto_mode=False
+    ):
         install_metadata.update(settings.TOOLS["kdiff3"])
-        return self._install_tool(
+        return cls._install_tool(
             parent,
-            download_method=self.get_latest_kdiff3,
+            download_method=cls.get_latest_kdiff3,
             download_args={"base_url": settings.TOOLS["kdiff3"]["base_url"]},
             install_metadata=install_metadata,
             auto_mode=auto_mode,
         )
 
-    def _install_winmerge(self, parent, install_metadata={}, auto_mode=False):
+    @classmethod
+    def install_winmerge(
+        cls, parent, install_metadata={"settings_key": "winmerge"}, auto_mode=False
+    ):
         install_metadata.update(settings.TOOLS["winmerge"])
-        return self._install_tool(
+        return cls._install_tool(
             parent,
-            download_method=self.get_latest_github_release_asset,
+            download_method=cls.get_latest_github_release_asset,
             download_args={
                 "github_repo": settings.TOOLS["winmerge"]["github_repo"],
                 "asset_regex": settings.TOOLS["winmerge"]["asset_regex"],
@@ -269,18 +289,23 @@ class ToolsManager:
             auto_mode=auto_mode,
         )
 
-    def _unpack_files(self, parent, install_metadata):
+    @classmethod
+    def unpack_files(cls, parent, install_metadata):
         print("raise NotImplementedError")
 
-    def _get_aes_key(self, parent, install_metadata):
+    @classmethod
+    def get_aes_key(cls, parent, install_metadata):
         if not Files.is_existing_file(settings.TOOLS_PATHS["aes_dumpster"]):
-            self._install_aes_dumpster(parent)
+            cls.install_aes_dumpster(parent)
 
-    def _install_aes_dumpster(self, parent, install_metadata={}, auto_mode=False):
+    @classmethod
+    def install_aes_dumpster(
+        cls, parent, install_metadata={"settings_key": "aes_dumpster"}, auto_mode=False
+    ):
         install_metadata.update(settings.TOOLS["aes_dumpster"])
-        return self._install_tool(
+        return cls._install_tool(
             parent,
-            download_method=self.get_latest_github_release_asset,
+            download_method=cls.get_latest_github_release_asset,
             download_args={
                 "github_repo": settings.TOOLS["aes_dumpster"]["github_repo"],
                 "asset_regex": settings.TOOLS["aes_dumpster"]["asset_regex"],
@@ -290,8 +315,9 @@ class ToolsManager:
             auto_mode=True,
         )
 
+    @classmethod
     def _install_tool(
-        self,
+        cls,
         parent,
         download_method,
         download_args,
@@ -334,9 +360,7 @@ class ToolsManager:
                 pass
 
         if found_exe:
-            log.info(
-                f"{display_name} found at: {found_exe}\nSkipping download and installation."
-            )
+            log.info(f"Skipping {display_name} download and installation.")
             exe_location = found_exe
 
         else:
@@ -352,7 +376,7 @@ class ToolsManager:
                 return False
 
             # Download and extract the tool
-            install_result = self.download_and_extract_tool(
+            install_result = cls.download_and_extract_tool(
                 parent,
                 url=download_url,
                 local_exe=local_exe,
@@ -385,9 +409,10 @@ class ToolsManager:
                 return False
 
         # Finalize installation
-        path = Files.get_relative_path(exe_location)
-        settings.TOOLS_PATHS[settings_key] = path
-        settings.save()
+        if settings_key:
+            path = Files.get_relative_path(exe_location)
+            settings.TOOLS_PATHS[settings_key] = str(path)
+            # settings.save()
 
         if entry_variable and entry_widget:
             entry_variable.set(path)
@@ -407,8 +432,9 @@ class ToolsManager:
 
         return True
 
+    @classmethod
     def download_and_extract_tool(
-        self,
+        cls,
         parent,
         url,
         local_exe,
@@ -417,7 +443,6 @@ class ToolsManager:
         extract_parameter,
         auto_mode=False,
     ):
-        self.auto_mode = auto_mode
 
         output_dir = Path(local_exe).parent
         file_extension = re.search(r"\.([a-zA-Z0-9]+)(?:\?|#|$)", url).group(1)
@@ -426,7 +451,7 @@ class ToolsManager:
         else:
             installer_suffix = "Archive"
         installer_path = (
-            self.tools_base / f"{display_name} {installer_suffix}.{file_extension}"
+            cls.tools_base / f"{display_name} {installer_suffix}.{file_extension}"
         )
 
         # Detele the output directory is not empty
@@ -437,8 +462,8 @@ class ToolsManager:
         output_dir.mkdir(parents=True, exist_ok=True)
 
         # Download installer
-        downloaded_file = self.check_and_download_installer(
-            parent, url, installer_path, display_name
+        downloaded_file = cls.check_and_download_installer(
+            parent, url, installer_path, display_name, auto_mode
         )
 
         if not downloaded_file:
@@ -451,7 +476,7 @@ class ToolsManager:
             return True
 
         # Extract installer
-        extraction_success = self.extract_installer(
+        extraction_success = cls.extract_installer(
             installer_path, output_dir, extract_parameter
         )
 

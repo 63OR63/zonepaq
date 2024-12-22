@@ -5,7 +5,7 @@ from tkinter import filedialog, messagebox
 from backend.logger import log
 from backend.repak import Repak
 from backend.utilities import Files
-from config.settings import translate
+from config.translations import translate
 from CTkListbox import *
 from gui.template_secondary import WindowTemplateSecondary
 
@@ -43,7 +43,7 @@ class WindowRepak(WindowTemplateSecondary):
                     self.unpack_listbox, self.unpack_listbox_dnd
                 ),
                 "action_name": translate("repak_screen_unpack_button"),
-                "action_command": self._unpack_files,
+                "action_command": self.unpack_files,
                 "hints": translate("repak_screen_unpack_hints"),
             },
             {
@@ -67,7 +67,7 @@ class WindowRepak(WindowTemplateSecondary):
         for section in sections:
             self.create_section(**section)
 
-    def _unpack_files(self):
+    def unpack_files(self):
         if not Files.is_existing_file_type(self.repak_cli, ".exe"):
             log.error(f"repak_cli executable isn't found at {str(self.repak_cli)}")
             messagebox.showerror(

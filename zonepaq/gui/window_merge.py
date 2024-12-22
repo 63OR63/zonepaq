@@ -1,7 +1,7 @@
 from backend.logger import log
 from backend.repak import Repak
 from backend.utilities import Files, Data
-from config.settings import translate
+from config.translations import translate
 from gui.window_conflicts import WindowConflicts
 from gui.template_secondary import WindowTemplateSecondary
 
