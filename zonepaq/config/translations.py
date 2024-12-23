@@ -143,6 +143,8 @@ TRANSLATIONS = {
         "dialogue_install_found": "was found at",
         "dialogue_install_success": "was successfully installed to",
         "dialogue_install_error": "Failed to install",
+        "dialogue_get_aes_success": "AES Key successfully extracted.",
+        "dialogue_get_aes_error": "Failed to extract AES Key",
         "dialogue_check_logs": "Check logs for details.",
     },
     "Русский": {
@@ -309,4 +311,6 @@ def translate(text, lang=None):
             )
         except:
             return get_translation("English").get(text)
-    return get_translation(settings.LANG_NAME).get(text) or get_translation("English").get(text)
+    return get_translation(settings.LANG_NAME).get(text) or get_translation(
+        "English"
+    ).get(text)

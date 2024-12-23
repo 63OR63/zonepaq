@@ -12,6 +12,9 @@ from backend.utilities import Files
 from config.settings import SettingsManager
 from config.translations import translate
 
+# Get SettingsManager class
+settings = SettingsManager()
+
 
 class ConflictProcessor:
     """Handles file processing, unpacking, and merging logic."""

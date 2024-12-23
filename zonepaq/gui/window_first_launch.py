@@ -23,7 +23,7 @@ class WindowFirstLaunch(WindowTemplateBase):
         self.style_manager = StyleManager
 
         self.create()
-        settings.set("SETTINGS", "first_launch", False)
+        # settings.set("SETTINGS", "first_launch", False)
         settings.save()
 
         self.adjust_to_content(self)
@@ -113,13 +113,18 @@ class WindowFirstLaunch(WindowTemplateBase):
             "text": text,
         }
 
+        from backend.games_manager import GamesManager
+
+        games_manager = GamesManager()
+
         # Add vanilla files to the report
-        for tool_key, tool_path in settings.GAME_PATHS.items():
-            display_name = "Vanilla Files"
-            status = Data.is_valid_data(tool_path, "folder")
+        for index, value in enumerate(games_manager.vanilla_files):
+            unpacked = value["unpacked"]
+            display_name = f"{games_manager.game_display_name} Vanilla Files"
+            status = not Files.is_folder_empty(unpacked)
             text = "Unpacked" if status else "Not Unpacked"
             report[display_name] = {
-                "tool_key": tool_key,
+                "tool_key": f"vanilla_{index}",
                 "status": status,
                 "text": text,
             }
@@ -232,34 +237,25 @@ class WindowFirstLaunch(WindowTemplateBase):
         for tool_key in settings.TOOLS_PATHS.keys():
             self.installation_progress_callback = 0
             install_method = getattr(tools_manager, f"install_{tool_key}")
-            install_result = install_method(parent=self, auto_mode="True")
+            install_result = install_method(parent=self, auto_mode=True)
             if install_result:
-                settings_changed = settings.TOOLS_PATHS[tool_key] = (
-                    Files.find_app_installation(
-                        exe_name=TOOLS[tool_key]["exe_name"],
-                        local_exe=TOOLS[tool_key]["local_exe"],
-                    )
-                )
-                # Apply success style to the status label
-                self._apply_style(True, getattr(self, f"{tool_key}_status_label"))
+                local_exe = TOOLS[tool_key]["local_exe"]
+                if local_exe.exists():
+                    settings_changed = True
 
-        # status = Data.is_valid_data(settings.AES_KEY, "aes")
-        # text = "Detected" if status else "Not Detected"
-        # report[translate("settings_general_aes_key")] = {
-        #     "tool_key": tool_key,
-        #     "status": status,
-        #     "text": text,
-        # }
+                    # Update path in settings
+                    settings.TOOLS_PATHS[tool_key] = local_exe
 
-        # for tool_key, tool_path in settings.GAME_PATHS.items():
-        #     display_name = "Vanilla Files"
-        #     status = Data.is_valid_data(tool_path, "folder")
-        #     text = "Unpacked" if status else "Not Unpacked"
-        #     report[display_name] = {
-        #         "tool_key": tool_key,
-        #         "status": status,
-        #         "text": text,
-        #     }
+                    # Apply success style to the status label
+                    self._apply_style(True, getattr(self, f"{tool_key}_status_label"))
+
+        tools_manager.get_aes_key(
+            parent=self, auto_mode=True, skip_aes_dumpster_download=True
+        )
+
+        tools_manager.unpack_files(
+            parent=self, auto_mode=True, skip_aes_extraction=True
+        )
 
         if settings_changed:
             settings.save()

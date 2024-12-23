@@ -23,32 +23,28 @@ class GamesManager:
 
         cls.game_installation, cls.game_path = cls.detect_game_installation()
 
-        # cls.game_installation = "steam" # !delme
-        # cls.game_path = Path("C:/test") # !delme
-        if cls.game_installation:
+        cls.shipping_exe = (
+            Path(cls.game_path)
+            / cls.game_meta[cls.game_installation]["shipping_exe_suffix"]
+        )
 
-            cls.shipping_exe = (
-                Path(cls.game_path)
-                / cls.game_meta[cls.game_installation]["shipping_exe_suffix"]
-            )
-
-            cls.vanilla_files = [
-                {
-                    "archive": Path(cls.game_path) / suffix,
-                    "unpacked": Path.cwd()
-                    / TOOLS["tools_base"]
-                    / "vanilla_unpacked"
-                    / Path(suffix).stem,
-                }
-                for suffix in cls.game_meta[cls.game_installation][
-                    "vanilla_archives_suffixes"
-                ]
+        cls.vanilla_files = [
+            {
+                "archive": Path(cls.game_path) / suffix,
+                "unpacked": Path.cwd()
+                / TOOLS["tools_base"]
+                / "vanilla_unpacked"
+                / Path(suffix).stem,
+            }
+            for suffix in cls.game_meta[cls.game_installation][
+                "vanilla_archives_suffixes"
             ]
-            cls.mods_path = (
-                Path(cls.game_path)
-                / cls.game_meta[cls.game_installation]["mods_path_suffix"]
-            )
-            # print(cls.vanilla_files) # !delme
+        ]
+
+        cls.mods_path = (
+            Path(cls.game_path)
+            / cls.game_meta[cls.game_installation]["mods_path_suffix"]
+        )
 
     @classmethod
     def detect_game_installation(cls):
@@ -66,7 +62,7 @@ class GamesManager:
 
         fallback_path = str(Path(cls.game_meta["fallback_path"]))
         log.debug(f"No installation found, using fallback path: {fallback_path}")
-        return None, fallback_path
+        return "unknown", fallback_path
 
     @classmethod
     def find_steam_game_path(cls, game_id):
