@@ -9,14 +9,23 @@ The application is user-friendly, featuring an intuitive GUI that allows modders
 1. **Repacker** - Unpack `.pak` files and repack folders back into `.pak` archives.
 2. **Conflict Resolver** - Analyze multiple `.pak` files for conflicts and assist in resolving overlapping files.
 
+**ZonePaq Toolkit** utilizes a combination of next external tools for operation:
+
+- **[repak_cli](https://github.com/trumank/repak)** for unpacking and repacking `.pak` files.
+- **[KDiff3](https://kdiff3.sourceforge.net)** or **[WinMerge](https://winmerge.org)** for comparing and merging unpacked mods.
+- **AESDumpster** for getting AES encryption key, used to unpack vanilla files.
+- **7z** (and **zipfile**) for extracting downloaded tools.
+
+All required tools can be downloaded and installed automatically.
+
 **ZonePaq Toolkit** ships with English and Russian translation of user interface and several color themes to choose from.
 
 ## Quick start
 
-1. Download and install **[repak_cli](https://github.com/trumank/repak/releases)**
-2. Download and install **[KDiff3](https://sourceforge.net/projects/kdiff3/files)** and/or **[WinMerge](https://winmerge.org/downloads)**
-3. Download the latest release of **[ZonePaq Toolkit](https://github.com/63OR63/zonepaq/releases)**
-4. Run `.exe` file and follow on-screen hints.
+1. Download the **[latest release](https://github.com/63OR63/zonepaq/releases/latest)**
+2. Run `.exe` file and follow on-screen hints.
+
+**Note:** Running from source may offers superior performance in some conditions.
 
 ## Running from Source
 
@@ -44,6 +53,8 @@ The application is user-friendly, featuring an intuitive GUI that allows modders
 
 You can compile an executable for your operating system by running `python build.py`
 
+**Note:** full functionality is guaranteed only on Windows.
+
 ## Usage
 
 1. **Open ZonePaq Toolkit**. On first launch you will be prompted to install all needed tools.
@@ -54,7 +65,7 @@ You can compile an executable for your operating system by running `python build
 
 ## Troubleshooting
 
-- If you encounter any errors, start from resetting settings to default by deleting the `zonepaq/settings.ini` file.
+- If you encounter any errors, try resetting settings to default by deleting the `zonepaq/settings.ini` file.
 - Installed tools are located in `zonepaq/tools`.
 - If you get some bug, please open an issue on GitHub and include `logs/zonepaq.log` file contents in your report.
 
@@ -80,17 +91,9 @@ Additionally, if you add `_P` at the end of a `.pak` file's name, it will have e
 
 Typically, you copy the merged mod and delete the original mods it was merged from. However, mods often contain multiple files — some conflicting and others not. If you're unsure what you're doing, a more dirty yet robust approach is to rename the merged mod to something like `zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz_merged_P.pak` so it loads last and overwrites any conflicts, and can keep all the original mods in place.
 
-- ### How does the merging in **ZonePaq Toolkit** works?
-
-**ZonePaq Toolkit** uses a combination of **[repak_cli](https://github.com/trumank/repak)** and file comparison tools to compare files from multiple `.pak` archives. It highlights conflicting files and allows you to merge them into a single merged mod.
-
 - ### Can I repack my mods after editing?
 
 Yes! The **ZonePaq Toolkit** module will automatically repack files into a `.pak` archive after merging. Also, you can manually repack any folders.
-
-- ### What external tools are supported for merging conflicts?
-
-Currently, **[KDiff3](https://kdiff3.sourceforge.net)** and **[WinMerge](https://winmerge.org)** are supported.
 
 - ### Can this Toolkit be used for other Unreal Engine games?
 
@@ -99,3 +102,5 @@ Theoretically, yes. You can try and leave your feedback.
 - ### Is the ZonePaq Toolkit free?
 
 Yes, this tool is completely free and open source under the MIT License.
+
+## Credits
