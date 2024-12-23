@@ -1,11 +1,18 @@
+import os
+import platform
+import sys
+
+import requests
 from backend.logger import log
 from backend.utilities import Files
+from config.metadata import APP_REPO, APP_URL, APP_VERSION
 from config.settings import SettingsManager
 from gui.window_first_launch import WindowFirstLaunch
 from gui.window_main import WindowMain
+from packaging import version
 
-import platform
-import os
+# Get SettingsManager class
+settings = SettingsManager()
 
 
 def get_system_info():
@@ -90,12 +97,86 @@ def get_system_info():
     log.debug("=" * 50)
 
 
+def check_new_release(github_repo, current_version):
+    try:
+        log.debug(f"Querying {github_repo} Github repo...")
+        response = requests.get(
+            f"https://api.github.com/repos/{github_repo}/releases/latest"
+        )
+        response.raise_for_status()
+        release_data = response.json()
+
+        latest_release_version = release_data.get("tag_name")
+        if latest_release_version:
+            try:
+                current_version_obj = version.parse(current_version.replace(" ", "-"))
+                latest_release_version_obj = version.parse(
+                    latest_release_version.replace(" ", "-")
+                )
+
+                if latest_release_version_obj > current_version_obj:
+                    log.info(f"A newer version {latest_release_version} is available!")
+                    return latest_release_version
+                else:
+                    log.info("You are on the latest version.")
+                    return False
+            except version.InvalidVersion:
+                log.exception(
+                    f"Invalid version format: {current_version} or {latest_release_version}"
+                )
+                return False
+        log.warning("Couldn't check the latest version.")
+        return False
+    except requests.exceptions.RequestException as e:
+        log.exception(f"Error fetching release data: {e}")
+        return False
+    except Exception as e:
+        log.exception(f"Unexpected error during version check: {e}")
+        return False
+
+
+def check_for_update():
+    update_available = check_new_release(APP_REPO, APP_VERSION)
+    if update_available:
+
+        if (
+            settings.config.get("SETTINGS")
+            and settings.config.get("SETTINGS").get("skip_version")
+            and update_available
+            == eval(settings.config.get("SETTINGS").get("skip_version"))
+        ):
+            log.debug(f"Skipping version {update_available}.")
+            return None
+
+        from config.translations import translate
+
+        from tkinter import messagebox
+
+        reply = messagebox.askyesnocancel(
+            translate("generic_question"),
+            f'{translate("dialogue_request_update_1")} {update_available} {translate("dialogue_request_update_2")}',
+            # parent=self.window,
+        )
+        print(reply)
+        if reply == True:
+            import webbrowser
+
+            webbrowser.open(APP_URL)
+            return True
+            # sys.exit(0)
+        elif reply == False:
+            log.debug(f"Skipping update to {update_available}.")
+            return False
+        elif reply == None:
+            log.debug(f"Ignoring version {update_available}.")
+            settings.update_config("SETTINGS", "skip_version", str(update_available))
+            return False
+        return False
+
+
 if __name__ == "__main__":
     get_system_info()
-    log.debug("Starting the application...")
-
-    # Init SettingsManager class
-    settings = SettingsManager()
+    log.info("Starting the application...")
 
     if eval(settings.config.get("SETTINGS").get("first_launch")):
 
@@ -108,7 +189,10 @@ if __name__ == "__main__":
         gui = WindowFirstLaunch()
         gui.mainloop()
 
+    check_for_update()
+
     gui = WindowMain()
     gui.mainloop()
 
-    log.debug("Application finished.")
+    log.info("Application finished.")
+    # sys.exit(0)

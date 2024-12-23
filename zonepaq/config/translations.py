@@ -146,6 +146,8 @@ TRANSLATIONS = {
         "dialogue_get_aes_success": "AES Key successfully extracted.",
         "dialogue_get_aes_error": "Failed to extract AES Key",
         "dialogue_check_logs": "Check logs for details.",
+        "dialogue_request_update_1": "A newer version",
+        "dialogue_request_update_2": "is available!\nDo you want to visit the download page?\n\nIf you wish to skip this version, click `Cancel`.",
     },
     "Русский": {
         "meta_description": "Удобное графическое приложение для распаковки, упаковки и разрешения конфликтов .pak модов.",
@@ -286,6 +288,8 @@ TRANSLATIONS = {
         "dialogue_install_success": "был успешно установлен в",
         "dialogue_install_error": "Не удалось установить",
         "dialogue_check_logs": "Подробная информация в логах.",
+        "dialogue_request_update_1": "Новая версия",
+        "dialogue_request_update_2": 'доступна!\nЖелаете открыть страницу загрузки?\n\nЕсли хотите пропустить эту версию, нажмите "Отменить".',
     },
 }
 

@@ -1,8 +1,11 @@
 import colorsys
-from backend.logger import log
-import customtkinter as ctk
+import logging
 
+import customtkinter as ctk
+from backend.logger import log
 from PIL import Image
+
+logging.getLogger("PIL").setLevel(logging.WARNING)
 
 
 class ThemeManager:

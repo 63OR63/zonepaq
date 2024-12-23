@@ -2,6 +2,7 @@ from pathlib import Path
 
 from backend.utilities import Files
 
+import locale
 
 TOOLS = {
     "tools_base": Path("zonepaq/tools"),
@@ -73,11 +74,19 @@ DEFAULT_TOOLS_PATHS = {
     "aes_dumpster": TOOLS["aes_dumpster"]["local_exe"],
 }
 
+
+language, encoding = locale.getdefaultlocale()
+if language == "ru_RU":
+    lang_name = "Русский"
+else:
+    lang_name = "English"
+
+print(f"Language: {language}")
 DEFAULT_SETTINGS = {
     "first_launch": "True",
     "game": "stalker_2",
     "merging_engine": "KDiff3",
-    "lang_name": "English",
+    "lang_name": lang_name,
     "theme_name": "Nord",
     "dark_mode": "True",
     "show_hints": "True",

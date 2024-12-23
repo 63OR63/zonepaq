@@ -1,15 +1,14 @@
 from tkinter import messagebox
+
+import customtkinter as ctk
 from backend.logger import log
 from backend.utilities import Data, Files
 from config.defaults import TOOLS
 from config.metadata import APP_NAME
-
 from config.settings import SettingsManager
 from config.themes import StyleManager
 from config.translations import translate
 from gui.template_base import WindowTemplateBase
-
-import customtkinter as ctk
 
 # Get SettingsManager class
 settings = SettingsManager()
@@ -261,8 +260,6 @@ class WindowFirstLaunch(WindowTemplateBase):
             settings.save()
 
         self.on_closing()
-
-        pass
 
     def skip_setup_sequence(self):
         log.debug("Skipping first launch initial setup sequence...")

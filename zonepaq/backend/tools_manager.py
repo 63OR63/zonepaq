@@ -1,14 +1,14 @@
-from pathlib import Path
-import sys
-import tempfile
-from tkinter import messagebox
-from backend.logger import log
-import requests
+import re
 import shutil
 import subprocess
-import re
+import sys
+import tempfile
 import zipfile
+from pathlib import Path
+from tkinter import messagebox
 
+import requests
+from backend.logger import log
 from backend.utilities import Data, Files
 from config.settings import SettingsManager
 from config.translations import translate
