@@ -13,8 +13,8 @@ The application is user-friendly, featuring an intuitive GUI that allows modders
 
 - **[repak_cli](https://github.com/trumank/repak)** for unpacking and repacking `.pak` files.
 - **[KDiff3](https://kdiff3.sourceforge.net)** or **[WinMerge](https://winmerge.org)** for comparing and merging unpacked mods.
-- **AESDumpster** for getting AES encryption key, used to unpack vanilla files.
-- **7z** (and **zipfile**) for extracting downloaded tools.
+- **[AESDumpster](https://github.com/GHFear/AESDumpster)** for getting AES encryption key, used to unpack vanilla files.
+- **[7zr](https://7-zip.org)** for extracting Windows PE installers.
 
 All required tools can be downloaded and installed automatically.
 
@@ -61,7 +61,7 @@ You can compile an executable for your operating system by running `python build
 
 2. Follow the hints that are built-in in GUI. You can disable them in the settings once you're acquianted with the workflow.
 
-3. IF you wish to change any settings, go to the **Settings** menu by clicking the **cog button** on main screens.
+3. If you wish to change any settings, go to the **Settings** menu by clicking the **cog button** on main screens.
 
 ## Troubleshooting
 
@@ -73,7 +73,7 @@ You can compile an executable for your operating system by running `python build
 
 - ### What are `.pak` files in S.T.A.L.K.E.R. 2?
 
-`.pak` files are archives that contain game assets, mods, or configuration files used in **S.T.A.L.K.E.R. 2** and other Unreal Engine games.
+`.pak` files are archives that contain game assets, mods, or configuration files used in **S.T.A.L.K.E.R. 2**.
 
 - ### Where are `.pak` files located?
 
@@ -81,15 +81,11 @@ The default location for **S.T.A.L.K.E.R. 2** is `%GAME_FOLDER%\Stalker2\Content
 
 - ### What is the order `.pak` mods are loaded?
 
-The order in which `.pak` files are loaded depends on their names. Files that come later alphabetically have higher priority. For example, `zzz_mod.pak` will override `z_mod.pak`.
-
-If `zzz_mod.pak` contains `file1.cfg` and `z_mod.pak` contains both `file1.cfg` and `file2.cfg`, then only `file1.cfg` will be replaced, while `file2.cfg` will remain unchanged.
-
-Additionally, if you add `_P` at the end of a `.pak` file's name, it will have even higher priority and override files in mods without this special suffix.
+`.pak` files are loaded in alphabetical order, with files later in the order having higher priority. When multiple files contain the same resource, the version from the higher-priority `.pak` file will override others. Adding `_P` to the end of a `.pak` file's name gives it the highest priority, overriding files in mods without the suffix.
 
 - ### Should I keep original mods after creating a merged one?
 
-Typically, you copy the merged mod and delete the original mods it was merged from. However, mods often contain multiple files — some conflicting and others not. If you're unsure what you're doing, a more dirty yet robust approach is to rename the merged mod to something like `zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz_merged_P.pak` so it loads last and overwrites any conflicts, and can keep all the original mods in place.
+Typically, you keep the merged mod and delete the original mods it came from. If unsure, a simpler but less tidy method is to rename the merged mod to give it the highest priority, ensuring it loads last and overwrites conflicts, while keeping the original mods.
 
 - ### Can I repack my mods after editing?
 
