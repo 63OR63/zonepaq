@@ -16,25 +16,28 @@ settings = SettingsManager()
 class WindowConflicts(WindowTemplateToplevel):
     """Displays conflict reports and provides tools to analyze and merge files."""
 
-    def __init__(self, parent, content_tree):
+    def __init__(self, master, content_tree):
         super().__init__(
-            parent=parent,
+            master=master,
             title=translate("merge_screen_conflicts_title"),
-            geometry="800x400",
         )
-        self.padding = self.root.padding
         self.content_tree = content_tree
         self.original_data = content_tree
-        self.theme_dict = settings.THEME_DICT
+        # self.theme_dict = settings.THEME_DICT  # !fixme
 
         # Variable for checkbutton state
         self.show_full_paths = tk.BooleanVar(value=False)
 
         self.setup()
-        self.root.adjust_to_content(
-            root=self.window, adjust_width=True, adjust_height=False
-        )
-        log.info("Conflicts resolver screen menu opened.")
+
+        self.adjust_to_content(self, adjust_width=True, adjust_height=False)
+
+        log.info("Conflicts resolver window opened.")
+
+    def on_closing(self):
+        log.debug("Conflicts resolver window closed.")
+        self.destroy()
+        self.master.deiconify()
 
     def setup(self):
         self._create_search_frame()
@@ -103,17 +106,17 @@ class WindowConflicts(WindowTemplateToplevel):
         self._configure_treeview_columns()
 
         # Treeview Tag Configuration
-        self.tree.tag_configure(
-            "no_conflicts", foreground=self.theme_dict["color_success"]
-        )
-        self.tree.tag_configure(
-            "dual_match", foreground=self.theme_dict["color_foreground"]
-        )
-        self.tree.tag_configure(
-            "dual_no_match", foreground=self.theme_dict["color_attention"]
-        )
-        self.tree.tag_configure("tri", foreground=self.theme_dict["color_warning"])
-        self.tree.tag_configure("complex", foreground=self.theme_dict["color_error"])
+        # self.tree.tag_configure(
+        #     "no_conflicts", foreground=self.theme_dict["color_success"]  # !fixme
+        # )
+        # self.tree.tag_configure(
+        #     "dual_match", foreground=self.theme_dict["color_foreground"]  # !fixme
+        # )
+        # self.tree.tag_configure(
+        #     "dual_no_match", foreground=self.theme_dict["color_attention"]  # !fixme
+        # )
+        # self.tree.tag_configure("tri", foreground=self.theme_dict["color_warning"])  # !fixme
+        # self.tree.tag_configure("complex", foreground=self.theme_dict["color_error"])  # !fixme
 
         self.conflict_counts = self._populate_tree("", self.content_tree)
 

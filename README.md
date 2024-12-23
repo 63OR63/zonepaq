@@ -20,24 +20,24 @@ The application is user-friendly, featuring an intuitive GUI that allows modders
 
 ## Running from Source
 
-### Requirements
+1. Install **Python 3.8+**
 
-- **Python 3.8+** (ensure it is installed on your system)
-- **Python dependencies**: None. The application is built on default modules.
-- **[repak_cli](https://github.com/trumank/repak)**, **[KDiff3](https://kdiff3.sourceforge.net)** and/or **[WinMerge](https://winmerge.org)**
-
-### Steps to Install
-
-1. Clone the repository to your local machine:
+2. Clone the repository to your local machine:
 
     ```bash
-    git clone https://github.com/63OR63/zonepaq.git
+    git clone https://github.com/63OR63/zonepaq && cd zonepaq
     ```
 
-2. Run `run.cmd` (if you're on Windows), `run.sh` (if you're on Linux) or execute in terminal:
+3. Install requirements:
 
     ```bash
-    python zonepaq
+    pip install --upgrade -r requirements.txt
+    ```
+
+4. Run `run.cmd` or execute in terminal:
+
+    ```bash
+    pythonw zonepaq
     ```
 
 ## Compiling
@@ -46,20 +46,17 @@ You can compile an executable for your operating system by running `python build
 
 ## Usage
 
-1. **Open ZonePaq Toolkit** and go to the **Settings** menu.
+1. **Open ZonePaq Toolkit**. On first launch you will be prompted to install all needed tools.
 
-2. Make sure the paths are set correctly. At a minimum, you need to set paths for:
-    - **repak_cli**
-    - Either **KDiff3** or **WinMerge**
+2. Follow the hints that are built-in in GUI. You can disable them in the settings once you're acquianted with the workflow.
 
-3. Once your settings are configured, click **Save** and follow the on-screen instructions.
-
-**Note:** It’s highly recommended to unpack the vanilla game files for better merging experience. Unpacking `pakchunk0-Windows.pak` should be sufficient. Game file are encrypted, so **AES decryption key** is included for this purpose. If the key changes in the future, you can retrieve the working one using [AESDumpster](https://github.com/GHFear/AESDumpster) and update it in **ZonePaq Toolkit** settings.
+3. IF you wish to change any settings, go to the **Settings** menu by clicking the **cog button** on main screens.
 
 ## Troubleshooting
 
-- If you encounter any errors after changing settings, you can reset them to default by deleting the `settings.ini` file located in the same folder as the app.
-- If you get some bug, please include latest logs from `logs/zonepaq.log` file in your report.
+- If you encounter any errors, start from resetting settings to default by deleting the `zonepaq/settings.ini` file.
+- Installed tools are located in `zonepaq/tools`.
+- If you get some bug, please open an issue on GitHub and include `logs/zonepaq.log` file contents in your report.
 
 ## FAQ
 
@@ -93,11 +90,11 @@ Yes! The **ZonePaq Toolkit** module will automatically repack files into a `.pak
 
 - ### What external tools are supported for merging conflicts?
 
-Currently, **[WinMerge](https://winmerge.org)** and **[KDiff3](https://kdiff3.sourceforge.net)** are supported.
+Currently, **[KDiff3](https://kdiff3.sourceforge.net)** and **[WinMerge](https://winmerge.org)** are supported.
 
 - ### Can this Toolkit be used for other Unreal Engine games?
 
-Theoretically, yes, but that wasn't tested by me. You can try and leave your feedback.
+Theoretically, yes. You can try and leave your feedback.
 
 - ### Is the ZonePaq Toolkit free?
 
