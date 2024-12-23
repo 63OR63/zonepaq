@@ -1,3 +1,4 @@
+import subprocess
 import sys
 from pathlib import Path
 
@@ -104,7 +105,28 @@ def build_linux():
     run(args)
 
 
+def install_requirements():
+    try:
+        print("Installing required packages from requirements.txt...")
+        subprocess.check_call(
+            [
+                sys.executable,
+                "-m",
+                "pip",
+                "install",
+                "--upgrade",
+                "-r",
+                "requirements.txt",
+            ]
+        )
+    except subprocess.CalledProcessError as e:
+        print(f"Error occurred while installing requirements: {e}")
+        sys.exit(1)
+
+
 def main():
+    # install_requirements()
+
     if sys.platform == "win32":
         build_win()
     elif sys.platform == "darwin":

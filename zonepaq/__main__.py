@@ -161,7 +161,7 @@ def check_for_update():
         if reply == True:
             import webbrowser
 
-            webbrowser.open(APP_URL)
+            webbrowser.open(f"{APP_URL}/releases")
             return True
             # sys.exit(0)
         elif reply == False:
