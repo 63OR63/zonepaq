@@ -1,0 +1,187 @@
+import customtkinter as ctk
+import tkinter as tk
+from backend.logger import log
+from config.translations import translate
+from gui.template_toplevel import TemplateToplevel
+
+
+class WindowMessageBox(TemplateToplevel):
+    def __init__(self, master, title="", message="", buttons={}):
+        super().__init__(master, title=title)
+
+        self.result = None
+        self._create_message_box(message, buttons)
+        self.adjust_to_content(self)
+
+        log.info("Message Box window opened.")
+
+    def on_closing(self):
+        log.debug("Message Box window closed.")
+        self.destroy()
+
+    def _create_message_box(self, message, buttons):
+        box_frame = self.create_frame(
+            self,
+            padx=self.padding,
+            pady=self.padding,
+            sticky="nsew",
+            column_weights=[(0, 1)],
+        )
+
+        if isinstance(message, str):
+            message = [message]
+        elif not isinstance(message, list):
+            message = [""]
+
+        self.create_ctk_widget(
+            ctk_widget=ctk.CTkLabel,
+            widget_args={
+                "master": box_frame,
+                "text": message[0],
+                "wraplength": 400,
+                "justify": "left",
+            },
+            grid_args={
+                "sticky": "nw",
+            },
+        )
+        if len(message) > 1 and message[1]:
+            textbox = self.create_ctk_widget(
+                ctk_widget=ctk.CTkTextbox,
+                widget_args={"master": box_frame, "wrap": "none"},
+                grid_args={"sticky": "nsew", "pady": self.padding / 2},
+            )
+            textbox.insert(tk.END, text=message[1])
+        if len(message) > 2 and message[2]:
+            self.create_ctk_widget(
+                ctk_widget=ctk.CTkLabel,
+                widget_args={
+                    "master": box_frame,
+                    "text": message[2],
+                    "wraplength": 400,
+                    "justify": "left",
+                },
+                grid_args={
+                    "sticky": "nw",
+                },
+            )
+
+        button_frame = self.create_frame(
+            box_frame, pady=(self.padding, 0), column_weights=[(0, 1), (1, 0)]
+        )
+
+        for index, (btn_text, btn_command) in enumerate(buttons.items()):
+            self.create_button(
+                button_frame,
+                text=btn_text,
+                command=btn_command,
+                width=90,
+                sticky="e",
+                row=0,
+                column=index,
+                padx=(self.padding / 2 if index > 0 else 0, 0),
+            )
+
+    @classmethod
+    def showinfo(cls, master, title=translate("generic_info"), message=""):
+        def close():
+            dialog.on_closing()
+
+        buttons = {translate("generic_ok"): close}
+        dialog = cls(master=master, title=title, message=message, buttons=buttons)
+        dialog.wait_window(dialog)
+        return None
+
+    @classmethod
+    def showwarning(cls, master, title=translate("generic_warning"), message=""):
+        def close():
+            dialog.on_closing()
+
+        buttons = {translate("generic_ok"): close}
+        dialog = cls(master=master, title=title, message=message, buttons=buttons)
+        dialog.wait_window(dialog)
+        return None
+
+    @classmethod
+    def showerror(cls, master, title=translate("generic_error"), message=""):
+        def close():
+            dialog.on_closing()
+
+        buttons = {translate("generic_ok"): close}
+        dialog = cls(master=master, title=title, message=message, buttons=buttons)
+        dialog.wait_window(dialog)
+        return None
+
+    @classmethod
+    def askyesno(cls, master, title=translate("generic_question"), message=""):
+        def yes():
+            dialog.result = True
+            dialog.on_closing()
+
+        def no():
+            dialog.result = False
+            dialog.on_closing()
+
+        buttons = {translate("generic_yes"): yes, translate("generic_no"): no}
+        dialog = cls(master=master, title=title, message=message, buttons=buttons)
+        dialog.wait_window(dialog)
+        return dialog.result
+
+    @classmethod
+    def askyesnocancel(cls, master, title=translate("generic_question"), message=""):
+        def yes():
+            dialog.result = True
+            dialog.on_closing()
+
+        def no():
+            dialog.result = False
+            dialog.on_closing()
+
+        def cancel():
+            dialog.result = None
+            dialog.on_closing()
+
+        buttons = {
+            translate("generic_yes"): yes,
+            translate("generic_no"): no,
+            translate("generic_cancel"): cancel,
+        }
+        dialog = cls(master=master, title=title, message=message, buttons=buttons)
+        dialog.wait_window(dialog)
+        return dialog.result
+
+    @classmethod
+    def askokcancel(cls, master, title=translate("generic_question"), message=""):
+        def ok():
+            dialog.result = True
+            dialog.on_closing()
+
+        def cancel():
+            dialog.result = False
+            dialog.on_closing()
+
+        buttons = {
+            translate("generic_ok"): ok,
+            translate("generic_cancel"): cancel,
+        }
+        dialog = cls(master=master, title=title, message=message, buttons=buttons)
+        dialog.wait_window(dialog)
+        return dialog.result
+
+    @classmethod
+    def askretrycancel(cls, master, title=translate("generic_question"), message=""):
+        def retry():
+            dialog.result = True
+            dialog.on_closing()
+
+        def cancel():
+            dialog.result = False
+            dialog.on_closing()
+
+        buttons = {
+            translate("generic_retry"): retry,
+            translate("generic_cancel"): cancel,
+        }
+        dialog = cls(master=master, title=title, message=message, buttons=buttons)
+        dialog.wait_window(dialog)
+        return dialog.result

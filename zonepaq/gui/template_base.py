@@ -18,7 +18,7 @@ from gui.window_settings import WindowSettings
 settings = SettingsManager()
 
 
-class WindowTemplateBase(CTk):
+class TemplateBase(CTk):
     """Base class for all GUI windows with common functionalities."""
 
     def __init__(self, title):

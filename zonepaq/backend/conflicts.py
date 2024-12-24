@@ -3,7 +3,8 @@ from collections import deque
 from concurrent.futures import as_completed
 from datetime import datetime
 from pathlib import Path
-from tkinter import filedialog, messagebox
+from tkinter import filedialog
+from gui.window_messagebox import WindowMessageBox
 
 from backend.logger import log
 from backend.merging import Merging
@@ -297,10 +298,11 @@ class ConflictProcessor:
             if folder_selected:
                 return Path(folder_selected)
             else:
-                retry = messagebox.askyesno(
-                    translate("generic_warning"),
-                    translate("merge_screen_conflicts_select_merged_destination"),
-                    # parent=self.window,
+                retry = WindowMessageBox.askretrycancel(
+                    self,
+                    message=translate(
+                        "merge_screen_conflicts_select_merged_destination"
+                    ),
                 )
                 if not retry:
                     return None

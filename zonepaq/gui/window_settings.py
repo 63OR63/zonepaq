@@ -3,11 +3,12 @@ from backend.logger import log
 from backend.utilities import Data, Files
 from config.settings import SettingsManager
 from config.translations import translate
-from gui.template_toplevel import WindowTemplateToplevel
+from gui.template_toplevel import TemplateToplevel
 import customtkinter as ctk
 
 from pathlib import Path
-from tkinter import filedialog, messagebox
+from tkinter import filedialog
+from gui.window_messagebox import WindowMessageBox
 
 from gui.window_help import WindowHelp
 
@@ -15,7 +16,7 @@ from gui.window_help import WindowHelp
 settings = SettingsManager()
 
 
-class WindowSettings(WindowTemplateToplevel):
+class WindowSettings(TemplateToplevel):
     """Popup window for configuring and saving application settings."""
 
     def __init__(self, master):

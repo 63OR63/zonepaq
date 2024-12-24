@@ -1,9 +1,9 @@
 from backend.logger import log
 from config.translations import translate
-from gui.template_base import WindowTemplateBase
+from gui.template_base import TemplateBase
 
 
-class WindowMain(WindowTemplateBase):
+class WindowMain(TemplateBase):
     """Launch screen GUI for navigating to primary application features."""
 
     def __init__(self, master=None):

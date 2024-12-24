@@ -3,15 +3,15 @@ from backend.repak import Repak
 from backend.utilities import Files, Data
 from config.translations import translate
 from gui.window_conflicts import WindowConflicts
-from gui.template_secondary import WindowTemplateSecondary
+from gui.template_secondary import TemplateSecondary
 
 
 from concurrent.futures import as_completed
 from pathlib import Path
-from tkinter import messagebox
+from gui.window_messagebox import WindowMessageBox
 
 
-class WindowMerge(WindowTemplateSecondary):
+class WindowMerge(TemplateSecondary):
     """GUI for analyzing and reporting file conflicts during merging."""
 
     def __init__(self, master):
@@ -54,10 +54,9 @@ class WindowMerge(WindowTemplateSecondary):
     def _find_conflicts(self):
         if not Files.is_existing_file_type(self.repak_cli, ".exe"):
             log.error(f"repak_cli executable isn't found at {str(self.repak_cli)}")
-            messagebox.showerror(
-                translate("generic_error"),
-                f'repak_cli {translate("error_executable_not_found_1")} {str(self.repak_cli)}\n{translate("error_executable_not_found_2")}',
-                parent=self,
+            WindowMessageBox.showerror(
+                self,
+                message=f'repak_cli {translate("error_executable_not_found_1")} {str(self.repak_cli)}\n{translate("error_executable_not_found_2")}',
             )
             return
         files = self.merge_listbox.get("all")
@@ -88,7 +87,7 @@ class WindowMerge(WindowTemplateSecondary):
             # self.open_gui("WindowConflicts")
 
         else:
-            messagebox.showwarning(
-                translate("generic_warning"),
-                translate("merge_screen_analyze_msg_empty_list"),
+            WindowMessageBox.showwarning(
+                self,
+                message=translate("merge_screen_analyze_msg_empty_list"),
             )

@@ -3,7 +3,7 @@ from config.metadata import APP_NAME, APP_VERSION
 from gui.ctk_wraps import CTkToplevel
 
 
-class WindowTemplateToplevel(CTkToplevel):
+class TemplateToplevel(CTkToplevel):
     def __init__(self, master, title):
         super().__init__(master)
         self.master = master
@@ -55,9 +55,9 @@ class WindowTemplateToplevel(CTkToplevel):
             if hasattr(self.master, name):
                 try:
                     setattr(self, name, getattr(self.master, name))
-                    log.debug(
-                        f"Bound '{name}' from {self.master.__class__.__name__} to {self.__class__.__name__}"
-                    )
+                    # log.debug(
+                    #     f"Bound '{name}' from {self.master.__class__.__name__} to {self.__class__.__name__}"
+                    # )
                 except AttributeError as e:
                     log.exception(f"Failed to bind '{name}': {e}")
             else:

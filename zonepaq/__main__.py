@@ -150,13 +150,18 @@ def check_for_update():
 
         from config.translations import translate
 
-        from tkinter import messagebox
+        from gui.template_base import TemplateBase
+        from gui.window_messagebox import WindowMessageBox
 
-        reply = messagebox.askyesnocancel(
+        master = TemplateBase(title="")
+        master.withdraw()
+        reply = WindowMessageBox.askyesnocancel(
+            master,
             translate("generic_question"),
             f'{translate("dialogue_request_update_1")} {update_available} {translate("dialogue_request_update_2")}',
-            # parent=self.window,
         )
+        master.destroy()
+
         print(reply)
         if reply == True:
             import webbrowser

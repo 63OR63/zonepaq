@@ -1,19 +1,19 @@
 import tkinter as tk
 from collections import deque
 from pathlib import Path
-from tkinter import messagebox, ttk
-
+from gui.window_messagebox import WindowMessageBox
+from tkinter import ttk
 from backend.conflicts import ConflictProcessor
 from backend.logger import log
 from config.settings import SettingsManager
 from config.translations import translate
-from gui.template_toplevel import WindowTemplateToplevel
+from gui.template_toplevel import TemplateToplevel
 
 # Get SettingsManager class
 settings = SettingsManager()
 
 
-class WindowConflicts(WindowTemplateToplevel):
+class WindowConflicts(TemplateToplevel):
     """Displays conflict reports and provides tools to analyze and merge files."""
 
     def __init__(self, master, content_tree):
@@ -310,16 +310,15 @@ class WindowConflicts(WindowTemplateToplevel):
         processor = ConflictProcessor(self.tree, self.ignore_no_conflicts)
         messagebox_type, messagebox_message = processor.process_selected_files()
         messagebox_functions = {
-            "info": messagebox.showinfo,
-            "warning": messagebox.showwarning,
-            "error": messagebox.showerror,
+            "info": WindowMessageBox.showinfo,
+            "warning": WindowMessageBox.showwarning,
+            "error": WindowMessageBox.showerror,
         }
 
         if messagebox_type in messagebox_functions:
             messagebox_functions[messagebox_type](
-                translate(f"generic_{messagebox_type}"),
-                messagebox_message,
-                parent=self.window,
+                self,
+                message=messagebox_message,
             )
 
     def _populate_tree(self, parent_node, data):

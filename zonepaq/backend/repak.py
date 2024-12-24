@@ -64,6 +64,7 @@ class Repak:
             destination = Path(destination)
             unpacked_folder = Path(source).with_suffix("")
 
+            log.debug(f"Deleting {unpacked_folder}...")
             Files.delete_path(unpacked_folder)
 
             command = [repak_path]
@@ -71,6 +72,7 @@ class Repak:
                 command.extend(["-a", aes_key])
             command.extend(["unpack", str(source)])
 
+            log.debug(f"Unpacking {str(source)} to parent folder...")
             result = subprocess.run(
                 command,
                 stdout=subprocess.PIPE,
@@ -85,7 +87,9 @@ class Repak:
                     and "pak is encrypted but no key was provided"
                     in result.stderr.strip()
                 ):
-                    log.warning(f"{source} is encrypted, trying again with AES key")
+                    log.warning(
+                        f"{str(source)} is encrypted, trying again with AES key"
+                    )
                     future = cls.unpack(
                         source,
                         destination,
@@ -95,22 +99,29 @@ class Repak:
                     success, output = future.result()
                     return success, output
 
-                log.error(f"Failed to unpack {source}: {result.stderr.strip()}")
+                log.error(f"Failed to unpack {str(source)}: {result.stderr.strip()}")
                 raise RuntimeError(
                     f"Command failed with error:\n{result.stderr.strip()}"
                 )
 
+            log.debug(f"Successfully unpacked {str(source)} to parent folder.")
+
             if allowed_extensions:
                 log.debug(f"Cleaning unpacked folder...")
-                Files.delete_unwanted_files(unpacked_folder, allowed_extensions)
+                Files.delete_path(
+                    unpacked_folder, allowed_extensions=allowed_extensions
+                )
 
             target_folder = destination / unpacked_folder.name
 
             if unpacked_folder != target_folder:
+                log.debug(f"Deleting {target_folder}...")
                 Files.delete_path(target_folder)
                 log.debug(f"Moving unpacked folder to destination...")
                 shutil.move(unpacked_folder, target_folder)
-            log.info(f"Successfully unpacked {str(source)} to {str(target_folder)}")
+            log.info(
+                f"Successfully unpacked {str(source)} and moved to {str(target_folder)}"
+            )
             return True, str(target_folder)
 
         except Exception as e:

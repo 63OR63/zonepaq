@@ -6,7 +6,7 @@ import sys
 import tempfile
 import zipfile
 from pathlib import Path
-from tkinter import messagebox
+from gui.window_messagebox import WindowMessageBox
 
 import requests
 from backend.logger import log
@@ -130,12 +130,12 @@ class ToolsManager:
                 results_ko.append(f"Error unpacking {vanilla_file}: {str(e)}")
 
         if not auto_mode:
-            cls.show_results(results_ok, results_ko)
+            cls.show_results(parent, results_ok, results_ko)
 
         pass
 
     @classmethod
-    def show_results(cls, results_ok, results_ko):
+    def show_results(cls, parent, results_ok, results_ko):
         message_ok = "\n".join(results_ok) if results_ok else ""
         message_ko = "\n".join(results_ko) if results_ko else ""
 
@@ -146,7 +146,7 @@ class ToolsManager:
             message += f"Failed:\n{message_ko}"
 
         if message:
-            messagebox.showinfo(translate("generic_results"), message)
+            WindowMessageBox.showinfo(parent, message=message)
 
     @classmethod
     def get_aes_key(
@@ -216,10 +216,9 @@ class ToolsManager:
                     message = f'{translate("dialogue_get_aes_error")} {translate("dialogue_check_logs")}'
 
             if not auto_mode:
-                messagebox.showinfo(
-                    translate("generic_info"),
-                    message,
-                    parent=parent,
+                WindowMessageBox.showinfo(
+                    parent,
+                    message=message,
                 )
 
     @classmethod
@@ -254,10 +253,9 @@ class ToolsManager:
         # Check platform compatibility
         if check_platform and sys.platform != "win32":
             if not auto_mode:
-                messagebox.showerror(
-                    translate("generic_error"),
-                    translate("dialogue_only_windows"),
-                    parent=parent,
+                WindowMessageBox.showerror(
+                    parent,
+                    message=translate("dialogue_only_windows"),
                 )
             return False
 
@@ -294,10 +292,9 @@ class ToolsManager:
             download_url = download_method(**download_args)
             if not download_url:
                 if not auto_mode:
-                    messagebox.showerror(
-                        translate("generic_error"),
-                        f'{translate("dialogue_install_error")} {display_name}\n{translate("dialogue_check_logs")}',
-                        parent=parent,
+                    WindowMessageBox.showerror(
+                        parent,
+                        message=f'{translate("dialogue_install_error")} {display_name}\n{translate("dialogue_check_logs")}',
                     )
                 return False
 
@@ -314,10 +311,9 @@ class ToolsManager:
 
             if not install_result:
                 if not auto_mode:
-                    messagebox.showerror(
-                        translate("generic_error"),
-                        f'{translate("dialogue_install_error")} {display_name}\n{translate("dialogue_check_logs")}',
-                        parent=parent,
+                    WindowMessageBox.showerror(
+                        parent,
+                        message=f'{translate("dialogue_install_error")} {display_name}\n{translate("dialogue_check_logs")}',
                     )
                 return False
 
@@ -327,10 +323,9 @@ class ToolsManager:
             else:
                 log.error(f"{display_name} can't be located at {local_exe}")
                 if not auto_mode:
-                    messagebox.showerror(
-                        translate("generic_error"),
-                        f'{translate("dialogue_install_error")} {display_name}\n{translate("dialogue_check_logs")}',
-                        parent=parent,
+                    WindowMessageBox.showerror(
+                        parent,
+                        message=f'{translate("dialogue_install_error")} {display_name}\n{translate("dialogue_check_logs")}',
                     )
                 return False
 
@@ -351,10 +346,9 @@ class ToolsManager:
             else:
                 message = translate("dialogue_install_success")
 
-            messagebox.showinfo(
-                translate("generic_info"),
-                f"{display_name} {message} {exe_location}",
-                parent=parent,
+            WindowMessageBox.showinfo(
+                parent,
+                message=f"{display_name} {message} {exe_location}",
             )
 
         return True
@@ -484,10 +478,9 @@ class ToolsManager:
             if auto_mode:
                 user_confirmation = False
             else:
-                result = messagebox.askquestion(
-                    translate("generic_question"),
-                    f'{display_name} {translate("dialogue_tools_redowndload_installer")}',
-                    parent=parent,
+                result = WindowMessageBox.askquestion(
+                    parent,
+                    message=f'{display_name} {translate("dialogue_tools_redowndload_installer")}',
                 )
                 if result == "yes":
                     user_confirmation = True

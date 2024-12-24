@@ -1,19 +1,20 @@
 from pathlib import Path
-from tkinter import filedialog, messagebox
+from tkinter import filedialog
+from gui.window_messagebox import WindowMessageBox
 
 from CTkListbox import CTkListbox
 import customtkinter as ctk
 from backend.logger import log
 from config.settings import SettingsManager
 from config.translations import translate
-from gui.template_toplevel import WindowTemplateToplevel
+from gui.template_toplevel import TemplateToplevel
 from tkinterdnd2 import DND_FILES
 
 # Get SettingsManager class
 settings = SettingsManager()
 
 
-class WindowTemplateSecondary(WindowTemplateToplevel):
+class TemplateSecondary(TemplateToplevel):
 
     def __init__(self, master, title):
         super().__init__(master, title=title)
@@ -276,4 +277,4 @@ class WindowTemplateSecondary(WindowTemplateToplevel):
             message += f"Failed:\n{message_ko}"
 
         if message:
-            messagebox.showinfo(translate("generic_results"), message)
+            WindowMessageBox.showinfo(self, message=message)

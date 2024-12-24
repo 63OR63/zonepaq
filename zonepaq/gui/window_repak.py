@@ -1,16 +1,17 @@
 from concurrent.futures import as_completed
 from pathlib import Path
-from tkinter import filedialog, messagebox
+from tkinter import filedialog
+from gui.window_messagebox import WindowMessageBox
 
 from backend.logger import log
 from backend.repak import Repak
 from backend.utilities import Files
 from config.translations import translate
 from CTkListbox import *
-from gui.template_secondary import WindowTemplateSecondary
+from gui.template_secondary import TemplateSecondary
 
 
-class WindowRepak(WindowTemplateSecondary):
+class WindowRepak(TemplateSecondary):
     """GUI for unpacking and repacking files."""
 
     def __init__(self, master):
@@ -70,10 +71,9 @@ class WindowRepak(WindowTemplateSecondary):
     def unpack_files(self):
         if not Files.is_existing_file_type(self.repak_cli, ".exe"):
             log.error(f"repak_cli executable isn't found at {str(self.repak_cli)}")
-            messagebox.showerror(
-                translate("generic_error"),
-                f'repak_cli executable {translate("error_executable_not_found_1")} {str(self.repak_cli)}\n{translate("error_executable_not_found_2")}',
-                parent=self,
+            WindowMessageBox.showerror(
+                self,
+                message=f'repak_cli executable {translate("error_executable_not_found_1")} {str(self.repak_cli)}\n{translate("error_executable_not_found_2")}',
             )
             return
         files = self.unpack_listbox.get("all")
@@ -90,9 +90,9 @@ class WindowRepak(WindowTemplateSecondary):
                         existing_folders.append(target_folder)
 
                 if existing_folders:
-                    overwrite = messagebox.askyesno(
-                        translate("generic_warning"),
-                        f'{translate("repak_screen_unpack_msg_overwrite_1")}\n\n'
+                    overwrite = WindowMessageBox.askyesno(
+                        self,
+                        message=f'{translate("repak_screen_unpack_msg_overwrite_1")}\n\n'
                         + "\n".join(map(str, existing_folders))
                         + f'\n\n{translate("repak_screen_unpack_msg_overwrite_2")}',
                     )
@@ -121,18 +121,17 @@ class WindowRepak(WindowTemplateSecondary):
                 self.show_results(results_ok, results_ko)
 
         else:
-            messagebox.showwarning(
-                translate("generic_warning"),
-                translate("repak_screen_unpack_msg_empty_list"),
+            WindowMessageBox.showwarning(
+                self,
+                message=translate("repak_screen_unpack_msg_empty_list"),
             )
 
     def _repack_folders(self):
         if not Files.is_existing_file_type(self.repak_cli, ".exe"):
             log.error(f"repak_cli executable isn't found at {str(self.repak_cli)}")
-            messagebox.showerror(
-                translate("generic_error"),
-                f'repak_cli executable {translate("error_executable_not_found_1")} {str(self.repak_cli)}\n{translate("error_executable_not_found_2")}',
-                parent=self,
+            WindowMessageBox.showerror(
+                self,
+                message=f'repak_cli executable {translate("error_executable_not_found_1")} {str(self.repak_cli)}\n{translate("error_executable_not_found_2")}',
             )
             return
         folders = self.repack_listbox.get("all")
@@ -164,7 +163,7 @@ class WindowRepak(WindowTemplateSecondary):
                 self.show_results(results_ok, results_ko)
 
         else:
-            messagebox.showwarning(
-                translate("generic_warning"),
-                translate("repak_screen_repack_msg_empty_list"),
+            WindowMessageBox.showwarning(
+                self,
+                message=translate("repak_screen_repack_msg_empty_list"),
             )

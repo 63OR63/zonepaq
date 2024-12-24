@@ -1,8 +1,9 @@
+import os
 import re
 from pathlib import Path
 import shutil
 import sys
-
+import time
 from backend.logger import log
 
 
@@ -75,23 +76,186 @@ class Files:
             log.exception(f"Error during folder content validation: {e}")
             return False
 
-    @staticmethod
-    def delete_path(path):
+    @classmethod
+    def delete_path(cls, path, retries=3, delay=1, timeout=10, allowed_extensions=None):
+        """
+        Delete a file or folder with retries and enhanced error handling.
+        Optionally only delete files not in the allowed_extensions list.
+        """
         try:
             path = Path(path).resolve()
-            if not path.exists():
+
+            # Check if the path is a root directory or top-level folder
+            if path == path.anchor:
+                log.warning(
+                    f"Operation stopped: Path is a root directory or top-level folder: {str(path)}"
+                )
                 return False
-            if path.is_dir():
-                shutil.rmtree(path)
-                log.debug(f"Deleted folder: {str(path)}")
-                return True
-            else:
-                path.unlink()
-                log.debug(f"Deleted file: {str(path)}")
-                return True
+
+            # Check for known system folders and their subpaths (e.g., Windows directory)
+            system_folders = [
+                Path("C:/Windows"),
+                Path("C:/Windows/System32"),
+            ]
+            if any(folder in path.parents for folder in system_folders):
+                log.warning(
+                    f"Operation stopped: Path is within a system folder: {str(path)}"
+                )
+                return False
+
+            # Check for specific protected folders on Windows
+            protected_folders = [
+                Path("C:/Users"),
+                Path("C:/Program Files"),
+                Path("C:/Program Files (x86)"),
+            ]
+            if any(path == folder for folder in protected_folders):
+                log.warning(
+                    f"Operation stopped: Path is a protected folder: {str(path)}"
+                )
+                return False
+
+            if not path.exists():
+                log.debug(f"Path does not exist: {str(path)}")
+                return False
+
+            start_time = time.time()
+            for attempt in range(1, retries + 2):
+                try:
+                    if path.is_dir():
+                        cls._remove_dir(
+                            path,
+                            start_time,
+                            retries,
+                            delay,
+                            timeout,
+                            allowed_extensions,
+                        )
+                        log.debug(f"Deleted folder: {str(path)}")
+                    else:
+                        if cls._should_delete_file(path, allowed_extensions):
+                            cls._remove_file(path, start_time, retries, delay, timeout)
+                            log.debug(f"Deleted file: {str(path)}")
+                    return True
+                except Exception as e:
+                    log.warning(f"Attempt {attempt} failed for {str(path)}: {e}")
+                    if attempt < retries + 1:
+                        time.sleep(cls._calculate_backoff(attempt, delay))
+                    else:
+                        log.error(
+                            f"Failed to delete path after {retries} retries: {str(path)}"
+                        )
+                        return False
         except Exception as e:
-            log.exception(f"Deletion failed for {str(path)}: {e}")
+            log.exception(f"Unexpected error while resolving path: {e}")
             return False
+
+    @classmethod
+    def _remove_dir(cls, path, start_time, retries, delay, timeout, allowed_extensions):
+        """
+        Manually remove a directory with retries and handling of locked files.
+        Only deletes files not in allowed_extensions if the parameter is provided.
+        """
+        for root, dirs, files in os.walk(path, topdown=False):
+            for name in files:
+                file_path = Path(root) / name
+                if cls._should_delete_file(file_path, allowed_extensions):
+                    cls._remove_file(file_path, start_time, retries, delay, timeout)
+
+            for name in dirs:
+                dir_path = Path(root) / name
+                try:
+                    if not any(Path(dir_path).iterdir()):
+                        os.rmdir(dir_path)
+                except OSError as e:
+                    log.warning(f"Could not remove directory {dir_path}: {e}")
+                    cls._handle_remove_readonly(os.rmdir, dir_path, e)
+
+        try:
+            if not any(path.iterdir()):
+                os.rmdir(path)
+        except OSError as e:
+            log.error(f"Failed to remove directory {path}: {e}")
+            cls._handle_remove_readonly(os.rmdir, path, e)
+
+    @classmethod
+    def _remove_file(cls, file_path, start_time, retries, delay, timeout):
+        """
+        Attempt to remove a file with retries.
+        """
+        for attempt in range(retries):
+            try:
+                file_path.unlink()
+                return
+            except PermissionError as e:
+                log.warning(f"Permission error removing file {file_path}: {e}")
+                cls._handle_remove_readonly(file_path.unlink, file_path, e)
+                cls._log_locked_files(file_path)
+            except Exception as e:
+                log.warning(f"Unexpected error removing file {file_path}: {e}")
+
+            # Break if timeout is exceeded
+            if time.time() - start_time > timeout:
+                log.error(f"Timeout exceeded while deleting {file_path}")
+                break
+
+            time.sleep(delay)
+        log.error(f"Failed to remove file after retries: {file_path}")
+
+    @staticmethod
+    def _should_delete_file(file_path, allowed_extensions):
+        """
+        Check if a file should be deleted based on allowed_extensions.
+        """
+        if allowed_extensions is None:
+            return True
+
+        return file_path.suffix.lower() not in allowed_extensions
+
+    @staticmethod
+    def _handle_remove_readonly(func, path, exc_info):
+        """
+        Handle readonly file removal errors by changing permissions and retrying.
+        """
+        import stat
+
+        if not os.access(path, os.W_OK):
+            os.chmod(path, stat.S_IWUSR)
+            try:
+                func(path)
+            except Exception as e:
+                log.error(f"Failed to remove {path} after chmod: {e}")
+        else:
+            log.error(f"Cannot remove {path}, unexpected error: {exc_info}")
+
+    @staticmethod
+    def _log_locked_files(path):
+        """
+        Log locked files if the platform allows (Windows-only example).
+        """
+        try:
+            import psutil
+
+            for proc in psutil.process_iter(["pid", "name"]):
+                try:
+                    for locked_file in proc.open_files():
+                        if Path(locked_file.path) == path:
+                            log.debug(
+                                f"File locked by process {proc.info['name']} (PID: {proc.info['pid']})"
+                            )
+                except Exception:
+                    pass
+        except ImportError:
+            log.warning("psutil is not installed; cannot log locked files.")
+
+    @staticmethod
+    def _calculate_backoff(attempt, base_delay):
+        """
+        Exponential backoff with jitter to reduce retry contention.
+        """
+        import random
+
+        return base_delay * (2 ** (attempt - 1)) + random.uniform(0, 0.5)
 
     @staticmethod
     def get_relative_path(path):
@@ -176,20 +340,6 @@ class Files:
 
         log.warning(f"No path for {exe_name} was found!")
         return ""
-
-    @staticmethod
-    def delete_unwanted_files(folder_path, allowed_extensions):
-        folder = Path(folder_path)
-        for file_path in folder.rglob("*"):
-            if file_path.is_file():
-                file_extension = file_path.suffix.lower()
-                if file_extension not in allowed_extensions:
-                    try:
-                        file_path.unlink()
-                        # log.debug(f"Deleted: {file_path}")
-                    except Exception as e:
-                        # log.debug(f"Failed to delete {file_path}: {e}")
-                        pass
 
 
 class Data:

@@ -1,4 +1,4 @@
-from tkinter import messagebox
+from gui.window_messagebox import WindowMessageBox
 
 import customtkinter as ctk
 from backend.logger import log
@@ -8,13 +8,13 @@ from config.metadata import APP_NAME
 from config.settings import SettingsManager
 from config.themes import StyleManager
 from config.translations import translate
-from gui.template_base import WindowTemplateBase
+from gui.template_base import TemplateBase
 
 # Get SettingsManager class
 settings = SettingsManager()
 
 
-class WindowFirstLaunch(WindowTemplateBase):
+class WindowFirstLaunch(TemplateBase):
 
     def __init__(self, master=None):
         super().__init__(title=translate("first_launch_sequence_title"))
@@ -254,10 +254,9 @@ class WindowFirstLaunch(WindowTemplateBase):
     def skip_setup_sequence(self):
         log.debug("Skipping first launch initial setup sequence...")
 
-        messagebox.showinfo(
-            translate("generic_info"),
-            f"Skip",
-            parent=self,
+        test = WindowMessageBox.showinfo(
+            self,
+            message=translate("dialogue_skip_setup_sequence"),
         )
 
         self.on_closing()

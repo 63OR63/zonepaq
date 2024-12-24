@@ -2,10 +2,10 @@ import json
 import logging
 import sys
 import tkinter as tk
+from tkinter import messagebox
 import traceback
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from tkinter import messagebox
 
 
 class DeepDebug:
