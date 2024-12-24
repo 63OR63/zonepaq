@@ -31,10 +31,11 @@ class GamesManager:
         cls.vanilla_files = [
             {
                 "archive": Path(cls.game_path) / suffix,
-                "unpacked": Path.cwd()
-                / TOOLS["tools_base"]
-                / "vanilla_unpacked"
-                / Path(suffix).stem,
+                "unpacked": (Path(cls.game_path) / suffix).with_suffix(""),
+                # "unpacked": Path.cwd()
+                # / TOOLS["tools_base"]
+                # / "vanilla_unpacked"
+                # / Path(suffix).stem,
             }
             for suffix in cls.game_meta[cls.game_installation][
                 "vanilla_archives_suffixes"

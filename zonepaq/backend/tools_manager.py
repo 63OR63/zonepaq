@@ -1,3 +1,4 @@
+from concurrent.futures import as_completed
 import re
 import shutil
 import subprocess
@@ -9,6 +10,7 @@ from tkinter import messagebox
 
 import requests
 from backend.logger import log
+from backend.repak import Repak
 from backend.utilities import Data, Files
 from config.settings import SettingsManager
 from config.translations import translate
@@ -99,10 +101,52 @@ class ToolsManager:
 
         games_manager = GamesManager()
 
-        for vanilla_file in games_manager.vanilla_files:
-            if Files.is_existing_file(vanilla_file["archive"]):
+        results_ok = []
+        results_ko = []
+        futures = {}
+        for item in games_manager.vanilla_files:
+            vanilla_file = item["archive"]
+            unpacked_folder = item["unpacked"].parent
+            if Files.is_existing_file(vanilla_file):
 
-                pass
+                vanilla_file = Path(vanilla_file)
+                futures[
+                    Repak.unpack(
+                        vanilla_file,
+                        unpacked_folder,
+                        allowed_extensions=[".cfg", ".ini"],
+                    )
+                ] = vanilla_file
+
+        for future in as_completed(futures):
+            vanilla_file = futures[future]
+            try:
+                success, result = future.result()
+                if success:
+                    results_ok.append(f"Unpacked {vanilla_file} to: {result}")
+                else:
+                    results_ko.append(f"Error unpacking {vanilla_file}: {result}")
+            except Exception as e:
+                results_ko.append(f"Error unpacking {vanilla_file}: {str(e)}")
+
+        if not auto_mode:
+            cls.show_results(results_ok, results_ko)
+
+        pass
+
+    @classmethod
+    def show_results(cls, results_ok, results_ko):
+        message_ok = "\n".join(results_ok) if results_ok else ""
+        message_ko = "\n".join(results_ko) if results_ko else ""
+
+        message = ""
+        if message_ok:
+            message += f"Success:\n{message_ok}\n"
+        if message_ko:
+            message += f"Failed:\n{message_ko}"
+
+        if message:
+            messagebox.showinfo(translate("generic_results"), message)
 
     @classmethod
     def get_aes_key(
@@ -151,7 +195,7 @@ class ToolsManager:
 
             if Data.is_valid_aes_key(aes_key):
 
-                # Finalize installation
+                # Finalize
                 settings_key = install_metadata.get("settings_key", None)
                 entry_widget = install_metadata.get("entry_widget", None)
                 entry_variable = install_metadata.get("entry_variable", None)

@@ -139,7 +139,7 @@ class Files:
     ):
         if sys.platform != "win32":
             exe_name = Path(exe_name).stem
-            local_exe = Path(local_exe).stem
+            local_exe = Path(local_exe).with_suffix("")
 
         # 1. Check for local installation
         if local_exe:
@@ -176,6 +176,20 @@ class Files:
 
         log.warning(f"No path for {exe_name} was found!")
         return ""
+
+    @staticmethod
+    def delete_unwanted_files(folder_path, allowed_extensions):
+        folder = Path(folder_path)
+        for file_path in folder.rglob("*"):
+            if file_path.is_file():
+                file_extension = file_path.suffix.lower()
+                if file_extension not in allowed_extensions:
+                    try:
+                        file_path.unlink()
+                        # log.debug(f"Deleted: {file_path}")
+                    except Exception as e:
+                        # log.debug(f"Failed to delete {file_path}: {e}")
+                        pass
 
 
 class Data:

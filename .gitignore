@@ -143,3 +143,5 @@ settings.txt
 /*.png
 /zonepaq/tools
 .VSCodeCounter
+/README.bbcode
+/nexus.py

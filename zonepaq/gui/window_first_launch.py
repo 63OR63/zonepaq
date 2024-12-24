@@ -232,19 +232,12 @@ class WindowFirstLaunch(WindowTemplateBase):
         tools_manager = ToolsManager()
 
         # Iterate through and call tools install methods in auto mode
-        settings_changed = False
         for tool_key in settings.TOOLS_PATHS.keys():
-            self.installation_progress_callback = 0
             install_method = getattr(tools_manager, f"install_{tool_key}")
             install_result = install_method(parent=self, auto_mode=True)
             if install_result:
                 local_exe = TOOLS[tool_key]["local_exe"]
                 if local_exe.exists():
-                    settings_changed = True
-
-                    # Update path in settings
-                    settings.TOOLS_PATHS[tool_key] = local_exe
-
                     # Apply success style to the status label
                     self._apply_style(True, getattr(self, f"{tool_key}_status_label"))
 
@@ -255,9 +248,6 @@ class WindowFirstLaunch(WindowTemplateBase):
         tools_manager.unpack_files(
             parent=self, auto_mode=True, skip_aes_extraction=True
         )
-
-        if settings_changed:
-            settings.save()
 
         self.on_closing()
 

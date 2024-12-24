@@ -51,9 +51,9 @@ class Repak:
 
     @classmethod
     @run_in_executor
-    def unpack(cls, source, destination, aes_key=None):
+    def unpack(cls, source, destination, aes_key=None, allowed_extensions=None):
         log.debug(
-            f'Attempting to unpack: {source}{" using key: " + aes_key if aes_key else ""}'
+            f'Attempting to unpack: {str(source)}{" using key: " + aes_key if aes_key else ""}'
         )
         try:
             repak_path = cls.REPAK_PATH
@@ -86,7 +86,12 @@ class Repak:
                     in result.stderr.strip()
                 ):
                     log.warning(f"{source} is encrypted, trying again with AES key")
-                    future = cls.unpack(source, destination, settings.AES_KEY)
+                    future = cls.unpack(
+                        source,
+                        destination,
+                        aes_key=settings.AES_KEY,
+                        allowed_extensions=allowed_extensions,
+                    )
                     success, output = future.result()
                     return success, output
 
@@ -95,10 +100,15 @@ class Repak:
                     f"Command failed with error:\n{result.stderr.strip()}"
                 )
 
+            if allowed_extensions:
+                log.debug(f"Cleaning unpacked folder...")
+                Files.delete_unwanted_files(unpacked_folder, allowed_extensions)
+
             target_folder = destination / unpacked_folder.name
 
             if unpacked_folder != target_folder:
                 Files.delete_path(target_folder)
+                log.debug(f"Moving unpacked folder to destination...")
                 shutil.move(unpacked_folder, target_folder)
             log.info(f"Successfully unpacked {str(source)} to {str(target_folder)}")
             return True, str(target_folder)
