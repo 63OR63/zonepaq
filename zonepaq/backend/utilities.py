@@ -77,6 +77,154 @@ class Files:
             return False
 
     @classmethod
+    def create_dir(cls, path, retries=3, delay=1, timeout=10):
+        """
+        Create a directory and its parents.
+        """
+        try:
+            path = Path(path).resolve()
+            start_time = time.time()
+
+            for attempt in range(1, retries + 2):
+                try:
+                    path.mkdir(parents=True, exist_ok=True)
+                    log.debug(f"Directory created or already exists: {path}")
+                    return True
+                except Exception as e:
+                    log.warning(
+                        f"Attempt {attempt} failed to create directory {path}: {e}"
+                    )
+                    if attempt < retries + 1:
+                        time.sleep(cls._calculate_backoff(attempt, delay))
+                    else:
+                        log.error(
+                            f"Failed to create directory after {retries} retries: {path}"
+                        )
+                        return False
+
+                if time.time() - start_time > timeout:
+                    log.error(f"Timeout exceeded while creating directory: {path}")
+                    return False
+
+        except Exception as e:
+            log.exception(f"Unexpected error during directory creation: {e}")
+            return False
+
+    @classmethod
+    def copy_folder_contents(
+        cls, source_folder, destination_folder, retries=3, delay=1, timeout=10
+    ):
+        """
+        Copy the contents of a folder to a destination folder by reusing `copy_path`.
+        """
+        try:
+            source_path = Path(source_folder).resolve()
+            destination_path = Path(destination_folder).resolve()
+
+            # Validate source folder
+            if not source_path.is_dir():
+                log.error(
+                    f"Source folder does not exist or is not a directory: {source_folder}"
+                )
+                return False
+
+            # Ensure the destination folder exists
+            cls.create_dir(destination_path)
+
+            # Iterate over the contents of the source folder
+            for item in source_path.iterdir():
+                # Set destination for each item
+                destination_item = destination_path / item.name
+
+                # Use `copy_path` to handle each item
+                if not cls.copy_path(item, destination_item, retries, delay, timeout):
+                    return False  # Stop on the first failure
+
+            log.debug(
+                f"Successfully copied contents of {source_folder} to {destination_folder}"
+            )
+            return True
+
+        except Exception as e:
+            log.exception(f"Error during folder contents copy: {e}")
+            return False
+
+    @classmethod
+    def copy_path(cls, src, dest, retries=3, delay=1, timeout=10):
+        """
+        Copy a file or folder to a destination with retries and error handling.
+        """
+        try:
+            src = Path(src).resolve()
+            dest = Path(dest).resolve()
+
+            cls.create_dir(dest.parent)
+
+            if not src.exists():
+                log.error(f"Source path does not exist: {src}")
+                return False
+
+            start_time = time.time()
+            for attempt in range(1, retries + 2):
+                try:
+                    if src.is_dir():
+                        shutil.copytree(src, dest)
+                    else:
+                        shutil.copy2(src, dest)
+                    log.debug(f"Copied {src} to {dest}")
+                    return True
+                except Exception as e:
+                    log.warning(
+                        f"Attempt {attempt} failed for copying {src} to {dest}: {e}"
+                    )
+                    if attempt < retries + 1:
+                        time.sleep(cls._calculate_backoff(attempt, delay))
+                    else:
+                        log.error(
+                            f"Failed to copy after {retries} retries: {src} to {dest}"
+                        )
+                        return False
+        except Exception as e:
+            log.exception(f"Unexpected error during copy operation: {e}")
+            return False
+
+    @classmethod
+    def move_path(cls, src, dest, retries=3, delay=1, timeout=10):
+        """
+        Move a file or folder to a destination with retries and error handling.
+        """
+        try:
+            src = Path(src).resolve()
+            dest = Path(dest).resolve()
+
+            cls.create_dir(dest.parent)
+
+            if not src.exists():
+                log.error(f"Source path does not exist: {src}")
+                return False
+
+            start_time = time.time()
+            for attempt in range(1, retries + 2):
+                try:
+                    shutil.move(str(src), str(dest))
+                    log.debug(f"Moved {src} to {dest}")
+                    return True
+                except Exception as e:
+                    log.warning(
+                        f"Attempt {attempt} failed for moving {src} to {dest}: {e}"
+                    )
+                    if attempt < retries + 1:
+                        time.sleep(cls._calculate_backoff(attempt, delay))
+                    else:
+                        log.error(
+                            f"Failed to move after {retries} retries: {src} to {dest}"
+                        )
+                        return False
+        except Exception as e:
+            log.exception(f"Unexpected error during move operation: {e}")
+            return False
+
+    @classmethod
     def delete_path(cls, path, retries=3, delay=1, timeout=10, allowed_extensions=None):
         """
         Delete a file or folder with retries and enhanced error handling.
@@ -210,6 +358,8 @@ class Files:
         if allowed_extensions is None:
             return True
 
+        allowed_extensions = {ext.lower() for ext in allowed_extensions}
+
         return file_path.suffix.lower() not in allowed_extensions
 
     @staticmethod
@@ -265,37 +415,6 @@ class Files:
             return str(relative_path)
         except ValueError:
             return str(resolved_path)
-
-    @classmethod
-    def copy_folder_contents(cls, source_folder, destination_folder):
-        try:
-            source_path = Path(source_folder)
-            destination_path = Path(destination_folder)
-
-            # Validate source folder
-            if not cls.is_existing_folder(source_path):
-                raise FileNotFoundError(
-                    f"Source folder '{source_folder}' does not exist or is invalid."
-                )
-
-            # Ensure the destination folder exists
-            destination_path.mkdir(parents=True, exist_ok=True)
-
-            # Copy contents of the source folder to the destination folder
-            for item in source_path.iterdir():
-                destination_item = destination_path / item.name
-
-                if item.is_dir():
-                    shutil.copytree(item, destination_item, dirs_exist_ok=True)
-                else:
-                    shutil.copy2(item, destination_item)
-
-            log.debug(
-                f"All contents copied from '{source_folder}' to '{destination_folder}'."
-            )
-
-        except Exception as e:
-            log.exception(f"Error during folder copy operation: {e}")
 
     @staticmethod
     def find_app_installation(

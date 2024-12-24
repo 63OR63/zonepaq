@@ -31,7 +31,7 @@ class ToolsManager:
     @classmethod
     def init(cls):
         cls.tools_base = Path(settings.TOOLS["tools_base"])
-        cls.tools_base.mkdir(parents=True, exist_ok=True)
+        Files.create_dir(cls.tools_base)
 
         cls.seven_zip_local_exe = settings.TOOLS["7zr"]["local_exe"]
 
@@ -380,7 +380,7 @@ class ToolsManager:
             Files.delete_path(output_dir)
 
         # Ensure the output directory exists
-        output_dir.mkdir(parents=True, exist_ok=True)
+        Files.create_dir(output_dir)
 
         # Download installer
         downloaded_file = cls.check_and_download_installer(
@@ -492,8 +492,8 @@ class ToolsManager:
                 return True
 
         # Prepare the target file directory
+        Files.create_dir(target_file.parent)
         Files.delete_path(target_file)
-        target_file.parent.mkdir(parents=True, exist_ok=True)
 
         # Download the file
         downloaded_file = cls.download_file(url, target_file)
@@ -504,7 +504,7 @@ class ToolsManager:
     def download_file(cls, url, target_file):
         try:
             target_file = Path(target_file)
-            target_file.parent.mkdir(parents=True, exist_ok=True)
+            Files.create_dir(target_file.parent)
             log.info(f"Downloading {url}...")
             with requests.get(url, stream=True) as response:
                 response.raise_for_status()

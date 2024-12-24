@@ -11,6 +11,8 @@ from config.defaults import (
 from config.themes import ThemeManager
 from config.translations import get_available_languages, get_translation
 
+from backend.utilities import Files
+
 
 class ConfigSource(ABC):
     @abstractmethod
@@ -88,7 +90,7 @@ class SettingsManager:
     @classmethod
     def init(cls):
         cls.INI_SETTINGS_FILE = r"zonepaq\settings.ini"
-        Path(cls.INI_SETTINGS_FILE).parent.mkdir(parents=True, exist_ok=True)
+        Files.create_dir(Path(cls.INI_SETTINGS_FILE).parent)
 
         sources = [
             IniConfigSource(cls.INI_SETTINGS_FILE),

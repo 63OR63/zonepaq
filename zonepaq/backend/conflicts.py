@@ -252,7 +252,7 @@ class ConflictProcessor:
     ):
         if unpacked_files:
             save_path = temp_merging_dir / item_path
-            save_path.parent.mkdir(parents=True, exist_ok=True)
+            Files.create_dir(save_path.parent)
 
             if use_vanilla:
                 vanilla_paths = settings.GAME_PATHS.get("vanilla_unpacked")
