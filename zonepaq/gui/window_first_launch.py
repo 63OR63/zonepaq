@@ -23,7 +23,7 @@ class WindowFirstLaunch(TemplateBase):
         self.style_manager = StyleManager
 
         self.create()
-        # settings.set("SETTINGS", "first_launch", False)
+        settings.set("SETTINGS", "first_launch", False)
         settings.save()
 
         self.adjust_to_content(self)
@@ -97,7 +97,11 @@ class WindowFirstLaunch(TemplateBase):
         for tool_key, tool_path in settings.TOOLS_PATHS.items():
             display_name = TOOLS.get(tool_key, {}).get("display_name", "Unknown")
             status = Data.is_valid_data(tool_path)
-            text = "Installed" if status else "Not Installed"
+            text = (
+                translate("generic_installed")
+                if status
+                else translate("generic_not_installed")
+            )
             report[display_name] = {
                 "tool_key": tool_key,
                 "status": status,
@@ -106,7 +110,11 @@ class WindowFirstLaunch(TemplateBase):
 
         # Add AES key to the report
         status = Data.is_valid_data(settings.AES_KEY, "aes")
-        text = "Detected" if status else "Not Detected"
+        text = (
+            translate("generic_detected")
+            if status
+            else translate("generic_not_detected")
+        )
         report[translate("settings_game_aes_key")] = {
             "tool_key": tool_key,
             "status": status,
@@ -123,7 +131,11 @@ class WindowFirstLaunch(TemplateBase):
             unpacked = value["unpacked"]
             display_name = str(Path(unpacked).name)
             status = not Files.is_folder_empty(unpacked)
-            text = "Unpacked" if status else "Not Unpacked"
+            text = (
+                translate("generic_unpacked")
+                if status
+                else translate("generic_not_unpacked")
+            )
             report[display_name] = {
                 "tool_key": f"vanilla_{index}",
                 "status": status,

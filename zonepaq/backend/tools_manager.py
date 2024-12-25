@@ -106,14 +106,21 @@ class ToolsManager:
         futures = {}
         for item in games_manager.vanilla_files:
             vanilla_file = item["archive"]
-            unpacked_folder = item["unpacked"].parent
+            unpacked_folder = item["unpacked"]
+            parent_folder = unpacked_folder.parent
+
+            # Skip unpacking if unpacked_folder isn't empty
+            if not Files.is_folder_empty(unpacked_folder):
+                results_ok.append(f"{translate("generic_skipped")} {str(unpacked_folder)} {translate("generic_is_not_empty")}")
+                continue
+
             if Files.is_existing_file(vanilla_file):
 
                 vanilla_file = Path(vanilla_file)
                 futures[
                     Repak.unpack(
                         vanilla_file,
-                        unpacked_folder,
+                        parent_folder,
                         allowed_extensions=[".cfg", ".ini"],
                     )
                 ] = vanilla_file
@@ -123,27 +130,25 @@ class ToolsManager:
             try:
                 success, result = future.result()
                 if success:
-                    results_ok.append(f"Unpacked {vanilla_file} to: {result}")
+                    results_ok.append(str(vanilla_file))
                 else:
-                    results_ko.append(f"Error unpacking {vanilla_file}: {result}")
+                    results_ko.append(f"{str(vanilla_file)}: {result}")
             except Exception as e:
-                results_ko.append(f"Error unpacking {vanilla_file}: {str(e)}")
+                results_ko.append(f"{str(vanilla_file)}: {str(e)}")
 
         if not auto_mode:
             cls.show_results(parent, results_ok, results_ko)
 
-        pass
-
-    @classmethod
-    def show_results(cls, parent, results_ok, results_ko):
+    @staticmethod
+    def show_results(parent, results_ok, results_ko):
         message_ok = "\n".join(results_ok) if results_ok else ""
         message_ko = "\n".join(results_ko) if results_ko else ""
 
-        message = ""
+        message = []
         if message_ok:
-            message += f"Success:\n{message_ok}\n"
+            message += [translate("generic_success") + ":", message_ok]
         if message_ko:
-            message += f"Failed:\n{message_ko}"
+            message += [translate("generic_fail") + ":", message_ko]
 
         if message:
             WindowMessageBox.showinfo(parent, message=message)

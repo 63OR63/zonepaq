@@ -270,11 +270,11 @@ class TemplateSecondary(TemplateToplevel):
         message_ok = "\n".join(results_ok) if results_ok else ""
         message_ko = "\n".join(results_ko) if results_ko else ""
 
-        message = ""
+        message = []
         if message_ok:
-            message += f"Success:\n{message_ok}\n"
+            message += [translate("generic_success") + ":", message_ok]
         if message_ko:
-            message += f"Failed:\n{message_ko}"
+            message += [translate("generic_fail") + ":", message_ko]
 
         if message:
             WindowMessageBox.showinfo(self, message=message)

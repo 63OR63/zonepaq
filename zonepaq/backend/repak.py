@@ -149,8 +149,8 @@ class Repak:
                 packed_file = Path(destination) / f"{source.name}.pak"
 
             if packed_file.is_file():
-                log.warning(f"Removing existing packed file: {packed_file}")
-                packed_file.unlink()
+                log.debug(f"Removing existing packed file: {packed_file}")
+                Files.delete_path(packed_file)
 
             result = subprocess.run(
                 [

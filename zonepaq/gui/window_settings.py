@@ -63,9 +63,16 @@ class WindowSettings(TemplateToplevel):
             self.destroy()
 
     def _create_tabview_layout(self):
+        self.grid_rowconfigure(0, weight=0)  # Header row
+        self.grid_rowconfigure(1, weight=1)  # Content row (tabviews)
+        self.grid_rowconfigure(2, weight=0)  # Save frame row
+        self.grid_columnconfigure(0, weight=0)  # Sidebar
+        self.grid_columnconfigure(1, weight=1)  # Main content
+
         self.create_header(
             self, text=translate("menu_preferences_settings"), row=0, column=0
         )
+        self.grid_rowconfigure(0, weight=0)
 
         sidebar_frame = self.create_frame(
             self,
@@ -74,7 +81,6 @@ class WindowSettings(TemplateToplevel):
             column=0,
             columnspan=1,
         )
-        self.grid_columnconfigure(sidebar_frame.grid_info().get("column"), weight=0)
 
         self.tools_tabview_frame = self.create_frame(
             self,
@@ -82,9 +88,6 @@ class WindowSettings(TemplateToplevel):
             row=1,
             column=1,
             column_weights=[(0, 1)],
-        )
-        self.grid_columnconfigure(
-            self.tools_tabview_frame.grid_info().get("column"), weight=1
         )
 
         self.game_tabview_frame = self.create_frame(
@@ -94,9 +97,6 @@ class WindowSettings(TemplateToplevel):
             column=1,
             column_weights=[(0, 1)],
         )
-        self.grid_columnconfigure(
-            self.tools_tabview_frame.grid_info().get("column"), weight=1
-        )
 
         self.appearance_tabview_frame = self.create_frame(
             self,
@@ -105,12 +105,9 @@ class WindowSettings(TemplateToplevel):
             column=1,
             column_weights=[(0, 1)],
         )
-        # self.grid_columnconfigure(
-        #     self.appearance_tabview_frame.grid_info().get("column"), weight=1
-        # )
 
         save_frame = self.create_frame(
-            self, column=0, style="Tertiary.CTkFrame", column_weights=[(0, 1)]
+            self, row=2, column=0, style="Tertiary.CTkFrame", column_weights=[(0, 1)]
         )
 
         self.create_ctk_widget(
@@ -342,7 +339,7 @@ class WindowSettings(TemplateToplevel):
                 "master": master,
                 "textvariable": entry_variable,
                 "placeholder_text": "CTkEntry",
-                "width": 300,
+                "width": 320,
             },
             widget_style="Alt.CTkEntry",
             grid_args={
@@ -379,7 +376,7 @@ class WindowSettings(TemplateToplevel):
                         parent=self, install_metadata=p
                     ),
                     "text": button["text"],
-                    "width": 0,
+                    "width": 120,
                 },
                 widget_style=button["style"],
                 grid_args={
@@ -449,7 +446,11 @@ class WindowSettings(TemplateToplevel):
             unpacked = value["unpacked"]
             display_name = str(Path(unpacked).name)
             status = not Files.is_folder_empty(unpacked)
-            text = "Unpacked" if status else "Not Unpacked"
+            text = (
+                translate("generic_unpacked")
+                if status
+                else translate("generic_not_unpacked")
+            )
             vanilla_group[display_name] = {
                 "tool_key": f"vanilla_{index}",
                 "status": status,
@@ -516,7 +517,7 @@ class WindowSettings(TemplateToplevel):
             text=translate("settings_tools_unpack"),
             command=lambda: self.tools_manager.unpack_files(self, install_metadata={}),
             style="Alt.CTkButton",
-            width=0,
+            width=120,
             padx=(0, self.padding),
             pady=self.padding / 5,
             sticky="ew",

@@ -11,6 +11,7 @@ class WindowMessageBox(TemplateToplevel):
 
         self.result = None
         self._create_message_box(message, buttons)
+
         self.adjust_to_content(self)
 
         log.info("Message Box window opened.")
@@ -33,38 +34,33 @@ class WindowMessageBox(TemplateToplevel):
         elif not isinstance(message, list):
             message = [""]
 
-        self.create_ctk_widget(
-            ctk_widget=ctk.CTkLabel,
-            widget_args={
-                "master": box_frame,
-                "text": message[0],
-                "wraplength": 400,
-                "justify": "left",
-            },
-            grid_args={
-                "sticky": "nw",
-            },
-        )
-        if len(message) > 1 and message[1]:
-            textbox = self.create_ctk_widget(
-                ctk_widget=ctk.CTkTextbox,
-                widget_args={"master": box_frame, "wrap": "none"},
-                grid_args={"sticky": "nsew", "pady": self.padding / 2},
-            )
-            textbox.insert(tk.END, text=message[1])
-        if len(message) > 2 and message[2]:
-            self.create_ctk_widget(
-                ctk_widget=ctk.CTkLabel,
-                widget_args={
-                    "master": box_frame,
-                    "text": message[2],
-                    "wraplength": 400,
-                    "justify": "left",
-                },
-                grid_args={
-                    "sticky": "nw",
-                },
-            )
+        for index, msg in enumerate(message):
+            if msg:
+                if index % 2 == 0:
+                    self.create_ctk_widget(
+                        ctk_widget=ctk.CTkLabel,
+                        widget_args={
+                            "master": box_frame,
+                            "text": msg,
+                            "wraplength": 500,
+                            "justify": "left",
+                        },
+                        grid_args={
+                            "sticky": "nw",
+                        },
+                    )
+                else:
+                    textbox = self.create_ctk_widget(
+                        ctk_widget=ctk.CTkTextbox,
+                        widget_args={
+                            "master": box_frame,
+                            "width": 500,
+                            "wrap": "none",
+                            # "state": "disabled",
+                        },
+                        grid_args={"sticky": "nsew", "pady": self.padding / 2},
+                    )
+                    textbox.insert(tk.END, msg)
 
         button_frame = self.create_frame(
             box_frame, pady=(self.padding, 0), column_weights=[(0, 1), (1, 0)]

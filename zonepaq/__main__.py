@@ -142,8 +142,7 @@ def check_for_update():
         if (
             settings.config.get("SETTINGS")
             and settings.config.get("SETTINGS").get("skip_version")
-            and update_available
-            == eval(settings.config.get("SETTINGS").get("skip_version"))
+            and update_available == settings.config.get("SETTINGS").get("skip_version")
         ):
             log.debug(f"Skipping version {update_available}.")
             return None

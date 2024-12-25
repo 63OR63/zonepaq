@@ -92,9 +92,11 @@ class WindowRepak(TemplateSecondary):
                 if existing_folders:
                     overwrite = WindowMessageBox.askyesno(
                         self,
-                        message=f'{translate("repak_screen_unpack_msg_overwrite_1")}\n\n'
-                        + "\n".join(map(str, existing_folders))
-                        + f'\n\n{translate("repak_screen_unpack_msg_overwrite_2")}',
+                        message=[
+                            translate("repak_screen_unpack_msg_overwrite_1"),
+                            "\n".join(map(str, existing_folders)),
+                            translate("repak_screen_unpack_msg_overwrite_2"),
+                        ],
                     )
                     if not overwrite:
                         return
@@ -112,11 +114,11 @@ class WindowRepak(TemplateSecondary):
                     try:
                         success, result = future.result()
                         if success:
-                            results_ok.append(f"Unpacked {file} to: {result}")
+                            results_ok.append(str(file))
                         else:
-                            results_ko.append(f"Error unpacking {file}: {result}")
+                            results_ko.append(f"{str(file)}: {result}")
                     except Exception as e:
-                        results_ko.append(f"Error unpacking {file}: {str(e)}")
+                        results_ko.append(f"{str(file)}: {str(e)}")
 
                 self.show_results(results_ok, results_ko)
 
@@ -154,11 +156,11 @@ class WindowRepak(TemplateSecondary):
                     try:
                         success, result = future.result()
                         if success:
-                            results_ok.append(f"Repacked {folder} into: {result}")
+                            results_ok.append(str(folder))
                         else:
-                            results_ko.append(f"Error repacking {folder}: {result}")
+                            results_ko.append(f"{str(folder)}: {result}")
                     except Exception as e:
-                        results_ko.append(f"Error repacking {folder}: {str(e)}")
+                        results_ko.append(f"{str(folder)}: {str(e)}")
 
                 self.show_results(results_ok, results_ko)
 
