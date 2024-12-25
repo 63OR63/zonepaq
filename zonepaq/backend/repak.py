@@ -3,32 +3,31 @@ from pathlib import Path
 
 from backend.executor import run_in_executor
 from backend.logger import log
-from backend.utilities import Files
+from backend.utilities import Data, Files
 from config.settings_manager import settings
 
 
 class Repak:
     """Provides methods for listing, unpacking, and repacking files using the Repak CLI tool."""
 
-    REPAK_PATH = settings.TOOLS_PATHS["repak_cli"]
-
     @classmethod
     @run_in_executor
     def get_list(cls, file):
         log.debug(f"Attempting to list contents of the file: {file}")
         try:
-            repak_path = cls.REPAK_PATH
+            repak_path = settings.TOOLS_PATHS["repak_cli"]
 
             if not Files.is_existing_file_type(repak_path, ".exe"):
                 raise FileNotFoundError(f"repak_cli doesn't exist at {repak_path}")
 
             file = Path(file)
             result = subprocess.run(
-                [cls.REPAK_PATH, "list", str(file)],
+                [repak_path, "list", str(file)],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
             )
+
             if result.returncode != 0:
                 log.error(
                     f"Failed to list contents of {str(file)}: {result.stderr.strip()}"
@@ -52,7 +51,7 @@ class Repak:
             f'Attempting to unpack: {str(source)}{" using key: " + aes_key if aes_key else ""}'
         )
         try:
-            repak_path = cls.REPAK_PATH
+            repak_path = settings.TOOLS_PATHS["repak_cli"]
             if not Files.is_existing_file_type(repak_path, ".exe"):
                 raise FileNotFoundError(f"repak doesn't exist at {repak_path}")
 
@@ -74,7 +73,6 @@ class Repak:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                check=False,
             )
 
             if result.returncode != 0:
@@ -83,17 +81,23 @@ class Repak:
                     and "pak is encrypted but no key was provided"
                     in result.stderr.strip()
                 ):
-                    log.warning(
-                        f"{str(source)} is encrypted, trying again with AES key"
-                    )
-                    future = cls.unpack(
-                        source,
-                        destination,
-                        aes_key=settings.AES_KEY,
-                        allowed_extensions=allowed_extensions,
-                    )
-                    success, output = future.result()
-                    return success, output
+                    if not Data.is_valid_aes_key(settings.AES_KEY):
+                        log.warning(
+                            f"{str(source)} is encrypted, but no valid AES key is detected. Aborting."
+                        )
+                        return False, None
+                    else:
+                        log.debug(
+                            f"{str(source)} is encrypted, trying again with AES key..."
+                        )
+                        future = cls.unpack(
+                            source,
+                            destination,
+                            aes_key=settings.AES_KEY,
+                            allowed_extensions=allowed_extensions,
+                        )
+                        success, output = future.result()
+                        return success, output
 
                 log.error(f"Failed to unpack {str(source)}: {result.stderr.strip()}")
                 raise RuntimeError(
@@ -115,7 +119,7 @@ class Repak:
                 Files.delete_path(target_folder)
                 log.debug(f"Moving unpacked folder to destination...")
                 Files.move_path(unpacked_folder, target_folder)
-            log.info(
+            log.debug(
                 f"Successfully unpacked {str(source)} and moved to {str(target_folder)}"
             )
             return True, str(target_folder)
@@ -133,7 +137,7 @@ class Repak:
             )
         log.debug(f"Attempting to repack: {source}")
         try:
-            repak_path = cls.REPAK_PATH
+            repak_path = settings.TOOLS_PATHS["repak_cli"]
             if not Files.is_existing_file_type(repak_path, ".exe"):
                 raise FileNotFoundError(f"repak doesn't exist at {repak_path}")
 
@@ -150,7 +154,7 @@ class Repak:
 
             result = subprocess.run(
                 [
-                    cls.REPAK_PATH,
+                    repak_path,
                     "pack",
                     "--version",
                     "V11",
@@ -160,7 +164,6 @@ class Repak:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                check=False,
             )
 
             if result.returncode != 0:
@@ -169,7 +172,7 @@ class Repak:
                     f"Command failed with error:\n{result.stderr.strip()}"
                 )
 
-            log.info(f"Successfully repacked {str(source)} to {str(packed_file)}")
+            log.debug(f"Successfully repacked {str(source)} to {str(packed_file)}")
             return True, str(packed_file)
 
         except Exception as e:

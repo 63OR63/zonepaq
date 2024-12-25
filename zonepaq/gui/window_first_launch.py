@@ -58,7 +58,7 @@ class WindowFirstLaunch(TemplateBase):
         ]
 
         self.create()
-        # settings.set("SETTINGS", "first_launch", False)
+        settings.set("SETTINGS", "first_launch", False)
         settings.save()
 
         self.adjust_to_content(self)
@@ -280,7 +280,10 @@ class WindowFirstLaunch(TemplateBase):
         # Add the TextBoxHandler to the logger
         self.text_handler = TextBoxHandler(log_textbox)
         self.text_handler.setLevel(logging.INFO)
-        formatter = LogConfig.SafeFormatter()
+
+        # Define a custom format for logs displayed in the TextBox
+        custom_format = "%(asctime)s - %(levelname)s - %(message)s"
+        formatter = logging.Formatter(custom_format, datefmt="%Y-%m-%d %H:%M:%S")
         self.text_handler.setFormatter(formatter)
 
         # Add the handler to the root logger

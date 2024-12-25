@@ -407,6 +407,7 @@ class ToolsManager:
         Files.create_dir(output_dir)
 
         # Download installer
+        log.info(f"Downloading {display_name}...")
         downloaded_file = cls.check_and_download_installer(
             parent, url, installer_path, display_name, auto_mode
         )
@@ -418,9 +419,11 @@ class ToolsManager:
         if skip_extract:
             log.debug(f"Skipping extraction of {display_name}.")
             Files.move_path(installer_path, local_exe)
+            log.info(f"{display_name} installation complete.")
             return True
 
         # Extract installer
+        log.info(f"Extracting {display_name}...")
         extraction_success = cls.extract_installer(
             installer_path, output_dir, extract_parameter
         )
@@ -520,21 +523,51 @@ class ToolsManager:
 
         return downloaded_file
 
+    # @classmethod
+    # def download_file(cls, url, target_file):
+    #     try:
+    #         target_file = Path(target_file)
+    #         Files.create_dir(target_file.parent)
+    #         log.debug(f"Downloading {url}...")
+    #         with requests.get(url, stream=True) as response:
+    #             response.raise_for_status()
+    #             with open(target_file, "wb") as f:
+    #                 shutil.copyfileobj(response.raw, f, length=1024 * 1024)
+    #         log.debug(f"Downloaded to {str(target_file)}")
+    #         return True
+    #     except requests.RequestException as e:
+    #         log.exception(f"Download failed: {e}")
+    #         return False
+
     @classmethod
-    def download_file(cls, url, target_file):
+    def download_file(cls, url, target_file, timeout=30):
         try:
             target_file = Path(target_file)
             Files.create_dir(target_file.parent)
-            log.info(f"Downloading {url}...")
-            with requests.get(url, stream=True) as response:
+
+            log.debug(f"Starting download: {url}")
+
+            with requests.get(url, stream=True, timeout=timeout) as response:
                 response.raise_for_status()
-                with open(target_file, "wb") as f:
+                content_type = response.headers.get("Content-Type", "")
+                if not content_type.startswith("application/octet-stream"):
+                    log.warning(f"Unexpected content type: {content_type}")
+                    return False
+
+                temp_file = target_file.with_suffix(".tmp")
+                with open(temp_file, "wb") as f:
                     shutil.copyfileobj(response.raw, f, length=1024 * 1024)
-            log.debug(f"Downloaded to {str(target_file)}")
+                temp_file.rename(target_file)
+
+            log.debug(f"Successfully downloaded to {target_file}")
             return True
+        except requests.Timeout:
+            log.error(f"Download timed out: {url}")
         except requests.RequestException as e:
             log.exception(f"Download failed: {e}")
-            return False
+        except Exception as e:
+            log.exception(f"Unexpected error: {e}")
+        return False
 
     @classmethod
     def extract_installer(cls, installer_path, output_dir, extract_parameter=""):

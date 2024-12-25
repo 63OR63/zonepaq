@@ -470,6 +470,7 @@ class Files:
         winreg_key="",
         fallback_exe=None,
         dry_run=False,
+        # dry_run=True,  # debug
     ):
         if dry_run:
             return "foo.bar"

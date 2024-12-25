@@ -7,8 +7,8 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from tkinter import messagebox
 
-# log_level = logging.DEBUG
-log_level = logging.INFO
+log_level = logging.DEBUG
+# log_level = logging.INFO
 
 
 class DeepDebug:

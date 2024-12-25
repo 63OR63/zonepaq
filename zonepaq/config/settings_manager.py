@@ -76,6 +76,20 @@ class ConfigurationLoader:
 class SettingsManager:
     _instance = None
 
+    MERGING_ENGINE = None
+    LANG_NAME = None
+    THEME_NAME = None
+    SHOW_HINTS = None
+    DARK_MODE = None
+    AES_KEY = None
+    TOOLS_PATHS = None
+    GAME_PATHS = None
+    LANG_DICT = None
+    ALL_LANG_NAMES = None
+    ALL_THEME_NAMES = None
+    SUPPORTED_MERGING_ENGINES = None
+    TOOLS = None
+
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
