@@ -23,7 +23,8 @@ class WindowSettings(TemplateToplevel):
         super().__init__(master, title=translate("menu_preferences_settings"))
         self.temp_storage = {}  # Temporary storage for entries values
         self._create_tabview_layout()
-        self._add_general_tabview(self.general_tabview_frame)
+        self._add_tools_tabview(self.tools_tabview_frame)
+        self._add_game_tabview(self.game_tabview_frame)
         self._add_appearance_tabview(self.appearance_tabview_frame)
 
         self.create_header_button(
@@ -34,9 +35,13 @@ class WindowSettings(TemplateToplevel):
             sticky="e",
         )
 
-        self._show_frame(self.general_tabview_frame)
+        self._show_frame(self.tools_tabview_frame)
 
-        self.adjust_to_content(self, adjust_width=True)
+        self.adjust_to_content(
+            self,
+            adjust_width=True,
+            adjust_height=True,
+        )
 
         log.info("Settings window opened.")
 
@@ -71,7 +76,7 @@ class WindowSettings(TemplateToplevel):
         )
         self.grid_columnconfigure(sidebar_frame.grid_info().get("column"), weight=0)
 
-        self.general_tabview_frame = self.create_frame(
+        self.tools_tabview_frame = self.create_frame(
             self,
             style="Primary.CTkFrame",
             row=1,
@@ -79,7 +84,18 @@ class WindowSettings(TemplateToplevel):
             column_weights=[(0, 1)],
         )
         self.grid_columnconfigure(
-            self.general_tabview_frame.grid_info().get("column"), weight=1
+            self.tools_tabview_frame.grid_info().get("column"), weight=1
+        )
+
+        self.game_tabview_frame = self.create_frame(
+            self,
+            style="Primary.CTkFrame",
+            row=1,
+            column=1,
+            column_weights=[(0, 1)],
+        )
+        self.grid_columnconfigure(
+            self.tools_tabview_frame.grid_info().get("column"), weight=1
         )
 
         self.appearance_tabview_frame = self.create_frame(
@@ -126,11 +142,22 @@ class WindowSettings(TemplateToplevel):
             column=1,
         )
 
-        self.general_button = self.create_button(
+        self.tools_button = self.create_button(
             sidebar_frame,
-            text=translate("settings_general"),
+            text=translate("settings_tools"),
             command=lambda: self._button_command(
-                self.general_button, self.general_tabview_frame
+                self.tools_button, self.tools_tabview_frame
+            ),
+            corner_radius=0,
+            width=120,
+        )
+
+        self.game_button = self.create_button(
+            sidebar_frame,
+            text=translate("settings_game"),
+            style="Muted.CTkButton",
+            command=lambda: self._button_command(
+                self.game_button, self.game_tabview_frame
             ),
             corner_radius=0,
             width=120,
@@ -149,15 +176,15 @@ class WindowSettings(TemplateToplevel):
 
     def _button_command(self, button_widget, frame):
         self.style_manager.apply_style(button_widget, "Generic.CTkButton")
-        buttons = [self.general_button, self.appearance_button]
+        buttons = [self.tools_button, self.game_button, self.appearance_button]
         for btn in buttons:
             if btn != button_widget:
                 self.style_manager.apply_style(btn, "Muted.CTkButton")
         self._show_frame(frame)
 
-    def _add_general_tabview(self, master):
-        general_group = {
-            translate("settings_general_path_tools"): {
+    def _add_tools_tabview(self, master):
+        tools_group = {
+            translate("settings_tools_path_tools"): {
                 "repak_cli": {
                     "path_dict": settings.TOOLS_PATHS,
                     "entry_title": f'{settings.TOOLS["repak_cli"]["display_name"]}',
@@ -165,12 +192,12 @@ class WindowSettings(TemplateToplevel):
                     "entry_buttons": [
                         {
                             "command": self._open_path_browse_dialog,
-                            "text": translate("settings_general_browse"),
+                            "text": translate("settings_tools_browse"),
                             "style": "Generic.CTkButton",
                         },
                         {
                             "command": self.tools_manager.install_repak_cli,
-                            "text": translate("settings_general_install"),
+                            "text": translate("settings_tools_install"),
                             "style": "Alt.CTkButton",
                         },
                     ],
@@ -182,12 +209,12 @@ class WindowSettings(TemplateToplevel):
                     "entry_buttons": [
                         {
                             "command": self._open_path_browse_dialog,
-                            "text": translate("settings_general_browse"),
+                            "text": translate("settings_tools_browse"),
                             "style": "Generic.CTkButton",
                         },
                         {
                             "command": self.tools_manager.install_kdiff3,
-                            "text": translate("settings_general_install"),
+                            "text": translate("settings_tools_install"),
                             "style": "Alt.CTkButton",
                         },
                     ],
@@ -199,45 +226,12 @@ class WindowSettings(TemplateToplevel):
                     "entry_buttons": [
                         {
                             "command": self._open_path_browse_dialog,
-                            "text": translate("settings_general_browse"),
+                            "text": translate("settings_tools_browse"),
                             "style": "Generic.CTkButton",
                         },
                         {
                             "command": self.tools_manager.install_winmerge,
-                            "text": translate("settings_general_install"),
-                            "style": "Alt.CTkButton",
-                        },
-                    ],
-                },
-            },
-            translate("settings_general_path_game"): {
-                self.games_manager.game_name: {
-                    "path_dict": settings.GAME_PATHS,
-                    "entry_title": self.games_manager.game_display_name,
-                    "entry_type": "folder",
-                    "entry_buttons": [
-                        {
-                            "command": self._open_path_browse_dialog,
-                            "text": translate("settings_general_browse"),
-                            "style": "Generic.CTkButton",
-                        },
-                        {
-                            "command": self.tools_manager.unpack_files,
-                            "text": translate("settings_general_unpack"),
-                            "style": "Alt.CTkButton",
-                        },
-                    ],
-                },
-            },
-            translate("settings_general_keys"): {
-                "aes_key": {
-                    "path_dict": {"aes_key": settings.AES_KEY},
-                    "entry_title": translate("settings_general_aes_key"),
-                    "entry_type": "aes",
-                    "entry_buttons": [
-                        {
-                            "command": self.tools_manager.get_aes_key,
-                            "text": translate("settings_general_get"),
+                            "text": translate("settings_tools_install"),
                             "style": "Alt.CTkButton",
                         },
                     ],
@@ -249,11 +243,11 @@ class WindowSettings(TemplateToplevel):
             master,
             column_weights=[(0, 0), (1, 1), (2, 0)],
         )
-        for group_name, entries in general_group.items():
+        for group_name, entries in tools_group.items():
             self._create_entry_group(group_frame, group_name, entries)
 
         self.create_subheader(
-            group_frame, text=translate("settings_general_merging_engine")
+            group_frame, text=translate("settings_tools_merging_engine")
         )
         self.create_spacer(group_frame)
 
@@ -263,7 +257,7 @@ class WindowSettings(TemplateToplevel):
             ctk_widget=ctk.CTkLabel,
             widget_args={
                 "master": group_frame,
-                "text": f"{translate('settings_general_used_tool')}:",
+                "text": f"{translate('settings_tools_used_tool')}:",
                 "anchor": "w",
                 "pady": self.padding / 5,
             },
@@ -297,6 +291,9 @@ class WindowSettings(TemplateToplevel):
         )
 
         self.create_spacer(group_frame)
+        # ! make sure first tab has largest height
+        # self.create_spacer(group_frame)
+        # self.create_spacer(group_frame)
 
     def _create_entry_group(self, master, group_name, entries):
 
@@ -402,6 +399,138 @@ class WindowSettings(TemplateToplevel):
                 settings_key, entry_variable.get(), entry_type, entry_widget
             ),
         )
+
+    def _add_game_tabview(self, master):
+        game_group = {
+            translate("settings_game_path"): {
+                self.games_manager.game_name: {
+                    "path_dict": settings.GAME_PATHS,
+                    "entry_title": self.games_manager.game_display_name,
+                    "entry_type": "folder",
+                    "entry_buttons": [
+                        {
+                            "command": self._open_path_browse_dialog,
+                            "text": translate("settings_tools_browse"),
+                            "style": "Generic.CTkButton",
+                        },
+                        {
+                            "command": self._detect_game_installation_wrapper,
+                            "text": translate("settings_game_find"),
+                            "style": "Alt.CTkButton",
+                        },
+                    ],
+                },
+            },
+            translate("settings_game_keys"): {
+                "aes_key": {
+                    "path_dict": {"aes_key": settings.AES_KEY},
+                    "entry_title": translate("settings_game_aes_key"),
+                    "entry_type": "aes",
+                    "entry_buttons": [
+                        {
+                            "command": self.tools_manager.get_aes_key,
+                            "text": translate("settings_tools_get"),
+                            "style": "Alt.CTkButton",
+                        },
+                    ],
+                },
+            },
+        }
+
+        game_frame = self.create_frame(
+            master,
+            column_weights=[(0, 0), (1, 1), (2, 0)],
+        )
+        for group_name, entries in game_group.items():
+            self._create_entry_group(game_frame, group_name, entries)
+
+        vanilla_group = {}
+        for index, value in enumerate(self.games_manager.vanilla_files):
+            unpacked = value["unpacked"]
+            display_name = str(Path(unpacked).name)
+            status = not Files.is_folder_empty(unpacked)
+            text = "Unpacked" if status else "Not Unpacked"
+            vanilla_group[display_name] = {
+                "tool_key": f"vanilla_{index}",
+                "status": status,
+                "text": text,
+            }
+
+        self.create_subheader(
+            game_frame, text=translate("settings_game_vanilla_unpacked")
+        )
+        self.create_spacer(game_frame)
+
+        for key, value in vanilla_group.items():
+            current_row = self._get_next_row(game_frame)
+            self.create_labeled_text(
+                game_frame,
+                label_text=key,
+                tool_key=value["tool_key"],
+                status=value["status"],
+                text=value["text"],
+                row=current_row,
+                column=0,
+            )
+
+        self.create_spacer(game_frame)
+
+    def create_labeled_text(
+        self, group_frame, label_text, tool_key, status, text, row, column
+    ):
+        self.create_ctk_widget(
+            ctk_widget=ctk.CTkLabel,
+            widget_args={
+                "master": group_frame,
+                "text": f"{label_text}:",
+                "anchor": "w",
+            },
+            grid_args={
+                "row": row,
+                "column": column,
+                "sticky": "w",
+                "padx": self.padding,
+            },
+        )
+
+        status_label = self.create_ctk_widget(
+            ctk_widget=ctk.CTkLabel,
+            widget_args={
+                "master": group_frame,
+                "text": text,
+                "anchor": "w",
+            },
+            grid_args={
+                "row": row,
+                "column": column + 1,
+                "sticky": "w",
+                "padx": (0, self.padding),
+            },
+        )
+        setattr(self, f"{tool_key}_status_label", status_label)
+
+        self._apply_label_style(status, status_label)
+
+        self.create_button(
+            group_frame,
+            text=translate("settings_tools_unpack"),
+            command=lambda: self.tools_manager.unpack_files(self, install_metadata={}),
+            style="Alt.CTkButton",
+            width=0,
+            padx=(0, self.padding),
+            pady=self.padding / 5,
+            sticky="ew",
+            row="-2",
+            column=2,
+        )
+
+    def _apply_label_style(self, is_valid, entry_widget):
+        if is_valid:
+            style = "Success.CTkLabel"
+        else:
+            style = "Error.CTkLabel"
+
+        self.style_manager.apply_style(entry_widget, style)
 
     def _add_appearance_tabview(self, master):
 
@@ -601,7 +730,7 @@ class WindowSettings(TemplateToplevel):
             )
         else:
             filetypes = [(f'{install_metadata["entry_type"]}', "*")]
-            if sys.platform == "win32":
+            if sys.platform.startswith("win"):
                 filetypes[0] = (filetypes[0][0], filetypes[0][1] + ".exe")
 
             selected_path = filedialog.askopenfilenames(
@@ -623,3 +752,14 @@ class WindowSettings(TemplateToplevel):
                 install_metadata["entry_type"],
                 install_metadata["entry_widget"],
             )
+
+    def _detect_game_installation_wrapper(self, parent, install_metadata):
+        game_installation, game_path = self.games_manager.detect_game_installation()
+
+        install_metadata["entry_variable"].set(Files.get_relative_path(game_path))
+        self._store_temp_path_and_apply_style(
+            install_metadata["settings_key"],
+            install_metadata["entry_variable"].get(),
+            install_metadata["entry_type"],
+            install_metadata["entry_widget"],
+        )

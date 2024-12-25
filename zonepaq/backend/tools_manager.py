@@ -167,7 +167,7 @@ class ToolsManager:
 
             temp_shipping_exe_dir = Path(temp_shipping_exe_dir)
             temp_shipping_exe = temp_shipping_exe_dir / "shipping.exe"
-            shutil.copy2(
+            Files.copy_path(
                 games_manager.shipping_exe,
                 temp_shipping_exe,
             )
@@ -251,7 +251,7 @@ class ToolsManager:
         skip_search=False,
     ):
         # Check platform compatibility
-        if check_platform and sys.platform != "win32":
+        if check_platform and not sys.platform.startswith("win"):
             if not auto_mode:
                 WindowMessageBox.showerror(
                     parent,
@@ -393,7 +393,7 @@ class ToolsManager:
         # Skip extraction if it's a direct executable
         if skip_extract:
             log.debug(f"Skipping extraction of {display_name}.")
-            shutil.move(installer_path, local_exe)
+            Files.move_path(installer_path, local_exe)
             return True
 
         # Extract installer

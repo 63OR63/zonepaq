@@ -157,12 +157,19 @@ class TemplateBase(CTk):
     #     root.resizable(adjust_width, adjust_height)
 
     # * Alternative to wrapping CTk.resizable(), causes flickering
-    def adjust_to_content(self, root, adjust_width=False, adjust_height=False):
+    def adjust_to_content(
+        self,
+        root,
+        max_width=None,
+        max_height=None,
+        adjust_width=False,
+        adjust_height=False,
+    ):
         root = root or self
 
         root.update_idletasks()
-        current_width = root.winfo_reqwidth()
-        current_height = root.winfo_reqheight()
+        current_width = max_width or root.winfo_reqwidth()
+        current_height = max_height or root.winfo_reqheight()
 
         def set_minsize(previous_width, previous_height):
             root.minsize(
@@ -173,6 +180,21 @@ class TemplateBase(CTk):
         root.after(1009, lambda: set_minsize(current_width, current_height))
 
         root.resizable(adjust_width, adjust_height)
+
+    def find_max_req_dimensions(self, frames):
+        max_width = 0
+        max_height = 0
+
+        for frame in frames:
+            # Get the requested dimensions of the frame
+            width = frame.winfo_reqwidth()
+            height = frame.winfo_reqheight()
+
+            # Update maximum values if current frame exceeds them
+            max_width = max(max_width, width)
+            max_height = max(max_height, height)
+
+        return max_width, max_height
 
     def create_ctk_widget(
         self,

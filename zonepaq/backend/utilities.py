@@ -65,7 +65,7 @@ class Files:
         try:
             folder = Path(folder_path).resolve()
             if cls.is_existing_folder(folder_path):
-                if not any(item.is_file() for item in folder.rglob("*")):
+                if not any(folder.iterdir()):
                     log.debug(f"{str(folder)} is empty.")
                     return True
             else:
@@ -224,6 +224,7 @@ class Files:
             log.exception(f"Unexpected error during move operation: {e}")
             return False
 
+    # !WORKAROUND for shutil.rmtree hanging up in some cases
     @classmethod
     def delete_path(cls, path, retries=3, delay=1, timeout=10, allowed_extensions=None):
         """
@@ -378,11 +379,22 @@ class Files:
         else:
             log.error(f"Cannot remove {path}, unexpected error: {exc_info}")
 
+    @classmethod
+    def _log_locked_files(cls, path):
+        """
+        Log locked files if the platform allows.
+        """
+        system = sys.platform
+
+        if system.startswith("win"):
+            cls._log_locked_files_windows(path)
+        elif system in ("linux", "darwin"):
+            cls._log_locked_files_unix(path)
+        else:
+            log.warning(f"Unsupported platform '{system}'; cannot check locked files.")
+
     @staticmethod
-    def _log_locked_files(path):
-        """
-        Log locked files if the platform allows (Windows-only example).
-        """
+    def _log_locked_files_windows(path):
         try:
             import psutil
 
@@ -394,9 +406,41 @@ class Files:
                                 f"File locked by process {proc.info['name']} (PID: {proc.info['pid']})"
                             )
                 except Exception:
-                    pass
+                    continue
         except ImportError:
-            log.warning("psutil is not installed; cannot log locked files.")
+            log.warning("psutil is not installed; cannot log locked files on Windows.")
+        except Exception as e:
+            log.error(f"Failed to check locked files on Windows: {e}")
+
+    @staticmethod
+    def _log_locked_files_unix(path):
+        try:
+            proc_path = Path("/proc")
+
+            if not proc_path.exists():
+                log.warning(
+                    "/proc filesystem is not available; cannot check locked files."
+                )
+                return
+
+            for proc_dir in proc_path.iterdir():
+                if not proc_dir.is_dir() or not proc_dir.name.isdigit():
+                    continue
+
+                fd_dir = proc_dir / "fd"
+                if not fd_dir.exists():
+                    continue
+
+                for fd in fd_dir.iterdir():
+                    try:
+                        if fd.resolve() == path:
+                            log.debug(
+                                f"File locked by process {proc_dir.name} (FD: {fd.name})"
+                            )
+                    except Exception:
+                        continue
+        except Exception as e:
+            log.error(f"Failed to check locked files on Unix-like system: {e}")
 
     @staticmethod
     def _calculate_backoff(attempt, base_delay):
@@ -420,7 +464,7 @@ class Files:
     def find_app_installation(
         exe_name, local_exe=None, winreg_path=None, winreg_key="", fallback_exe=None
     ):
-        if sys.platform != "win32":
+        if not sys.platform.startswith("win"):
             exe_name = Path(exe_name).stem
             local_exe = Path(local_exe).with_suffix("")
 
@@ -437,7 +481,7 @@ class Files:
             return str(Path(env_exe))
 
         # 3. Check in Windows Registry
-        if winreg_path and sys.platform == "win32":
+        if winreg_path and sys.platform.startswith("win"):
             try:
                 import winreg
 

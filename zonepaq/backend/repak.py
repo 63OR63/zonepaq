@@ -118,7 +118,7 @@ class Repak:
                 log.debug(f"Deleting {target_folder}...")
                 Files.delete_path(target_folder)
                 log.debug(f"Moving unpacked folder to destination...")
-                shutil.move(unpacked_folder, target_folder)
+                Files.move_path(unpacked_folder, target_folder)
             log.info(
                 f"Successfully unpacked {str(source)} and moved to {str(target_folder)}"
             )

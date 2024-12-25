@@ -1,3 +1,4 @@
+from pathlib import Path
 from gui.window_messagebox import WindowMessageBox
 
 import customtkinter as ctk
@@ -106,20 +107,21 @@ class WindowFirstLaunch(TemplateBase):
         # Add AES key to the report
         status = Data.is_valid_data(settings.AES_KEY, "aes")
         text = "Detected" if status else "Not Detected"
-        report[translate("settings_general_aes_key")] = {
+        report[translate("settings_game_aes_key")] = {
             "tool_key": tool_key,
             "status": status,
             "text": text,
         }
 
-        from backend.games_manager import GamesManager
+        # from backend.games_manager import GamesManager
 
-        games_manager = GamesManager()
+        # games_manager = GamesManager()
+        games_manager = self.games_manager
 
         # Add vanilla files to the report
         for index, value in enumerate(games_manager.vanilla_files):
             unpacked = value["unpacked"]
-            display_name = f"{games_manager.game_display_name} Vanilla Files"
+            display_name = str(Path(unpacked).name)
             status = not Files.is_folder_empty(unpacked)
             text = "Unpacked" if status else "Not Unpacked"
             report[display_name] = {

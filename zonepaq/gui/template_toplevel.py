@@ -37,6 +37,7 @@ class TemplateToplevel(CTkToplevel):
 
         method_names = [
             "adjust_to_content",
+            "find_max_req_dimensions",
             "create_ctk_widget",
             "create_header",
             "create_subheader",

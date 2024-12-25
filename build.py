@@ -127,7 +127,7 @@ def install_requirements():
 def main():
     # install_requirements()
 
-    if sys.platform == "win32":
+    if sys.platform.startswith("win"):
         build_win()
     elif sys.platform == "darwin":
         build_macos()
