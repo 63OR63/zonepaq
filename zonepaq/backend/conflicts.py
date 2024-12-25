@@ -4,7 +4,7 @@ from concurrent.futures import as_completed
 from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog
-from gui.window_messagebox import WindowMessageBox
+from gui.window_messagebox import ModalFileDialog, WindowMessageBox
 
 from backend.logger import log
 from backend.merging import Merging
@@ -148,7 +148,9 @@ class ConflictProcessor:
             elif Files.is_folder_empty(temp_merging_dir):
                 return "error", (translate("merge_dir_is_empty"))
             else:
-                folder_to_place_merged_mod = self._insistent_askdirectory()
+                folder_to_place_merged_mod = self._insistent_askdirectory(
+                    parent=self.master
+                )
                 if folder_to_place_merged_mod:
 
                     formatted_time = datetime.now().strftime("%Y%m%d%H%M%S")
@@ -173,22 +175,35 @@ class ConflictProcessor:
                             )
                             not_processed_str = "\n".join(map(str, self.not_processed))
                             return "info", (
-                                f'{translate("merge_screen_conflicts_final_report_1")}\n{repak_result}\n\n'
-                                f'{translate("merge_screen_conflicts_final_report_2")}\n{processed_str or translate("generic_none")}\n\n'
-                                f'{translate("merge_screen_conflicts_final_report_3")}\n{not_processed_str or translate("generic_none")}'
+                                [
+                                    f'{translate("merge_screen_conflicts_final_report_1")}\n{repak_result}',
+                                    "",
+                                    translate("merge_screen_conflicts_final_report_2"),
+                                    processed_str or translate("generic_none"),
+                                    translate("merge_screen_conflicts_final_report_3"),
+                                    not_processed_str or translate("generic_none"),
+                                ]
                             )
 
                         else:
                             return "error", (
-                                f'{translate("merge_screen_conflicts_final_report_1")}\n{repak_result}\n\n'
-                                f'{translate("merge_screen_conflicts_final_report_2")}\n{processed_str or translate("generic_none")}\n\n'
-                                f'{translate("merge_screen_conflicts_final_report_3")}\n{not_processed_str or translate("generic_none")}'
+                                [
+                                    f'{translate("merge_screen_conflicts_final_report_1")}\n{repak_result}',
+                                    "",
+                                    translate("merge_screen_conflicts_final_report_2"),
+                                    processed_str or translate("generic_none"),
+                                    translate("merge_screen_conflicts_final_report_3"),
+                                    not_processed_str or translate("generic_none"),
+                                ]
                             )
 
                     except Exception as e:
                         log.exception(f"Unexpected error during repack: {str(e)}")
                         return "error", (
-                            f'{translate("merge_screen_conflicts_repak_error")} {str(e)}'
+                            [
+                                translate("merge_screen_conflicts_repak_error"),
+                                str(e),
+                            ]
                         )
 
                 else:
@@ -294,8 +309,8 @@ class ConflictProcessor:
     def _insistent_askdirectory(self, initialdir=None, title=None):
         folder_selected = None
         while True:
-            folder_selected = filedialog.askdirectory(
-                initialdir=initialdir, title=title
+            folder_selected = ModalFileDialog.askdirectory(
+                parent=self.master, initialdir=initialdir, title=title
             )
 
             if folder_selected:

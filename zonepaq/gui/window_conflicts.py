@@ -480,12 +480,12 @@ class WindowConflicts(TemplateToplevel):
                     )
                     queue.append((node, value, parent_path + [key]))
 
+                    self.tree.item(node, open=True)
+
                 else:
                     self._insert_node_into_tree(
                         current_parent_node, key, value, "", None
                     )
-
-                self.tree.item(node, open=True)
 
         return {
             "no_conflicts_count": no_conflicts_count,

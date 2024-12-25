@@ -1,3 +1,4 @@
+from tkinter import filedialog
 import customtkinter as ctk
 import tkinter as tk
 from backend.logger import log
@@ -181,3 +182,31 @@ class WindowMessageBox(TemplateToplevel):
         dialog = cls(master=master, title=title, message=message, buttons=buttons)
         dialog.wait_window(dialog)
         return dialog.result
+
+
+class ModalFileDialog:
+    @staticmethod
+    def askdirectory(parent, title="Select Directory"):
+        return ModalFileDialog._show_modal_dialog(
+            parent, lambda: filedialog.askdirectory(parent=parent, title=title)
+        )
+
+    @staticmethod
+    def askopenfilenames(
+        parent, title="Select Files", filetypes=(("All Files", "*.*"),)
+    ):
+        return ModalFileDialog._show_modal_dialog(
+            parent,
+            lambda: filedialog.askopenfilenames(
+                parent=parent, title=title, filetypes=filetypes
+            ),
+        )
+
+    @staticmethod
+    def _show_modal_dialog(parent, dialog_function):
+        parent.grab_set()
+        try:
+            result = dialog_function()
+        finally:
+            parent.grab_release()
+        return result

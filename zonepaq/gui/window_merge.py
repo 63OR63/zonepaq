@@ -79,7 +79,7 @@ class WindowMerge(TemplateSecondary):
                         results_ko[file.as_posix()] = result
                 except Exception as e:
                     results_ko[file.as_posix()] = str(e)
-
+            print(results_ok)
             content_tree = Data.build_content_tree(results_ok)
 
             log.debug("Opening conflicts resolver screen...")

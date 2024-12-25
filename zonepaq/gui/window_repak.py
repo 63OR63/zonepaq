@@ -1,7 +1,7 @@
 from concurrent.futures import as_completed
 from pathlib import Path
 from tkinter import filedialog
-from gui.window_messagebox import WindowMessageBox
+from gui.window_messagebox import ModalFileDialog, WindowMessageBox
 
 from backend.logger import log
 from backend.repak import Repak
@@ -78,7 +78,7 @@ class WindowRepak(TemplateSecondary):
             return
         files = self.unpack_listbox.get("all")
         if files:
-            folder = filedialog.askdirectory()
+            folder = ModalFileDialog.askdirectory(parent=self)
             if folder:
                 folder = Path(folder)
                 existing_folders = []
@@ -138,7 +138,7 @@ class WindowRepak(TemplateSecondary):
             return
         folders = self.repack_listbox.get("all")
         if folders:
-            target_folder = filedialog.askdirectory()
+            target_folder = ModalFileDialog.askdirectory(parent=self)
             if target_folder:
                 target_folder = Path(target_folder)
                 results_ok = []

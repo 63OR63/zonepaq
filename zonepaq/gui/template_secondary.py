@@ -1,6 +1,6 @@
 from pathlib import Path
 from tkinter import filedialog
-from gui.window_messagebox import WindowMessageBox
+from gui.window_messagebox import ModalFileDialog, WindowMessageBox
 
 from CTkListbox import CTkListbox
 import customtkinter as ctk
@@ -204,8 +204,8 @@ class TemplateSecondary(TemplateToplevel):
             )
 
     def _add_file_to_listbox(self, listbox, dnd):
-        files = filedialog.askopenfilenames(
-            filetypes=[(translate("dialogue_pak_files"), "*.pak")]
+        files = ModalFileDialog.askopenfilenames(
+            parent=self, filetypes=[(translate("dialogue_pak_files"), "*.pak")]
         )
         for file in files:
             file = Path(file.strip())
@@ -223,7 +223,7 @@ class TemplateSecondary(TemplateToplevel):
             )
 
     def _add_folder_to_listbox(self, listbox, dnd):
-        folder = filedialog.askdirectory()
+        folder = ModalFileDialog.askdirectory(parent=self)
         if folder:
             folder = Path(folder.strip())
             if str(folder) not in listbox.get("all"):

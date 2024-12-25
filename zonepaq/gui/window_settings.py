@@ -8,7 +8,7 @@ import customtkinter as ctk
 
 from pathlib import Path
 from tkinter import filedialog
-from gui.window_messagebox import WindowMessageBox
+from gui.window_messagebox import ModalFileDialog, WindowMessageBox
 
 from gui.window_help import WindowHelp
 
@@ -726,7 +726,7 @@ class WindowSettings(TemplateToplevel):
             initial_dir = Path.cwd()
 
         if install_metadata["entry_type"] == "folder":
-            selected_path = filedialog.askdirectory(
+            selected_path = ModalFileDialog.askdirectory(
                 parent=parent, initialdir=initial_dir
             )
         else:
@@ -734,7 +734,7 @@ class WindowSettings(TemplateToplevel):
             if sys.platform.startswith("win"):
                 filetypes[0] = (filetypes[0][0], filetypes[0][1] + ".exe")
 
-            selected_path = filedialog.askopenfilenames(
+            selected_path = ModalFileDialog.askopenfilenames(
                 parent=parent,
                 initialdir=initial_dir,
                 filetypes=filetypes,
