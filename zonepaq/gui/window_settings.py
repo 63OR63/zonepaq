@@ -274,7 +274,7 @@ class WindowSettings(TemplateToplevel):
                 "variable": self.engine_name,
                 "values": list(settings.SUPPORTED_MERGING_ENGINES),
                 "command": lambda engine_name=self.engine_name: (
-                    self._update_config("SETTINGS", "merging_engine", engine_name),
+                    settings.update_config("SETTINGS", "merging_engine", engine_name),
                 ),
                 "anchor": "w",
             },
@@ -630,7 +630,7 @@ class WindowSettings(TemplateToplevel):
             label_text=f"{translate('settings_appearance_color_theme')} *:",
             variable=self.selected_theme,
             values=settings.ALL_THEME_NAMES,
-            command=lambda selected_theme: self._update_config(
+            command=lambda selected_theme: settings.update_config(
                 "SETTINGS", "theme_name", selected_theme
             ),
             row=current_row,
@@ -662,7 +662,7 @@ class WindowSettings(TemplateToplevel):
             label_text=f"{translate('settings_appearance_language')}:",
             variable=self.selected_lang,
             values=list(settings.ALL_LANG_NAMES),
-            command=lambda selected_lang: self._update_config(
+            command=lambda selected_lang: settings.update_config(
                 "SETTINGS", "lang_name", selected_lang
             ),
             row=current_row,
@@ -693,14 +693,10 @@ class WindowSettings(TemplateToplevel):
             ctk.set_appearance_mode("dark")
         else:
             ctk.set_appearance_mode("light")
-        settings = settings.update_config(
-            "SETTINGS", "dark_mode", self.dark_mode_widget.get()
-        )
+        settings.update_config("SETTINGS", "dark_mode", self.dark_mode_widget.get())
 
     def _switch_hints(self):
-        settings = settings.update_config(
-            "SETTINGS", "show_hints", self.show_hints_widget.get()
-        )
+        settings.update_config("SETTINGS", "show_hints", self.show_hints_widget.get())
 
     def _show_frame(self, frame):
         frame.tkraise()
@@ -770,6 +766,3 @@ class WindowSettings(TemplateToplevel):
             install_metadata["entry_type"],
             install_metadata["entry_widget"],
         )
-
-    def _update_config(self, section, key, value):
-        settings = settings.update_config(section, key, value)

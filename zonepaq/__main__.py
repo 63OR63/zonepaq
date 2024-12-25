@@ -172,9 +172,7 @@ def check_for_update():
             return False
         elif reply == None:
             log.debug(f"Ignoring version {update_available}.")
-            settings = settings.update_config(
-                "SETTINGS", "skip_version", str(update_available)
-            )
+            settings.update_config("SETTINGS", "skip_version", str(update_available))
             return False
         return False
 
