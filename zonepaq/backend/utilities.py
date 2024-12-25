@@ -464,8 +464,16 @@ class Files:
 
     @staticmethod
     def find_app_installation(
-        exe_name, local_exe=None, winreg_path=None, winreg_key="", fallback_exe=None
+        exe_name,
+        local_exe=None,
+        winreg_path=None,
+        winreg_key="",
+        fallback_exe=None,
+        dry_run=False,
     ):
+        if dry_run:
+            return "foo.bar"
+
         if not sys.platform.startswith("win"):
             exe_name = Path(exe_name).stem
             local_exe = Path(local_exe).with_suffix("")

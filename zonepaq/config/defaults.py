@@ -18,6 +18,7 @@ TOOLS = {
         "asset_regex": r"repak_cli-x86_64-pc-windows-msvc.zip$",
         "extract_parameter": "",
         "local_exe": Path("zonepaq/tools/repak_cli/repak.exe"),
+        # "fallback_exe": Path("C:/TEST.exe"),
         "fallback_exe": Path("C:/Program Files/repak_cli/bin/repak.exe"),
     },
     "kdiff3": {
@@ -26,7 +27,9 @@ TOOLS = {
         "exe_name": "kdiff3.exe",
         "extract_parameter": "bin",
         "local_exe": Path("zonepaq/tools/KDiff3/kdiff3.exe"),
+        # "winreg_path": r"SOFTWARE\TEST",
         "winreg_path": r"SOFTWARE\KDiff3",
+        # "fallback_exe": Path("C:/TEST.exe"),
         "fallback_exe": Path("C:/Program Files/KDiff3/kdiff3.exe"),
     },
     "winmerge": {
@@ -36,8 +39,8 @@ TOOLS = {
         "asset_regex": r"winmerge-\d+(\.\d+)*-exe.zip$",
         "extract_parameter": "WinMerge",
         "local_exe": Path("zonepaq/tools/WinMerge/WinMergeU.exe"),
-        "fallback_exe": Path.home() / "TEST.exe",
-        # "fallback_exe": Path.home() / "AppData/Local/Programs/WinMerge/WinMergeU.exe",
+        # "fallback_exe": Path.home() / "TEST.exe",
+        "fallback_exe": Path.home() / "AppData/Local/Programs/WinMerge/WinMergeU.exe",
     },
     "aes_dumpster": {
         "display_name": "AESDumpster",

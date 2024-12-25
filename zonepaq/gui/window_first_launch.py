@@ -1,4 +1,5 @@
 import logging
+import threading
 import tkinter as tk
 from pathlib import Path
 
@@ -57,7 +58,7 @@ class WindowFirstLaunch(TemplateBase):
         ]
 
         self.create()
-        settings.set("SETTINGS", "first_launch", False)
+        # settings.set("SETTINGS", "first_launch", False)
         settings.save()
 
         self.adjust_to_content(self)
@@ -278,7 +279,7 @@ class WindowFirstLaunch(TemplateBase):
 
         # Add the TextBoxHandler to the logger
         self.text_handler = TextBoxHandler(log_textbox)
-        self.text_handler.setLevel(logging.DEBUG)
+        self.text_handler.setLevel(logging.INFO)
         formatter = LogConfig.SafeFormatter()
         self.text_handler.setFormatter(formatter)
 
@@ -296,80 +297,91 @@ class WindowFirstLaunch(TemplateBase):
             progress_bar_widget.start()
 
     def perform_setup_sequence(self):
-        log.info("Initiating first launch initial setup sequence...")
+        def background_task():
+            log.info("Initiating first launch initial setup sequence...")
 
-        results = []
+            results = []
 
-        from backend.tools_manager import ToolsManager
+            from backend.tools_manager import ToolsManager
 
-        tools_manager = ToolsManager()
+            tools_manager = ToolsManager()
 
-        # Iterate through and call tools install methods in auto mode
-        for tool_key in settings.TOOLS_PATHS.keys():
-            install_method = getattr(tools_manager, f"install_{tool_key}")
-            self.installation_progress_callback(tool_key)
-            self.update_idletasks()
-            install_result = install_method(parent=self, auto_mode=True)
-            results.append(install_result)
-            if install_result:
-                self.installation_progress_callback(tool_key, 1)
+            for tool_key in settings.TOOLS_PATHS.keys():
+                self.installation_progress_callback(tool_key)
+                self.queue_update_ui()
+                install_method = getattr(tools_manager, f"install_{tool_key}")
+                install_result = install_method(parent=self, auto_mode=True)
+                results.append(install_result)
+                if install_result:
+                    self.installation_progress_callback(tool_key, 1)
+                    self._apply_style(
+                        True,
+                        getattr(self, f"{tool_key}_status_label"),
+                        text=self.text_installed,
+                    )
+                else:
+                    self.installation_progress_callback(tool_key, 0)
+                self.queue_update_ui()
+
+            self.installation_progress_callback("aes_key")
+            detect_result = tools_manager.get_aes_key(
+                parent=self, auto_mode=True, skip_aes_dumpster_download=True
+            )
+            results.append(detect_result)
+            if detect_result:
+                self.installation_progress_callback("aes_key", 1)
                 self._apply_style(
-                    True,
-                    getattr(self, f"{tool_key}_status_label"),
-                    text=self.text_installed,
+                    True, getattr(self, "aes_key_status_label"), text=self.text_detected
                 )
             else:
-                self.installation_progress_callback(tool_key, 0)
-            self.update_idletasks()
+                self.installation_progress_callback("aes_key", 0)
+            self.queue_update_ui()
 
-        self.installation_progress_callback("aes_key")
-        detect_result = tools_manager.get_aes_key(
-            parent=self, auto_mode=True, skip_aes_dumpster_download=True
-        )
-        results.append(detect_result)
-        self.update_idletasks()
-        if detect_result:
-            self.installation_progress_callback("aes_key", 1)
-            self._apply_style(
-                True, getattr(self, "aes_key_status_label"), text=self.text_detected
-            )
-        else:
-            self.installation_progress_callback("aes_key", 0)
-        self.update_idletasks()
-
-        for index in range(len(self.games_manager.vanilla_files)):
-            self.installation_progress_callback(f"vanilla_{index}")
-            self.update_idletasks()
-            unpack_result = tools_manager.unpack_file_by_index(
-                parent=self,
-                install_metadata={"index": index},
-                auto_mode=True,
-                skip_aes_extraction=True,
-            )
-            results.append(unpack_result)
-            if unpack_result:
-                self.installation_progress_callback(f"vanilla_{index}", 1)
-                self._apply_style(
-                    True,
-                    getattr(self, f"vanilla_{index}_status_label"),
-                    text=self.text_unpacked,
+            for index in range(len(self.games_manager.vanilla_files)):
+                self.installation_progress_callback(f"vanilla_{index}")
+                self.queue_update_ui()
+                unpack_result = tools_manager.unpack_file_by_index(
+                    parent=self,
+                    install_metadata={"index": index},
+                    auto_mode=True,
+                    skip_aes_extraction=True,
                 )
+                results.append(unpack_result)
+                if unpack_result:
+                    self.installation_progress_callback(f"vanilla_{index}", 1)
+                    self._apply_style(
+                        True,
+                        getattr(self, f"vanilla_{index}_status_label"),
+                        text=self.text_unpacked,
+                    )
+                else:
+                    self.installation_progress_callback(f"vanilla_{index}", 0)
+                self.queue_update_ui()
+
+            if all(results):
+                self.queue_report("info", translate("dialogue_setup_sequence_success"))
             else:
-                self.installation_progress_callback(f"vanilla_{index}", 0)
-            self.update_idletasks()
+                self.queue_report(
+                    "warning", translate("dialogue_setup_sequence_warning")
+                )
 
-        if all(results):
-            WindowMessageBox.showinfo(
-                self,
-                message=translate("dialogue_setup_sequence_success"),
-            )
-        else:
-            WindowMessageBox.showwarning(
-                self,
-                message=translate("dialogue_setup_sequence_warning"),
-            )
+        threading.Thread(target=background_task, daemon=True).start()
 
-        self.on_closing()
+    def queue_update_ui(self):
+        self.after(0, self.update_idletasks)
+
+    def queue_report(self, msg_type, message):
+        def show_report():
+            if msg_type == "info":
+                WindowMessageBox.showinfo(self, message=message)
+            elif msg_type == "warning":
+                WindowMessageBox.showwarning(self, message=message)
+
+            # Schedule self.on_closing() to run after the message box is dismissed
+            self.after(0, self.on_closing)
+
+        # Schedule the report to show on the main thread
+        self.after(0, show_report)
 
     def skip_setup_sequence(self):
         log.debug("Skipping first launch initial setup sequence...")
