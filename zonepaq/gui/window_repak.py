@@ -24,7 +24,7 @@ class WindowRepak(TemplateSecondary):
         log.info("Repak window opened.")
 
     def on_closing(self):
-        log.debug("Repak window closed.")
+        log.info("Repak window closed.")
         self.destroy()
         self.master.deiconify()
 

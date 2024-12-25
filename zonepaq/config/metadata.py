@@ -14,6 +14,8 @@ APP_ICONS = {
     "ico": r"zonepaq\assets\icons\main.ico",
     "icns": r"zonepaq\assets\icons\main.icns",
     "png": r"zonepaq\assets\icons\main.png",
+    "mdi-cog": r"zonepaq\assets\icons\mdi-cog.png",
+    "mdi-help": r"zonepaq\assets\icons\mdi-help.png",
 }
 
 COPYRIGHT = "\xa9 2024 Георгий Минулин (a.k.a. 63OR63). All rights reserved"

@@ -40,7 +40,7 @@ class Merging:
             ]
 
         elif merging_engine == "KDiff3":
-            engine_path = Path(tool_paths.get("KDiff3"))
+            engine_path = Path(tool_paths.get("kdiff3"))
             if not Files.is_existing_file_type(engine_path, ".exe"):
                 log.error(f"{merging_engine} doesn't exist at {engine_path}")
                 return False, None

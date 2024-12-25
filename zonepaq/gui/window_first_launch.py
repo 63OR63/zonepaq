@@ -1,8 +1,9 @@
+import logging
 from pathlib import Path
 from gui.window_messagebox import WindowMessageBox
 
 import customtkinter as ctk
-from backend.logger import log
+from backend.logger import LogConfig, log
 from backend.utilities import Data, Files
 from config.defaults import TOOLS
 from config.metadata import APP_NAME
@@ -11,8 +12,30 @@ from config.themes import StyleManager
 from config.translations import translate
 from gui.template_base import TemplateBase
 
+import tkinter as tk
+
 # Get SettingsManager class
 settings = SettingsManager()
+
+
+class TextBoxHandler(logging.Handler):
+    def __init__(self, text_widget):
+        super().__init__()
+        self.text_widget = text_widget
+
+    def emit(self, record):
+        try:
+            if self.text_widget.winfo_exists():  # Check if the widget still exists
+                msg = self.format(record)
+                self.text_widget.insert(tk.END, msg + "\n")
+                self.text_widget.see(tk.END)
+        except Exception:
+            self.handleError(record)
+
+    def close(self):
+        # Perform cleanup when the handler is removed
+        self.text_widget = None
+        super().close()
 
 
 class WindowFirstLaunch(TemplateBase):
@@ -38,7 +61,7 @@ class WindowFirstLaunch(TemplateBase):
         ]
 
         self.create()
-        # settings.set("SETTINGS", "first_launch", False)
+        settings.set("SETTINGS", "first_launch", False)
         settings.save()
 
         self.adjust_to_content(self)
@@ -46,7 +69,9 @@ class WindowFirstLaunch(TemplateBase):
         log.info("First launch window opened.")
 
     def on_closing(self):
-        log.debug("First launch window closed.")
+        logging.getLogger().removeHandler(self.text_handler)
+        self.text_handler.close()  # Clean up the handler
+        log.info("First launch window closed.")
         self.destroy()
 
     def create(self):
@@ -137,7 +162,7 @@ class WindowFirstLaunch(TemplateBase):
                 "text": self.text_unpacked,
             }
 
-        # Intro Frame
+        # Create an Intro Frame
         intro_frame = self.create_frame(
             self, column=0, padx=self.padding, pady=self.padding
         )
@@ -154,7 +179,7 @@ class WindowFirstLaunch(TemplateBase):
             },
         )
 
-        # Report Frame
+        # Create a Report Frame
         report_frame = self.create_frame(
             self, column=0, padx=self.padding, pady=(0, self.padding)
         )
@@ -187,7 +212,7 @@ class WindowFirstLaunch(TemplateBase):
 
         self.create_separator(self, padx=self.padding)
 
-        # Question Frame
+        # Create a Question Frame
         question_frame = self.create_frame(
             self, column=0, padx=self.padding, pady=(0, self.padding)
         )
@@ -229,6 +254,41 @@ class WindowFirstLaunch(TemplateBase):
             column=2,
         )
 
+        # Create a frame to hold the log display
+        log_frame = self.create_frame(
+            self,
+            column=0,
+            padx=self.padding,
+            pady=(0, self.padding),
+            sticky="nsew",
+            column_weights=[(0, 1)],
+        )
+
+        # Create the log display as a CTkTextbox
+        log_textbox = self.create_ctk_widget(
+            ctk_widget=ctk.CTkTextbox,
+            widget_args={
+                "master": log_frame,
+                "wrap": "word",
+            },
+            # widget_style="SubHeader2.CTkLabel",
+            grid_args={
+                "column": 0,
+                "sticky": "nsew",
+                # "padx": (0, self.padding),
+                # "pady": (self.padding, 0),
+            },
+        )
+
+        # Add the TextBoxHandler to the logger
+        self.text_handler = TextBoxHandler(log_textbox)
+        self.text_handler.setLevel(logging.DEBUG)
+        formatter = LogConfig.SafeFormatter()
+        self.text_handler.setFormatter(formatter)
+
+        # Add the handler to the root logger
+        logging.getLogger().addHandler(self.text_handler)
+
     def installation_progress_callback(self, tool_key, value=None):
         progress_bar_widget = getattr(self, f"{tool_key}_progress_bar")
         progress_bar_grid_args = getattr(self, f"{tool_key}_progress_bar_grid_args")
@@ -242,6 +302,8 @@ class WindowFirstLaunch(TemplateBase):
     def perform_setup_sequence(self):
         log.info("Initiating first launch initial setup sequence...")
 
+        results = []
+
         from backend.tools_manager import ToolsManager
 
         tools_manager = ToolsManager()
@@ -250,7 +312,9 @@ class WindowFirstLaunch(TemplateBase):
         for tool_key in settings.TOOLS_PATHS.keys():
             install_method = getattr(tools_manager, f"install_{tool_key}")
             self.installation_progress_callback(tool_key)
+            self.update_idletasks()
             install_result = install_method(parent=self, auto_mode=True)
+            results.append(install_result)
             if install_result:
                 self.installation_progress_callback(tool_key, 1)
                 self._apply_style(
@@ -260,11 +324,14 @@ class WindowFirstLaunch(TemplateBase):
                 )
             else:
                 self.installation_progress_callback(tool_key, 0)
+            self.update_idletasks()
 
         self.installation_progress_callback("aes_key")
         detect_result = tools_manager.get_aes_key(
             parent=self, auto_mode=True, skip_aes_dumpster_download=True
         )
+        results.append(detect_result)
+        self.update_idletasks()
         if detect_result:
             self.installation_progress_callback("aes_key", 1)
             self._apply_style(
@@ -272,15 +339,18 @@ class WindowFirstLaunch(TemplateBase):
             )
         else:
             self.installation_progress_callback("aes_key", 0)
+        self.update_idletasks()
 
         for index in range(len(self.games_manager.vanilla_files)):
             self.installation_progress_callback(f"vanilla_{index}")
+            self.update_idletasks()
             unpack_result = tools_manager.unpack_file_by_index(
                 parent=self,
                 install_metadata={"index": index},
                 auto_mode=True,
                 skip_aes_extraction=True,
             )
+            results.append(unpack_result)
             if unpack_result:
                 self.installation_progress_callback(f"vanilla_{index}", 1)
                 self._apply_style(
@@ -290,13 +360,25 @@ class WindowFirstLaunch(TemplateBase):
                 )
             else:
                 self.installation_progress_callback(f"vanilla_{index}", 0)
+            self.update_idletasks()
 
-        # self.on_closing()
+        if all(results):
+            WindowMessageBox.showinfo(
+                self,
+                message=translate("dialogue_setup_sequence_success"),
+            )
+        else:
+            WindowMessageBox.showwarning(
+                self,
+                message=translate("dialogue_setup_sequence_warning"),
+            )
+
+        self.on_closing()
 
     def skip_setup_sequence(self):
         log.debug("Skipping first launch initial setup sequence...")
 
-        test = WindowMessageBox.showinfo(
+        WindowMessageBox.showinfo(
             self,
             message=translate("dialogue_skip_setup_sequence"),
         )

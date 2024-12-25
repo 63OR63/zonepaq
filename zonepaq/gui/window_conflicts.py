@@ -38,7 +38,7 @@ class WindowConflicts(TemplateToplevel):
         log.info("Conflicts resolver window opened.")
 
     def on_closing(self):
-        log.debug("Conflicts resolver window closed.")
+        log.info("Conflicts resolver window closed.")
         self.destroy()
         self.master.deiconify()
 

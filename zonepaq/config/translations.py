@@ -163,7 +163,9 @@ TRANSLATIONS = {
         "dialogue_check_logs": "Check logs for details.",
         "dialogue_request_update_1": "A newer version",
         "dialogue_request_update_2": "is available!\nDo you want to visit the download page?\n\nIf you wish to skip this version, click `Cancel`.",
-        "dialogue_skip_setup_sequence": "Please navigate to the Settings and complete the necessary setup.",
+        "dialogue_skip_setup_sequence": "Please navigate to the Settings and finish the required configuration.",
+        "dialogue_setup_sequence_success": "Initial setup finished succesfully.",
+        "dialogue_setup_sequence_warning": "Initial setup was incomplete.\n\nPlease navigate to the Settings and finish the required configuration.",
     },
     "Русский": {
         "meta_description": "Удобное графическое приложение для распаковки, упаковки и разрешения конфликтов .pak модов.",
@@ -229,6 +231,11 @@ TRANSLATIONS = {
         "generic_here": "сюда",
         "pak": ".pak файлы",
         "folders": "папки",
+        "first_launch_sequence_title": "Первый запуск",
+        "first_launch_sequence_welcome_1": "Приветствую! Похоже, вы запустили",
+        "first_launch_sequence_welcome_2": "впервые.",
+        "first_launch_sequence_welcome_3": "Текущий статус:",
+        "first_launch_sequence_question": "Произвести установку?",
         "launch_screen_title": "Добро пожаловать",
         "launch_screen_header": "Что вы хотите сделать?",
         "launch_screen_button_repak": "Распаковать или упаковать",
@@ -324,7 +331,9 @@ TRANSLATIONS = {
         "dialogue_check_logs": "Подробная информация в логах.",
         "dialogue_request_update_1": "Новая версия",
         "dialogue_request_update_2": 'доступна!\nЖелаете открыть страницу загрузки?\n\nЕсли хотите пропустить эту версию, нажмите "Отменить".',
-        "dialogue_skip_setup_sequence": "Для обеспечения корректной работы перейдите в меню Настройки и завершите необходимую настройку.",
+        "dialogue_skip_setup_sequence": "Для обеспечения корректной работы перейдите в Настройки и завершите необходимую конфигурацию.",
+        "dialogue_setup_sequence_success": "Первоначальная установка была проведена успешно.",
+        "dialogue_setup_sequence_warning": "Первоначальная установка была проведена не полностью.\n\nПожалуйста, перейдите в Настройки и завершите необходимую конфигурацию.",
     },
 }
 

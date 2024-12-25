@@ -269,55 +269,60 @@ class ConflictProcessor:
     def _merge_files(
         self, unpacked_files, item_name, item_path, temp_merging_dir, use_vanilla=False
     ):
-        if unpacked_files:
-            save_path = temp_merging_dir / item_path
-            Files.create_dir(save_path.parent)
+        if not unpacked_files:
+            log.error(f"No valid files to compare for {str(item_path)}")
+            return
 
-            if use_vanilla:
-                from backend.games_manager import GamesManager
+        save_path = temp_merging_dir / item_path
+        Files.create_dir(save_path.parent)
 
-                for item in GamesManager.vanilla_files:
-                    unpacked_folder = item["unpacked"]
+        if use_vanilla:
+            from backend.games_manager import GamesManager
 
-                    vanilla_file = Path(unpacked_folder) / item_path
+            for item in GamesManager.vanilla_files:
+                unpacked_folder = item["unpacked"]
+                vanilla_file = Path(unpacked_folder) / item_path
 
-                    if vanilla_file.exists() and vanilla_file.is_file():
-                        unpacked_files.appendleft(vanilla_file)
+                if vanilla_file.exists() and vanilla_file.is_file():
+                    unpacked_files.appendleft(vanilla_file)
 
-            compare_success, compare_result = Merging._run_engine(
-                unpacked_files, save_path
-            )
-            log.debug(
-                f"{settings.MERGING_ENGINE} returned with code {compare_result.returncode}"
-            )
-            log.debug(
-                f"{compare_success} and {compare_result} and {compare_result.returncode}"
-            )
-            if compare_success and compare_result.returncode == 0:
-                log.info(f"Merging successful for {str(item_path)}")
-                self.processed_conflicts.append(item_name)
+        compare_success, compare_result = Merging._run_engine(unpacked_files, save_path)
+
+        log.debug(
+            f"{settings.MERGING_ENGINE} returned with code {compare_result.returncode}"
+        )
+
+        file_exists = Files.is_existing_file(save_path)
+
+        if compare_success and compare_result.returncode == 0 and file_exists:
+            log.info(f"Merging successful for {str(item_path)}")
+            self.processed_conflicts.append(item_name)
+        else:
+            if not file_exists:
+                log.error(f"{str(item_path)} wasn't saved in {settings.MERGING_ENGINE}")
+                self.not_processed.append(
+                    f"{item_name} (wasn't saved in {settings.MERGING_ENGINE})"
+                )
             else:
                 log.error(
                     f"Merging failed for {str(item_path)}: {compare_result.stderr}"
                 )
                 self.not_processed.append(
-                    f"{item_name} (wasn't saved in {settings.MERGING_ENGINE})"
+                    f"{item_name} ({settings.MERGING_ENGINE} returned: {compare_result.stderr})"
                 )
-        else:
-            log.error(f"No valid files to compare for {str(item_path)}")
 
-    def _insistent_askdirectory(self, initialdir=None, title=None):
+    def _insistent_askdirectory(self, parent, initialdir=None, title=None):
         folder_selected = None
         while True:
             folder_selected = ModalFileDialog.askdirectory(
-                parent=self.master, initialdir=initialdir, title=title
+                parent=parent, initialdir=initialdir, title=title
             )
 
             if folder_selected:
                 return Path(folder_selected)
             else:
                 retry = WindowMessageBox.askretrycancel(
-                    self.master,
+                    parent,
                     message=translate(
                         "merge_screen_conflicts_select_merged_destination"
                     ),

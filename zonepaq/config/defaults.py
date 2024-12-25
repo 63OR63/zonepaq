@@ -81,7 +81,6 @@ if language == "ru_RU":
 else:
     lang_name = "English"
 
-print(f"Language: {language}")
 DEFAULT_SETTINGS = {
     "first_launch": "True",
     "game": "stalker_2",

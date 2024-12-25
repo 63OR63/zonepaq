@@ -89,7 +89,7 @@ class Files:
             for attempt in range(1, retries + 2):
                 try:
                     path.mkdir(parents=True, exist_ok=True)
-                    log.debug(f"Directory created or already exists: {path}")
+                    # log.debug(f"Directory created or already exists: {path}")
                     return True
                 except Exception as e:
                     log.warning(
@@ -172,7 +172,7 @@ class Files:
                         shutil.copytree(src, dest)
                     else:
                         shutil.copy2(src, dest)
-                    log.debug(f"Copied {src} to {dest}")
+                    # log.debug(f"Copied {src} to {dest}")
                     return True
                 except Exception as e:
                     log.warning(
@@ -554,41 +554,42 @@ class Data:
             log.exception(f"Error during AES validation of {key}: {e}")
             return False
 
-    # @staticmethod
-    # def build_content_tree(gathered_files: dict) -> dict:
-    #     content_tree = {}
-    #     for source_path, file_paths in gathered_files.items():
-    #         for file_path in file_paths:
-    #             parts = Path(file_path).parts
-    #             game_name, *file_hierarchy, file_name = parts
-
-    #             current_level = content_tree.setdefault(game_name, {})
-    #             for part in file_hierarchy:
-    #                 current_level = current_level.setdefault(part, {})
-
-    #             current_level.setdefault(file_name, []).append(source_path)
-
-    #     return content_tree
     @staticmethod
     def build_content_tree(gathered_files: dict) -> dict:
         content_tree = {}
         for source_path, file_paths in gathered_files.items():
             for file_path in file_paths:
                 parts = Path(file_path).parts
+                game_name, *file_hierarchy, file_name = parts
 
-                if len(parts) == 1:
-                    # Top-level file, directly add it to the content tree
-                    file_name = parts[0]
-                    current_level = content_tree.setdefault(file_name, [])
-                    current_level.append(source_path)
-                else:
-                    # Unpack parts into game_name, hierarchy, and file_name
-                    game_name, *file_hierarchy, file_name = parts
+                current_level = content_tree.setdefault(game_name, {})
+                for part in file_hierarchy:
+                    current_level = current_level.setdefault(part, {})
 
-                    current_level = content_tree.setdefault(game_name, {})
-                    for part in file_hierarchy:
-                        current_level = current_level.setdefault(part, {})
-
-                    current_level.setdefault(file_name, []).append(source_path)
+                current_level.setdefault(file_name, []).append(source_path)
 
         return content_tree
+
+    # @staticmethod
+    # def build_content_tree(gathered_files: dict) -> dict:
+    #     content_tree = {}
+    #     for source_path, file_paths in gathered_files.items():
+    #         for file_path in file_paths:
+    #             parts = Path(file_path).parts
+
+    #             if len(parts) == 1:
+    #                 # Top-level file, directly add it to the content tree
+    #                 file_name = parts[0]
+    #                 current_level = content_tree.setdefault(file_name, [])
+    #                 current_level.append(source_path)
+    #             else:
+    #                 # Unpack parts into game_name, hierarchy, and file_name
+    #                 game_name, *file_hierarchy, file_name = parts
+
+    #                 current_level = content_tree.setdefault(game_name, {})
+    #                 for part in file_hierarchy:
+    #                     current_level = current_level.setdefault(part, {})
+
+    #                 current_level.setdefault(file_name, []).append(source_path)
+
+    #     return content_tree

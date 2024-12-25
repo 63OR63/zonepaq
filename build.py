@@ -60,13 +60,14 @@ def build_win():
         exe_name,
         "--icon",
         metadata.APP_ICONS["ico"],
-        "--add-data",
-        f"{metadata.APP_ICONS['png']};{Path(metadata.APP_ICONS['png']).parent}",
         "--version-file",
         version_file,
         "--additional-hooks-dir=hooks",
         entry_point,
     ]
+
+    for file_type, file_path in metadata.APP_ICONS.items():
+        args.extend(["--add-data", f"{file_path};{Path(file_path).parent}"])
 
     run(args)
 

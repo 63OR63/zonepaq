@@ -2,6 +2,7 @@ from backend.logger import handle_exception, log
 from backend.games_manager import GamesManager
 from backend.utilities import Files
 from backend.tools_manager import ToolsManager
+from config import metadata
 from config.settings import SettingsManager
 from config.metadata import APP_NAME, APP_VERSION
 from config.themes import StyleManager, ThemeManager
@@ -62,16 +63,16 @@ class TemplateBase(CTk):
         self.style_manager.define_custom_styles(color_palette)
 
         self.cog_image = self.create_image_for_button(
-            "mdi-cog.png", color_palette, hover=False
+            metadata.APP_ICONS["mdi-cog"], color_palette, hover=False
         )
         self.cog_image_hover = self.create_image_for_button(
-            "mdi-cog.png", color_palette, hover=True
+            metadata.APP_ICONS["mdi-cog"], color_palette, hover=True
         )
         self.help_image = self.create_image_for_button(
-            "mdi-help.png", color_palette, hover=False
+            metadata.APP_ICONS["mdi-help"], color_palette, hover=False
         )
         self.help_image_hover = self.create_image_for_button(
-            "mdi-help.png", color_palette, hover=True
+            metadata.APP_ICONS["mdi-help"], color_palette, hover=True
         )
 
         self.configure(
@@ -82,18 +83,18 @@ class TemplateBase(CTk):
 
         log.debug(f"Color theme {color_palette} applied")
 
-    def create_image_for_button(self, img_name, color_palette, hover=False):
+    def create_image_for_button(self, img, color_palette, hover=False):
         color_type = "color_accent_quaternary" if hover else "color_accent_tertiary"
         colors = self.theme_manager.get_colors(color_type, color_palette)
         light_color, dark_color = colors[0], colors[1]
 
         def themed_image(img, color):
-            base_path = Files.get_base_path() / f"zonepaq/assets/icons/{img}"
+            base_path = Files.get_base_path() / img
             return self.theme_manager.colorize_mask(base_path, color)
 
         return ctk.CTkImage(
-            light_image=themed_image(img_name, light_color),
-            dark_image=themed_image(img_name, dark_color),
+            light_image=themed_image(img, light_color),
+            dark_image=themed_image(img, dark_color),
             size=(self.padding * 1.5, self.padding * 1.5),
         )
 
@@ -186,11 +187,9 @@ class TemplateBase(CTk):
         max_height = 0
 
         for frame in frames:
-            # Get the requested dimensions of the frame
             width = frame.winfo_reqwidth()
             height = frame.winfo_reqheight()
 
-            # Update maximum values if current frame exceeds them
             max_width = max(max_width, width)
             max_height = max(max_height, height)
 

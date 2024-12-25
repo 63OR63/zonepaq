@@ -25,7 +25,7 @@ class WindowHelp(TemplateToplevel):
         log.info("Info window opened.")
 
     def on_closing(self):
-        log.debug("Info window closed.")
+        log.info("Info window closed.")
         self.destroy()
 
     def _create(self):

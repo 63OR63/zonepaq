@@ -16,9 +16,9 @@ settings = SettingsManager()
 
 
 def get_system_info():
-    log.debug("=" * 50)
-    log.debug("       System info")
-    log.debug("=" * 50)
+    log.info("=" * 50)
+    log.info("       System info")
+    log.info("=" * 50)
 
     # Operating System
     try:
@@ -36,65 +36,65 @@ def get_system_info():
             os_name = f"{platform.system()} {platform.release()}"
     except Exception:
         os_name = "Unknown"
-    log.debug(f"Operating System   : {os_name}")
+    log.info(f"Operating System   : {os_name}")
 
     # OS Version
     try:
         os_version = platform.version()
     except Exception as e:
         os_version = "Unknown"
-    log.debug(f"OS Version         : {os_version}")
+    log.info(f"OS Version         : {os_version}")
 
     # Machine Type
     try:
         machine_type = platform.machine()
     except Exception as e:
         machine_type = "Unknown"
-    log.debug(f"Machine Type       : {machine_type}")
+    log.info(f"Machine Type       : {machine_type}")
 
     # Processor
     try:
         processor = platform.processor()
     except Exception as e:
         processor = "Unknown"
-    log.debug(f"Processor          : {processor}")
+    log.info(f"Processor          : {processor}")
 
     # Python Version
     try:
         python_version = platform.python_version()
     except Exception as e:
         python_version = "Unknown"
-    log.debug(f"Python Version     : {python_version}")
+    log.info(f"Python Version     : {python_version}")
 
     # Python Build
     try:
         python_build = platform.python_build()
     except Exception as e:
         python_build = "Unknown"
-    log.debug(f"Python Build       : {python_build}")
+    log.info(f"Python Build       : {python_build}")
 
     # Platform Details
     try:
         platform_details = platform.platform()
     except Exception as e:
         platform_details = "Unknown"
-    log.debug(f"Platform           : {platform_details}")
+    log.info(f"Platform           : {platform_details}")
 
     # Architecture
     try:
         architecture = platform.architecture()[0]
     except Exception as e:
         architecture = "Unknown"
-    log.debug(f"Architecture       : {architecture}")
+    log.info(f"Architecture       : {architecture}")
 
     # Current Directory
     try:
         current_dir = os.getcwd()
     except Exception as e:
         current_dir = "Unknown"
-    log.debug(f"Current Directory  : {current_dir}")
+    log.info(f"Current Directory  : {current_dir}")
 
-    log.debug("=" * 50)
+    log.info("=" * 50)
 
 
 def check_new_release(github_repo, current_version):
@@ -172,7 +172,9 @@ def check_for_update():
             return False
         elif reply == None:
             log.debug(f"Ignoring version {update_available}.")
-            settings.update_config("SETTINGS", "skip_version", str(update_available))
+            settings = settings.update_config(
+                "SETTINGS", "skip_version", str(update_available)
+            )
             return False
         return False
 

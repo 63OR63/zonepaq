@@ -16,7 +16,7 @@ class WindowMain(TemplateBase):
         log.info("Main window opened.")
 
     def on_closing(self):
-        log.debug("Main window closed.")
+        log.info("Main window closed.")
         self.destroy()
 
     def _open_repak_gui(self):

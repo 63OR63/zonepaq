@@ -8,6 +8,10 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
 
+# log_level = logging.DEBUG
+log_level = logging.INFO
+
+
 class DeepDebug:
     DEEP_DEBUG_LEVEL = 9
     logging.addLevelName(DEEP_DEBUG_LEVEL, "DEEP_DEBUG")
@@ -63,10 +67,10 @@ class LogConfig:
 
     @staticmethod
     def setup_logging(
-        log_file="logs/zonepaq.log",
+        log_file="zonepaq/logs/zonepaq.log",
         max_file_size=0.5 * 1024 * 1024,
         backup_count=3,
-        log_level=logging.DEBUG,
+        log_level=log_level,
     ):
         log_file = Path(log_file)
         log_file.parent.mkdir(parents=True, exist_ok=True)

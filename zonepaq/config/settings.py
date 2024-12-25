@@ -135,6 +135,7 @@ class SettingsManager:
         cls.set(section, key, value)
         cls.save()
         cls.load()
+        return cls._instance
 
     @classmethod
     def set(cls, section, key, value):

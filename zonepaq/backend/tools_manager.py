@@ -227,7 +227,9 @@ class ToolsManager:
                     entry_variable = install_metadata.get("entry_variable", None)
 
                     if settings_key:
-                        settings.update_config("SETTINGS", "aes_key", aes_key)
+                        settings = settings.update_config(
+                            "SETTINGS", "aes_key", aes_key
+                        )
 
                     if entry_variable and entry_widget:
                         entry_variable.set(aes_key)
@@ -362,7 +364,7 @@ class ToolsManager:
             path = Files.get_relative_path(exe_location)
             # settings.TOOLS_PATHS[settings_key] = str(path)
             # settings.save()
-            settings.update_config("TOOLS_PATHS", settings_key, str(path))
+            settings = settings.update_config("TOOLS_PATHS", settings_key, str(path))
 
         if entry_variable and entry_widget:
             entry_variable.set(path)

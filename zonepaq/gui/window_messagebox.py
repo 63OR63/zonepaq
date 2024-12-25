@@ -18,7 +18,7 @@ class WindowMessageBox(TemplateToplevel):
         log.info("Message Box window opened.")
 
     def on_closing(self):
-        log.debug("Message Box window closed.")
+        log.info("Message Box window closed.")
         self.destroy()
 
     def _create_message_box(self, message, buttons):
@@ -186,19 +186,22 @@ class WindowMessageBox(TemplateToplevel):
 
 class ModalFileDialog:
     @staticmethod
-    def askdirectory(parent, title="Select Directory"):
+    def askdirectory(parent, initialdir=None, title="Select Directory"):
         return ModalFileDialog._show_modal_dialog(
-            parent, lambda: filedialog.askdirectory(parent=parent, title=title)
+            parent,
+            lambda: filedialog.askdirectory(
+                parent=parent, initialdir=initialdir, title=title
+            ),
         )
 
     @staticmethod
     def askopenfilenames(
-        parent, title="Select Files", filetypes=(("All Files", "*.*"),)
+        parent, initialdir=None, title="Select Files", filetypes=(("All Files", "*.*"),)
     ):
         return ModalFileDialog._show_modal_dialog(
             parent,
             lambda: filedialog.askopenfilenames(
-                parent=parent, title=title, filetypes=filetypes
+                parent=parent, initialdir=initialdir, title=title, filetypes=filetypes
             ),
         )
 
