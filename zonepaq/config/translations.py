@@ -78,8 +78,8 @@ TRANSLATIONS = {
             "Instructions:\n"
             "1. Add one or more .pak files using one of the following methods:\n"
             '  - Clicking the "Add" button.\n'
-            "  - Copying them from Explorer and pressing CTRL+V while the list box is selected.\n"
-            '2. Click the "Unpack" button and choose a destination folder\n'
+            "  - Dragging them from the Explorer into the listbox below.\n"
+            '2. Click the "Unpack all" button and choose a destination folder\n'
             "...each .pak file will be unpacked into a separate folder at the selected destination..."
         ),
         "repak_screen_unpack_button": "Unpack all",
@@ -91,8 +91,8 @@ TRANSLATIONS = {
             "Instructions:\n"
             "1. Add one or more folders using one of the following methods:\n"
             '  - Clicking the "Add" button.\n'
-            "  - Copying them from Explorer and pressing CTRL+V while the list box is selected.\n"
-            '2. Click the "Repack" button and choose a destination folder\n'
+            "  - Dragging them from the Explorer into the listbox below.\n"
+            '2. Click the "Repack all" button and choose a destination folder\n'
             "...each folder will be repacked into a separate .pak file at the selected destination..."
         ),
         "repak_screen_repack_button": "Repack all",
@@ -106,8 +106,8 @@ TRANSLATIONS = {
             "Instructions:\n"
             "1. Add one or more .pak files using one of the following methods:\n"
             '  - Clicking the "Add" button.\n'
-            "  - Copying them from Explorer and pressing CTRL+V while the list box is selected.\n"
-            '2. Click the "Analyze" button.\n'
+            "  - Dragging them from the Explorer into the listbox below.\n"
+            '2. Click the "Analyze all" button.\n'
             "...the merging window will open..."
         ),
         "merge_screen_analyze_button": "Analyze all",
@@ -159,7 +159,7 @@ TRANSLATIONS = {
         "dialogue_install_success": "was successfully installed to",
         "dialogue_install_error": "Failed to install",
         "dialogue_get_aes_success": "AES Key successfully extracted.",
-        "dialogue_get_aes_error": "Failed to extract AES Key",
+        "dialogue_get_aes_error": "Failed to extract AES Key.",
         "dialogue_check_logs": "Check logs for details.",
         "dialogue_request_update_1": "A newer version",
         "dialogue_request_update_2": "is available!\nDo you want to visit the download page?\n\nIf you wish to skip this version, click `Cancel`.",
@@ -239,8 +239,8 @@ TRANSLATIONS = {
             "Инструкция:\n"
             "1. Добавьте один или несколько .pak файлов одним из следующих способов:\n"
             '  - Нажмите кнопку "Добавить".\n'
-            "  - Скопируйте их из проводника и нажмите CTRL+V, когда выделен список.\n"
-            '2. Нажмите кнопку "Распаковать" и выберите папку назначения.\n'
+            "  - Перетащите их из проводника в список ниже.\n"
+            '2. Нажмите кнопку "Распаковать все" и выберите папку назначения.\n'
             "...каждый .pak файл будет распакован в отдельную папку по выбранному пути..."
         ),
         "repak_screen_unpack_button": "Распаковать все",
@@ -252,8 +252,8 @@ TRANSLATIONS = {
             "Инструкция:\n"
             "1. Добавьте одну или несколько папок одним из следующих способов:\n"
             '  - Нажмите кнопку "Добавить".\n'
-            "  - Скопируйте их из проводника и нажмите CTRL+V, когда выделен список.\n"
-            '2. Нажмите кнопку "Упаковать" и выберите папку назначения.\n'
+            "  - Перетащите их из проводника в список ниже.\n"
+            '2. Нажмите кнопку "Упаковать все" и выберите папку назначения.\n'
             "...каждая папка будет упакована в отдельный .pak файл по выбранному пути..."
         ),
         "repak_screen_repack_button": "Упаковать все",
@@ -267,8 +267,8 @@ TRANSLATIONS = {
             "Инструкция:\n"
             "1. Добавьте один или несколько .pak файлов одним из следующих способов:\n"
             '  - Нажмите кнопку "Добавить".\n'
-            "  - Скопируйте их из проводника и нажмите CTRL+V, когда выделен список.\n"
-            '2. Нажмите кнопку "Анализировать".\n'
+            "  - Перетащите их из проводника в список ниже.\n"
+            '2. Нажмите кнопку "Анализировать все".\n'
             "...откроется окно слияния..."
         ),
         "merge_screen_analyze_button": "Анализировать все",
@@ -319,6 +319,8 @@ TRANSLATIONS = {
         "dialogue_install_found": "был найден в",
         "dialogue_install_success": "был успешно установлен в",
         "dialogue_install_error": "Не удалось установить",
+        "dialogue_get_aes_success": "Ключ AES успешно извлечен.",
+        "dialogue_get_aes_error": "Не удалось извлечь ключ AES.",
         "dialogue_check_logs": "Подробная информация в логах.",
         "dialogue_request_update_1": "Новая версия",
         "dialogue_request_update_2": 'доступна!\nЖелаете открыть страницу загрузки?\n\nЕсли хотите пропустить эту версию, нажмите "Отменить".',

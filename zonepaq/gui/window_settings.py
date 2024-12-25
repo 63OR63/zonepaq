@@ -452,7 +452,7 @@ class WindowSettings(TemplateToplevel):
                 else translate("generic_not_unpacked")
             )
             vanilla_group[display_name] = {
-                "tool_key": f"vanilla_{index}",
+                "index": index,
                 "status": status,
                 "text": text,
             }
@@ -467,7 +467,7 @@ class WindowSettings(TemplateToplevel):
             self.create_labeled_text(
                 game_frame,
                 label_text=key,
-                tool_key=value["tool_key"],
+                index=value["index"],
                 status=value["status"],
                 text=value["text"],
                 row=current_row,
@@ -477,7 +477,7 @@ class WindowSettings(TemplateToplevel):
         self.create_spacer(game_frame)
 
     def create_labeled_text(
-        self, group_frame, label_text, tool_key, status, text, row, column
+        self, group_frame, label_text, index, status, text, row, column
     ):
         self.create_ctk_widget(
             ctk_widget=ctk.CTkLabel,
@@ -508,14 +508,16 @@ class WindowSettings(TemplateToplevel):
                 "padx": (0, self.padding),
             },
         )
-        setattr(self, f"{tool_key}_status_label", status_label)
+        setattr(self, f"{index}_status_label", status_label)
 
         self._apply_label_style(status, status_label)
 
         self.create_button(
             group_frame,
             text=translate("settings_tools_unpack"),
-            command=lambda: self.tools_manager.unpack_files(self, install_metadata={}),
+            command=lambda: self.tools_manager.unpack_file_by_index(
+                self, install_metadata={"index": index}
+            ),
             style="Alt.CTkButton",
             width=120,
             padx=(0, self.padding),

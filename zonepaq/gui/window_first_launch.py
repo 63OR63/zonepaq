@@ -22,8 +22,23 @@ class WindowFirstLaunch(TemplateBase):
 
         self.style_manager = StyleManager
 
+        self.text_installed = [
+            translate("generic_installed"),
+            translate("generic_not_installed"),
+        ]
+
+        self.text_detected = [
+            translate("generic_detected"),
+            translate("generic_not_detected"),
+        ]
+
+        self.text_unpacked = [
+            translate("generic_unpacked"),
+            translate("generic_not_unpacked"),
+        ]
+
         self.create()
-        settings.set("SETTINGS", "first_launch", False)
+        # settings.set("SETTINGS", "first_launch", False)
         settings.save()
 
         self.adjust_to_content(self)
@@ -58,7 +73,7 @@ class WindowFirstLaunch(TemplateBase):
                 ctk_widget=ctk.CTkLabel,
                 widget_args={
                     "master": group_frame,
-                    "text": text,
+                    # "text": text,
                     "anchor": "w",
                 },
                 grid_args={
@@ -70,7 +85,7 @@ class WindowFirstLaunch(TemplateBase):
             )
             setattr(self, f"{tool_key}_status_label", status_label)
 
-            self._apply_style(status, status_label)
+            self._apply_style(status, status_label, text)
 
             progress_bar_grid_args = {
                 "row": row,
@@ -87,7 +102,7 @@ class WindowFirstLaunch(TemplateBase):
                 grid_args=progress_bar_grid_args,
             )
             setattr(self, f"{tool_key}_progress_bar", progress_bar)
-            setattr(self, f"{tool_key}_progress_bar_grid_args", progress_bar)
+            setattr(self, f"{tool_key}_progress_bar_grid_args", progress_bar_grid_args)
 
             progress_bar.grid_forget()
 
@@ -97,49 +112,29 @@ class WindowFirstLaunch(TemplateBase):
         for tool_key, tool_path in settings.TOOLS_PATHS.items():
             display_name = TOOLS.get(tool_key, {}).get("display_name", "Unknown")
             status = Data.is_valid_data(tool_path)
-            text = (
-                translate("generic_installed")
-                if status
-                else translate("generic_not_installed")
-            )
             report[display_name] = {
                 "tool_key": tool_key,
                 "status": status,
-                "text": text,
+                "text": self.text_installed,
             }
 
         # Add AES key to the report
         status = Data.is_valid_data(settings.AES_KEY, "aes")
-        text = (
-            translate("generic_detected")
-            if status
-            else translate("generic_not_detected")
-        )
         report[translate("settings_game_aes_key")] = {
-            "tool_key": tool_key,
+            "tool_key": "aes_key",
             "status": status,
-            "text": text,
+            "text": self.text_detected,
         }
 
-        # from backend.games_manager import GamesManager
-
-        # games_manager = GamesManager()
-        games_manager = self.games_manager
-
         # Add vanilla files to the report
-        for index, value in enumerate(games_manager.vanilla_files):
+        for index, value in enumerate(self.games_manager.vanilla_files):
             unpacked = value["unpacked"]
             display_name = str(Path(unpacked).name)
             status = not Files.is_folder_empty(unpacked)
-            text = (
-                translate("generic_unpacked")
-                if status
-                else translate("generic_not_unpacked")
-            )
             report[display_name] = {
                 "tool_key": f"vanilla_{index}",
                 "status": status,
-                "text": text,
+                "text": self.text_unpacked,
             }
 
         # Intro Frame
@@ -234,9 +229,15 @@ class WindowFirstLaunch(TemplateBase):
             column=2,
         )
 
-    def installation_progress_callback(self, tool_key):
+    def installation_progress_callback(self, tool_key, value=None):
         progress_bar_widget = getattr(self, f"{tool_key}_progress_bar")
-        progress_bar_widget.grid_forget()
+        progress_bar_grid_args = getattr(self, f"{tool_key}_progress_bar_grid_args")
+        progress_bar_widget.grid(**progress_bar_grid_args)
+        if value != None:
+            progress_bar_widget.stop()
+            progress_bar_widget.set(value)
+        else:
+            progress_bar_widget.start()
 
     def perform_setup_sequence(self):
         log.info("Initiating first launch initial setup sequence...")
@@ -248,22 +249,49 @@ class WindowFirstLaunch(TemplateBase):
         # Iterate through and call tools install methods in auto mode
         for tool_key in settings.TOOLS_PATHS.keys():
             install_method = getattr(tools_manager, f"install_{tool_key}")
+            self.installation_progress_callback(tool_key)
             install_result = install_method(parent=self, auto_mode=True)
             if install_result:
-                local_exe = TOOLS[tool_key]["local_exe"]
-                if local_exe.exists():
-                    # Apply success style to the status label
-                    self._apply_style(True, getattr(self, f"{tool_key}_status_label"))
+                self.installation_progress_callback(tool_key, 1)
+                self._apply_style(
+                    True,
+                    getattr(self, f"{tool_key}_status_label"),
+                    text=self.text_installed,
+                )
+            else:
+                self.installation_progress_callback(tool_key, 0)
 
-        tools_manager.get_aes_key(
+        self.installation_progress_callback("aes_key")
+        detect_result = tools_manager.get_aes_key(
             parent=self, auto_mode=True, skip_aes_dumpster_download=True
         )
+        if detect_result:
+            self.installation_progress_callback("aes_key", 1)
+            self._apply_style(
+                True, getattr(self, "aes_key_status_label"), text=self.text_detected
+            )
+        else:
+            self.installation_progress_callback("aes_key", 0)
 
-        tools_manager.unpack_files(
-            parent=self, auto_mode=True, skip_aes_extraction=True
-        )
+        for index in range(len(self.games_manager.vanilla_files)):
+            self.installation_progress_callback(f"vanilla_{index}")
+            unpack_result = tools_manager.unpack_file_by_index(
+                parent=self,
+                install_metadata={"index": index},
+                auto_mode=True,
+                skip_aes_extraction=True,
+            )
+            if unpack_result:
+                self.installation_progress_callback(f"vanilla_{index}", 1)
+                self._apply_style(
+                    True,
+                    getattr(self, f"vanilla_{index}_status_label"),
+                    text=self.text_unpacked,
+                )
+            else:
+                self.installation_progress_callback(f"vanilla_{index}", 0)
 
-        self.on_closing()
+        # self.on_closing()
 
     def skip_setup_sequence(self):
         log.debug("Skipping first launch initial setup sequence...")
@@ -275,10 +303,13 @@ class WindowFirstLaunch(TemplateBase):
 
         self.on_closing()
 
-    def _apply_style(self, is_valid, entry_widget):
+    def _apply_style(self, is_valid, entry_widget, text):
         if is_valid:
+            text = text[0]
             style = "Success.CTkLabel"
         else:
+            text = text[1]
             style = "Error.CTkLabel"
 
         self.style_manager.apply_style(entry_widget, style)
+        entry_widget.configure(text=text)

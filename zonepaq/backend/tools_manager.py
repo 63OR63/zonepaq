@@ -85,9 +85,8 @@ class ToolsManager:
             auto_mode=auto_mode,
         )
 
-    # ! WIP
     @classmethod
-    def unpack_files(
+    def unpack_file_by_index(
         cls,
         parent,
         install_metadata={},
@@ -109,28 +108,34 @@ class ToolsManager:
         results_ok = []
         results_ko = []
         futures = {}
-        for item in games_manager.vanilla_files:
-            vanilla_file = item["archive"]
-            unpacked_folder = item["unpacked"]
-            parent_folder = unpacked_folder.parent
 
-            # Skip unpacking if unpacked_folder isn't empty
-            if not Files.is_folder_empty(unpacked_folder):
-                results_ok.append(
-                    f'{translate("generic_skipped")} {str(unpacked_folder)} {translate("generic_is_not_empty")}'
+        # Get the index from install_metadata
+        file_index = install_metadata.get("index")
+        if file_index is None or not (
+            0 <= file_index < len(games_manager.vanilla_files)
+        ):
+            raise ValueError("Invalid or missing index in install_metadata")
+
+        # Select the file based on the provided index
+        item = games_manager.vanilla_files[file_index]
+        vanilla_file = item["archive"]
+        unpacked_folder = item["unpacked"]
+        parent_folder = unpacked_folder.parent
+
+        # Skip unpacking if unpacked_folder isn't empty
+        if not Files.is_folder_empty(unpacked_folder):
+            results_ok.append(
+                f'{translate("generic_skipped")} {str(unpacked_folder)} {translate("generic_is_not_empty")}'
+            )
+        elif Files.is_existing_file(vanilla_file):
+            vanilla_file = Path(vanilla_file)
+            futures[
+                Repak.unpack(
+                    vanilla_file,
+                    parent_folder,
+                    allowed_extensions=[".cfg", ".ini"],
                 )
-                continue
-
-            if Files.is_existing_file(vanilla_file):
-
-                vanilla_file = Path(vanilla_file)
-                futures[
-                    Repak.unpack(
-                        vanilla_file,
-                        parent_folder,
-                        allowed_extensions=[".cfg", ".ini"],
-                    )
-                ] = vanilla_file
+            ] = vanilla_file
 
         for future in as_completed(futures):
             vanilla_file = futures[future]
@@ -145,6 +150,8 @@ class ToolsManager:
 
         if not auto_mode:
             cls.show_results(parent, results_ok, results_ko)
+
+        return bool(results_ok) and not bool(results_ko)
 
     @staticmethod
     def show_results(parent, results_ok, results_ko):
@@ -168,70 +175,79 @@ class ToolsManager:
         auto_mode=False,
         skip_aes_dumpster_download=False,
     ):
-        if not skip_aes_dumpster_download:
-            cls.install_aes_dumpster(parent=parent, auto_mode=True)
+        try:
+            if not skip_aes_dumpster_download:
+                cls.install_aes_dumpster(parent=parent, auto_mode=True)
 
-        from backend.games_manager import GamesManager
+            from backend.games_manager import GamesManager
 
-        games_manager = GamesManager()
+            games_manager = GamesManager()
 
-        with tempfile.TemporaryDirectory() as temp_shipping_exe_dir:
+            with tempfile.TemporaryDirectory() as temp_shipping_exe_dir:
 
-            temp_shipping_exe_dir = Path(temp_shipping_exe_dir)
-            temp_shipping_exe = temp_shipping_exe_dir / "shipping.exe"
-            Files.copy_path(
-                games_manager.shipping_exe,
-                temp_shipping_exe,
-            )
-            aes_dumpster_exe = settings.TOOLS_PATHS["aes_dumpster"]
-
-            command = [str(aes_dumpster_exe), str(temp_shipping_exe)]
-
-            process = subprocess.Popen(
-                command,
-                shell=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                stdin=subprocess.PIPE,
-            )
-            process.stdin.write(b"\n")  # Sending a newline to end AESDumpster
-            process.stdin.flush()
-
-            stdout, stderr = process.communicate()
-            aes_output = stdout.decode("utf-8")
-
-            # Extract the AES key using a regex
-            key_pattern = r"0x[0-9A-F]{64}"
-            match = re.search(key_pattern, aes_output)
-            aes_key = str(match.group(0))
-
-            if Data.is_valid_aes_key(aes_key):
-
-                # Finalize
-                settings_key = install_metadata.get("settings_key", None)
-                entry_widget = install_metadata.get("entry_widget", None)
-                entry_variable = install_metadata.get("entry_variable", None)
-
-                if settings_key:
-                    # settings.AES_KEY = aes_key
-                    # settings.save()
-                    settings.update_config("SETTINGS", "aes_key", aes_key)
-
-                if entry_variable and entry_widget:
-                    entry_variable.set(aes_key)
-                    parent._apply_style(True, entry_widget)
-
-                if not auto_mode:
-                    message = translate("dialogue_get_aes_success")
-            else:
-                if not auto_mode:
-                    message = f'{translate("dialogue_get_aes_error")} {translate("dialogue_check_logs")}'
-
-            if not auto_mode:
-                WindowMessageBox.showinfo(
-                    parent,
-                    message=message,
+                temp_shipping_exe_dir = Path(temp_shipping_exe_dir)
+                temp_shipping_exe = temp_shipping_exe_dir / "shipping.exe"
+                Files.copy_path(
+                    games_manager.shipping_exe,
+                    temp_shipping_exe,
                 )
+                aes_dumpster_exe = settings.TOOLS_PATHS["aes_dumpster"]
+
+                command = [str(aes_dumpster_exe), str(temp_shipping_exe)]
+
+                process = subprocess.Popen(
+                    command,
+                    shell=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    stdin=subprocess.PIPE,
+                )
+                process.stdin.write(b"\n")  # Sending a newline to end AESDumpster
+                process.stdin.flush()
+
+                stdout, stderr = process.communicate()
+                aes_output = stdout.decode("utf-8")
+
+                # Extract the AES key using a regex
+                key_pattern = r"0x[0-9A-F]{64}"
+                match = re.search(key_pattern, aes_output)
+
+                if not match:
+                    if not auto_mode:
+                        message = f'{translate("dialogue_get_aes_error")}\n{translate("dialogue_check_logs")}'
+                        WindowMessageBox.showinfo(parent, message=message)
+                    return False
+
+                aes_key = str(match.group(0))
+
+                if Data.is_valid_aes_key(aes_key):
+                    # Finalize
+                    settings_key = install_metadata.get("settings_key", None)
+                    entry_widget = install_metadata.get("entry_widget", None)
+                    entry_variable = install_metadata.get("entry_variable", None)
+
+                    if settings_key:
+                        settings.update_config("SETTINGS", "aes_key", aes_key)
+
+                    if entry_variable and entry_widget:
+                        entry_variable.set(aes_key)
+                        parent._apply_style(True, entry_widget)
+
+                    if not auto_mode:
+                        message = translate("dialogue_get_aes_success")
+                        WindowMessageBox.showinfo(parent, message=message)
+                    return True
+                else:
+                    if not auto_mode:
+                        message = f'{translate("dialogue_get_aes_error")}\n{translate("dialogue_check_logs")}'
+                        WindowMessageBox.showinfo(parent, message=message)
+                    return False
+
+        except Exception as e:
+            if not auto_mode:
+                message = [f'{translate("dialogue_get_aes_error")}\nError:', str(e)]
+                WindowMessageBox.showinfo(parent, message=message)
+            return False
 
     @classmethod
     def install_aes_dumpster(
