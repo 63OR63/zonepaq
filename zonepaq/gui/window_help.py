@@ -1,4 +1,6 @@
 import webbrowser
+
+import customtkinter as ctk
 from backend.logger import log
 from config.metadata import (
     APP_DESCRIPTION,
@@ -9,7 +11,6 @@ from config.metadata import (
 )
 from config.translations import translate
 from gui.template_toplevel import TemplateToplevel
-import customtkinter as ctk
 
 
 class WindowHelp(TemplateToplevel):

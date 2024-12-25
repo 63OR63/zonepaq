@@ -1,22 +1,17 @@
-from backend.logger import handle_exception, log
-from backend.games_manager import GamesManager
-from backend.utilities import Files
-from backend.tools_manager import ToolsManager
-from config import metadata
-from config.settings import SettingsManager
-from config.metadata import APP_NAME, APP_VERSION
-from config.themes import StyleManager, ThemeManager
-from gui.ctk_wraps import CTk
-import customtkinter as ctk
-
-
 import json
 from unittest.mock import mock_open, patch
 
+import customtkinter as ctk
+from backend.games_manager import GamesManager
+from backend.logger import handle_exception, log
+from backend.tools_manager import ToolsManager
+from backend.utilities import Files
+from config import metadata
+from config.metadata import APP_NAME, APP_VERSION
+from config.settings_manager import settings
+from config.themes import StyleManager, ThemeManager
+from gui.ctk_wraps import CTk
 from gui.window_settings import WindowSettings
-
-# Get SettingsManager class
-settings = SettingsManager()
 
 
 class TemplateBase(CTk):

@@ -1,24 +1,20 @@
-from concurrent.futures import as_completed
+import logging
 import re
 import shutil
 import subprocess
 import sys
 import tempfile
 import zipfile
+from concurrent.futures import as_completed
 from pathlib import Path
-from gui.window_messagebox import WindowMessageBox
 
 import requests
 from backend.logger import log
 from backend.repak import Repak
 from backend.utilities import Data, Files
-from config.settings import SettingsManager
+from config.settings_manager import settings
 from config.translations import translate
-
-# Get SettingsManager class
-settings = SettingsManager()
-
-import logging
+from gui.window_messagebox import WindowMessageBox
 
 # Suppress DEBUG logs from urllib3.connectionpool
 logging.getLogger("urllib3.connectionpool").setLevel(logging.WARNING)

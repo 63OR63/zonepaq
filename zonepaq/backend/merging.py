@@ -3,10 +3,7 @@ from pathlib import Path
 
 from backend.logger import log
 from backend.utilities import Files
-from config.settings import SettingsManager
-
-# Get SettingsManager class
-settings = SettingsManager()
+from config.settings_manager import settings
 
 
 class Merging:

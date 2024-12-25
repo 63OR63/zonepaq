@@ -1,19 +1,14 @@
 import sys
+from pathlib import Path
+
+import customtkinter as ctk
 from backend.logger import log
 from backend.utilities import Data, Files
-from config.settings import SettingsManager
+from config.settings_manager import settings
 from config.translations import translate
 from gui.template_toplevel import TemplateToplevel
-import customtkinter as ctk
-
-from pathlib import Path
-from tkinter import filedialog
-from gui.window_messagebox import ModalFileDialog, WindowMessageBox
-
 from gui.window_help import WindowHelp
-
-# Get SettingsManager class
-settings = SettingsManager()
+from gui.window_messagebox import ModalFileDialog
 
 
 class WindowSettings(TemplateToplevel):

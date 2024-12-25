@@ -2,16 +2,15 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 
 from backend.logger import log
+from backend.utilities import Files
 from config.defaults import (
     DEFAULT_SETTINGS,
     DEFAULT_TOOLS_PATHS,
-    TOOLS,
     SUPPORTED_MERGING_ENGINES,
+    TOOLS,
 )
 from config.themes import ThemeManager
 from config.translations import get_available_languages, get_translation
-
-from backend.utilities import Files
 
 
 class ConfigSource(ABC):
@@ -150,3 +149,6 @@ class SettingsManager:
     @classmethod
     def save(cls):
         cls.loader.save(cls.config)
+
+
+settings = SettingsManager()

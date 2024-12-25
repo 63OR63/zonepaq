@@ -1,21 +1,17 @@
 import logging
+import tkinter as tk
 from pathlib import Path
-from gui.window_messagebox import WindowMessageBox
 
 import customtkinter as ctk
 from backend.logger import LogConfig, log
 from backend.utilities import Data, Files
 from config.defaults import TOOLS
 from config.metadata import APP_NAME
-from config.settings import SettingsManager
+from config.settings_manager import settings
 from config.themes import StyleManager
 from config.translations import translate
 from gui.template_base import TemplateBase
-
-import tkinter as tk
-
-# Get SettingsManager class
-settings = SettingsManager()
+from gui.window_messagebox import WindowMessageBox
 
 
 class TextBoxHandler(logging.Handler):

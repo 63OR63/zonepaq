@@ -3,18 +3,14 @@ from collections import deque
 from concurrent.futures import as_completed
 from datetime import datetime
 from pathlib import Path
-from tkinter import filedialog
-from gui.window_messagebox import ModalFileDialog, WindowMessageBox
 
 from backend.logger import log
 from backend.merging import Merging
 from backend.repak import Repak
 from backend.utilities import Files
-from config.settings import SettingsManager
+from config.settings_manager import settings
 from config.translations import translate
-
-# Get SettingsManager class
-settings = SettingsManager()
+from gui.window_messagebox import ModalFileDialog, WindowMessageBox
 
 
 class ConflictProcessor:

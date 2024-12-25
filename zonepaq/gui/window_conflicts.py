@@ -1,19 +1,15 @@
 import tkinter as tk
 from collections import deque
 from pathlib import Path
-from gui.window_messagebox import WindowMessageBox
-
 from tkinter import ttk
-from backend.conflicts import ConflictProcessor
-from backend.logger import log
-from config.settings import SettingsManager
-from config.translations import translate
-from gui.template_toplevel import TemplateToplevel
 
 import customtkinter as ctk
-
-# Get SettingsManager class
-settings = SettingsManager()
+from backend.conflicts import ConflictProcessor
+from backend.logger import log
+from config.settings_manager import settings
+from config.translations import translate
+from gui.template_toplevel import TemplateToplevel
+from gui.window_messagebox import WindowMessageBox
 
 
 class WindowConflicts(TemplateToplevel):

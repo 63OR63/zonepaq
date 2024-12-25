@@ -1,6 +1,7 @@
-from tkinter import filedialog
-import customtkinter as ctk
 import tkinter as tk
+from tkinter import filedialog
+
+import customtkinter as ctk
 from backend.logger import log
 from config.translations import translate
 from gui.template_toplevel import TemplateToplevel

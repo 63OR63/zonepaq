@@ -1,13 +1,12 @@
-from backend.logger import log
-from backend.repak import Repak
-from backend.utilities import Files, Data
-from config.translations import translate
-from gui.window_conflicts import WindowConflicts
-from gui.template_secondary import TemplateSecondary
-
-
 from concurrent.futures import as_completed
 from pathlib import Path
+
+from backend.logger import log
+from backend.repak import Repak
+from backend.utilities import Data, Files
+from config.translations import translate
+from gui.template_secondary import TemplateSecondary
+from gui.window_conflicts import WindowConflicts
 from gui.window_messagebox import WindowMessageBox
 
 

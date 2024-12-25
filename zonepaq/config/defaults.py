@@ -1,8 +1,7 @@
+import locale
 from pathlib import Path
 
 from backend.utilities import Files
-
-import locale
 
 TOOLS = {
     "tools_base": Path("zonepaq/tools"),

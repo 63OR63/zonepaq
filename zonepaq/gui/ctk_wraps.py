@@ -1,9 +1,9 @@
 import tkinter as tk
 
 import customtkinter as ctk
+from backend.utilities import Files
 from config.metadata import APP_ICONS
 from tkinterdnd2 import TkinterDnD
-from backend.utilities import Files
 
 
 def custom_set_titlebar_icon(self):

@@ -6,13 +6,10 @@ import requests
 from backend.logger import log
 from backend.utilities import Files
 from config.metadata import APP_REPO, APP_URL, APP_VERSION
-from config.settings import SettingsManager
+from config.settings_manager import settings
 from gui.window_first_launch import WindowFirstLaunch
 from gui.window_main import WindowMain
 from packaging import version
-
-# Get SettingsManager class
-settings = SettingsManager()
 
 
 def get_system_info():

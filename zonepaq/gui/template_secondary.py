@@ -1,17 +1,13 @@
 from pathlib import Path
-from tkinter import filedialog
-from gui.window_messagebox import ModalFileDialog, WindowMessageBox
 
-from CTkListbox import CTkListbox
 import customtkinter as ctk
 from backend.logger import log
-from config.settings import SettingsManager
+from config.settings_manager import settings
 from config.translations import translate
+from CTkListbox import CTkListbox
 from gui.template_toplevel import TemplateToplevel
+from gui.window_messagebox import ModalFileDialog, WindowMessageBox
 from tkinterdnd2 import DND_FILES
-
-# Get SettingsManager class
-settings = SettingsManager()
 
 
 class TemplateSecondary(TemplateToplevel):

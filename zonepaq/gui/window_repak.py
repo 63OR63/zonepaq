@@ -1,7 +1,5 @@
 from concurrent.futures import as_completed
 from pathlib import Path
-from tkinter import filedialog
-from gui.window_messagebox import ModalFileDialog, WindowMessageBox
 
 from backend.logger import log
 from backend.repak import Repak
@@ -9,6 +7,7 @@ from backend.utilities import Files
 from config.translations import translate
 from CTkListbox import *
 from gui.template_secondary import TemplateSecondary
+from gui.window_messagebox import ModalFileDialog, WindowMessageBox
 
 
 class WindowRepak(TemplateSecondary):

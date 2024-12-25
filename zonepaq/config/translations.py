@@ -347,10 +347,10 @@ def get_available_languages():
 
 
 def translate(text, lang=None):
-    from config.settings import SettingsManager  # ! FIXME
+    from config.settings_manager import settings  # ! FIXME
 
-    # Get SettingsManager class
-    settings = SettingsManager()
+    # Get settings class
+    # settings = SettingsManager()
     # return settings.LANG_DICT[text]  # to debug raise errors
     if lang:
         try:
