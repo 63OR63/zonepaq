@@ -84,20 +84,20 @@ class ThemeManager:
             "color_highlight": "#9157c1",
         },
         "Cyberpunk": {
-            "color_text_primary": ["#132025", "#00e6ef"],
-            "color_text_secondary": ["#35181d", "#4db0a4"],
-            "color_text_accent": ["#ffffff", "#00fff7"],
-            "color_text_muted": ["#5e6f24", "#596f72"],
-            "color_background_primary": ["#fee909", "#0f121a"],
-            "color_background_secondary": ["#c3e357", "#1f1a22"],
-            "color_background_tertiary": ["#19d7b1", "#35181d"],
-            "color_accent_primary": ["#ff2e4c", "#8c0c2c"],
-            "color_accent_secondary": ["#ff171b", "#c70842"],
-            "color_accent_tertiary": ["#00fff7", "#00716f"],
-            "color_accent_quaternary": ["#5aebd5", "#00a4a1"],
+            "color_text_primary": ["#00e6ef", "#cce957"],
+            "color_text_secondary": ["#4db0a4", "#55f7fe"],
+            "color_text_accent": ["#00fff7", "#1cd577"],
+            "color_text_muted": ["#596f72", "#5d692e"],
+            "color_background_primary": ["#0f121a", "#171017"],
+            "color_background_secondary": ["#1f1a22", "#151219"],
+            "color_background_tertiary": ["#35181d", "#212219"],
+            "color_accent_primary": ["#8c0c2c", "#135143"],
+            "color_accent_secondary": ["#c70842", "#106a56"],
+            "color_accent_tertiary": ["#00716f", "#19373d"],
+            "color_accent_quaternary": ["#00a4a1", "#21434b"],
             "color_error": "#fa675b",
             "color_warning": "#ffaa00",
-            "color_attention": "#cef05b",
+            "color_attention": ["#cef05b", "#fee909"],
             "color_success": "#17deaf",
             "color_highlight": "#902ac7",
         },
@@ -494,6 +494,16 @@ class ThemeManager:
         if reverse:
             color_list = color_list[::-1]
         return color_list
+
+    @classmethod
+    def get_color_for_mode(cls, color_key, color_palette):
+        appearance_mode = ctk.get_appearance_mode()
+
+        is_dark_mode = appearance_mode == "Dark"
+
+        color_list = cls.get_colors(color_key, color_palette)
+
+        return color_list[1] if is_dark_mode else color_list[0]
 
     @classmethod
     def merge_dicts(cls, base, *updates):

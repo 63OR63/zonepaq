@@ -18,6 +18,11 @@ from config.translations import translate
 # Get SettingsManager class
 settings = SettingsManager()
 
+import logging
+
+# Suppress DEBUG logs from urllib3.connectionpool
+logging.getLogger("urllib3.connectionpool").setLevel(logging.WARNING)
+
 
 class ToolsManager:
     _instance = None
@@ -111,7 +116,9 @@ class ToolsManager:
 
             # Skip unpacking if unpacked_folder isn't empty
             if not Files.is_folder_empty(unpacked_folder):
-                results_ok.append(f"{translate("generic_skipped")} {str(unpacked_folder)} {translate("generic_is_not_empty")}")
+                results_ok.append(
+                    f'{translate("generic_skipped")} {str(unpacked_folder)} {translate("generic_is_not_empty")}'
+                )
                 continue
 
             if Files.is_existing_file(vanilla_file):
@@ -483,14 +490,10 @@ class ToolsManager:
             if auto_mode:
                 user_confirmation = False
             else:
-                result = WindowMessageBox.askquestion(
+                user_confirmation = WindowMessageBox.askyesno(
                     parent,
                     message=f'{display_name} {translate("dialogue_tools_redowndload_installer")}',
                 )
-                if result == "yes":
-                    user_confirmation = True
-                else:
-                    user_confirmation = False
 
             if not user_confirmation:
                 log.info(f"Using existing {display_name} installer.")

@@ -20,8 +20,9 @@ settings = SettingsManager()
 class ConflictProcessor:
     """Handles file processing, unpacking, and merging logic."""
 
-    def __init__(self, tree, ignore_no_conflicts):
-        self.tree = tree
+    def __init__(self, master, ignore_no_conflicts):
+        self.master = master
+        self.tree = master.tree
         self.ignore_no_conflicts = ignore_no_conflicts
         self.processed_conflicts = deque()
         self.not_processed = deque()
@@ -138,7 +139,10 @@ class ConflictProcessor:
                 log.warning("No files were processed!")
                 log.debug(f"Skipped files: {not_processed_str2}")
                 return "info", (
-                    f'{translate("merge_screen_conflicts_no_files_processed")}\n\n{translate("merge_screen_conflicts_final_report_3")}\n{not_processed_str}'
+                    [
+                        f'{translate("merge_screen_conflicts_no_files_processed")}\n\n{translate("merge_screen_conflicts_final_report_3")}',
+                        not_processed_str,
+                    ]
                 )
 
             elif Files.is_folder_empty(temp_merging_dir):
@@ -255,16 +259,15 @@ class ConflictProcessor:
             Files.create_dir(save_path.parent)
 
             if use_vanilla:
-                vanilla_paths = settings.GAME_PATHS.get("vanilla_unpacked")
-                if isinstance(vanilla_paths, list):
-                    vanilla_path = max(vanilla_paths)
-                else:
-                    vanilla_path = vanilla_paths
+                from backend.games_manager import GamesManager
 
-                vanilla_file = Path(vanilla_path) / item_path
+                for item in GamesManager.vanilla_files:
+                    unpacked_folder = item["unpacked"]
 
-                if vanilla_file.exists() and vanilla_file.is_file():
-                    unpacked_files.appendleft(vanilla_file)
+                    vanilla_file = Path(unpacked_folder) / item_path
+
+                    if vanilla_file.exists() and vanilla_file.is_file():
+                        unpacked_files.appendleft(vanilla_file)
 
             compare_success, compare_result = Merging._run_engine(
                 unpacked_files, save_path
@@ -299,7 +302,7 @@ class ConflictProcessor:
                 return Path(folder_selected)
             else:
                 retry = WindowMessageBox.askretrycancel(
-                    self,
+                    self.master,
                     message=translate(
                         "merge_screen_conflicts_select_merged_destination"
                     ),

@@ -293,6 +293,7 @@ class TemplateBase(CTk):
     def create_frame(
         self,
         master,
+        scrollable=False,
         style="Transparent.CTkFrame",
         row="current",
         column="current",
@@ -319,8 +320,13 @@ class TemplateBase(CTk):
 
         widget_args.update(kwargs)
 
+        if scrollable:
+            ctk_widget = ctk.CTkScrollableFrame
+        else:
+            ctk_widget = ctk.CTkFrame
+
         return self.create_ctk_widget(
-            ctk_widget=ctk.CTkFrame,
+            ctk_widget=ctk_widget,
             widget_args=widget_args,
             widget_style=style,
             grid_args={

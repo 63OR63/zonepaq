@@ -2,12 +2,15 @@ import tkinter as tk
 from collections import deque
 from pathlib import Path
 from gui.window_messagebox import WindowMessageBox
+
 from tkinter import ttk
 from backend.conflicts import ConflictProcessor
 from backend.logger import log
 from config.settings import SettingsManager
 from config.translations import translate
 from gui.template_toplevel import TemplateToplevel
+
+import customtkinter as ctk
 
 # Get SettingsManager class
 settings = SettingsManager()
@@ -46,77 +49,155 @@ class WindowConflicts(TemplateToplevel):
         self._create_hints_frame()
 
     def _create_search_frame(self):
-        search_frame = ttk.Frame(self.window, style="TFrame")
-        search_frame.grid(row=0, column=0, columnspan=2, sticky="ew")
-        search_frame.grid_columnconfigure(1, weight=1)
-        self.window.grid_columnconfigure(0, weight=1)
-        self.window.grid_rowconfigure(1, weight=1)
+        search_frame = self.create_frame(
+            self, row=0, column=0, columnspan=2, sticky="ew", column_weights=[(1, 1)]
+        )
+
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
 
         self._create_search_label(search_frame)
         self._create_search_entry(search_frame)
         self._create_show_paths_check_button(search_frame)
 
     def _create_search_label(self, search_frame):
-        search_label = ttk.Label(
-            search_frame, text=translate("generic_search"), style="TLabel"
+        search_label = self.create_ctk_widget(
+            ctk_widget=ctk.CTkLabel,
+            widget_args={
+                "master": search_frame,
+                "text": translate("generic_search"),
+                "justify": "left",
+                "anchor": "w",
+            },
+            grid_args={
+                "row": 0,
+                "column": 0,
+                "sticky": "w",
+                "padx": (self.padding / 2, self.padding / 4),
+                "pady": self.padding / 4,
+            },
         )
-        search_label.grid(row=0, column=0, padx=(10, 5), pady=5, sticky="w")
 
     def _create_search_entry(self, search_frame):
         self.search_var = tk.StringVar(master=self)
         self.search_var.trace_add("write", lambda *args: self._search_tree())
-        # self.search_entry = CustomEntry(
-        #     parent=search_frame,
-        #     customization_manager=self.root.customization_manager,
-        #     textvariable=self.search_var,
-        #     style="PathEntry.TEntry",
-        #     window=self.window,
-        # )
-        # self.search_entry.grid(row=0, column=1, sticky="ew", padx=(5, 5), pady=5)
+        self.search_entry = self.create_ctk_widget(
+            ctk_widget=ctk.CTkEntry,
+            widget_args={
+                "master": search_frame,
+                "textvariable": self.search_var,
+            },
+            grid_args={
+                "row": 0,
+                "column": 1,
+                "sticky": "ew",
+                "padx": self.padding / 4,
+                "pady": self.padding / 4,
+            },
+        )
 
     def _create_show_paths_check_button(self, search_frame):
-        self.show_paths_check_button = ttk.Checkbutton(
-            search_frame,
-            text=translate("merge_screen_conflicts_show_path"),
-            variable=self.show_full_paths,
-            command=self._toggle_path_display,
-            style="TCheckbutton",
+        self.show_paths_check_button = self.create_ctk_widget(
+            ctk_widget=ctk.CTkCheckBox,
+            widget_args={
+                "master": search_frame,
+                "text": translate("merge_screen_conflicts_show_path"),
+                "variable": self.show_full_paths,
+                "command": self._toggle_path_display,
+            },
+            grid_args={
+                "row": 0,
+                "column": 2,
+                "padx": self.padding / 4,
+            },
         )
-        self.show_paths_check_button.grid(row=0, column=2, padx=(5, 5))
 
     def _create_tree_frame(self):
-        tree_frame = ttk.Frame(self.window, style="TFrame")
-        tree_frame.grid(row=1, column=0, columnspan=2, sticky="nsew")
-        tree_frame.grid_rowconfigure(0, weight=1)
-        tree_frame.grid_columnconfigure(0, weight=1)
+        tree_frame = self.create_frame(
+            self,
+            row=1,
+            column=0,
+            columnspan=2,
+            sticky="nsew",
+            # padx=self.padding,
+            # pady=self.padding,
+            row_weights=[(0, 1)],
+            column_weights=[(0, 1)],
+        )
 
         self._create_treeview(tree_frame)
         self._create_scrollbar(tree_frame)
 
     def _create_treeview(self, tree_frame):
+
+        bg_color = self._apply_appearance_mode(
+            ctk.ThemeManager.theme["CTkFrame"]["fg_color"]
+        )
+        text_color = self.theme_manager.get_color_for_mode(
+            "color_text_muted", settings.THEME_NAME
+        )
+        selected_color = self.theme_manager.get_color_for_mode(
+            "color_highlight", settings.THEME_NAME
+        )
+
+        treestyle = ttk.Style()
+        treestyle.theme_use("default")
+        treestyle.configure(
+            "Treeview",
+            background=bg_color,
+            foreground=text_color,
+            fieldbackground=bg_color,
+            borderwidth=0,
+        )
+        treestyle.map(
+            "Treeview",
+            background=[("selected", bg_color)],
+            foreground=[("selected", selected_color)],
+        )
+        self.bind("<<TreeviewSelect>>", lambda event: self.focus_set())
+
         self.tree = ttk.Treeview(
             tree_frame,
-            style="Muted.Treeview",
             columns=("PAK Sources", "PAK Sources Paths", "File Path"),
             show="tree headings",
             height=15,
             selectmode="extended",
         )
+
         self._configure_treeview_headings()
         self._configure_treeview_columns()
 
         # Treeview Tag Configuration
-        # self.tree.tag_configure(
-        #     "no_conflicts", foreground=self.theme_dict["color_success"]  # !fixme
-        # )
-        # self.tree.tag_configure(
-        #     "dual_match", foreground=self.theme_dict["color_foreground"]  # !fixme
-        # )
-        # self.tree.tag_configure(
-        #     "dual_no_match", foreground=self.theme_dict["color_attention"]  # !fixme
-        # )
-        # self.tree.tag_configure("tri", foreground=self.theme_dict["color_warning"])  # !fixme
-        # self.tree.tag_configure("complex", foreground=self.theme_dict["color_error"])  # !fixme
+        self.tree.tag_configure(
+            "no_conflicts",
+            foreground=self.theme_manager.get_color_for_mode(
+                "color_success", settings.THEME_NAME
+            ),
+        )
+        self.tree.tag_configure(
+            "dual_match",
+            foreground=self.theme_manager.get_color_for_mode(
+                "color_text_primary", settings.THEME_NAME
+            ),
+        )
+        self.tree.tag_configure(
+            "dual_no_match",
+            foreground=self.theme_manager.get_color_for_mode(
+                "color_attention", settings.THEME_NAME
+            ),
+        )
+        self.tree.tag_configure(
+            "tri",
+            foreground=self.theme_manager.get_color_for_mode(
+                "color_warning", settings.THEME_NAME
+            ),
+        )
+        self.tree.tag_configure(
+            "complex",
+            foreground=self.theme_manager.get_color_for_mode(
+                "color_error", settings.THEME_NAME
+            ),
+        )
 
         self.conflict_counts = self._populate_tree("", self.content_tree)
 
@@ -144,24 +225,34 @@ class WindowConflicts(TemplateToplevel):
         self.tree.column("File Path", width=0, stretch=tk.NO)  # Invisible column
 
     def _create_scrollbar(self, tree_frame):
-        self.scrollbar = ttk.Scrollbar(
-            tree_frame, orient="vertical", command=self.tree.yview
+        self.scrollbar = self.create_ctk_widget(
+            ctk_widget=ctk.CTkScrollbar,
+            widget_args={
+                "master": tree_frame,
+                "orientation": "vertical",
+                "command": self.tree.yview,
+            },
+            grid_args={
+                "row": 0,
+                "column": 1,
+                "sticky": "nsw",
+            },
         )
+
         self.tree.configure(yscrollcommand=self.scrollbar.set)
         self.tree.grid(row=0, column=0, sticky="nsew")
-        self.scrollbar.grid(row=0, column=1, sticky="nsw")
 
     def _create_legend_frame(self):
-        legend_frame = ttk.Frame(self.window, style="TFrame")
-        legend_frame.grid(
+        legend_frame = self.create_frame(
+            self,
             row=2,
             column=0,
             columnspan=2,
             sticky="ew",
-            pady=(self.padding, self.padding),
+            padx=self.padding,
+            pady=self.padding,
+            column_weights=[(0, 1), (1, 0)],
         )
-        legend_frame.grid_columnconfigure(0, weight=1, uniform="equal")
-        legend_frame.grid_columnconfigure(1, weight=0)
 
         self._create_legend_labels(legend_frame)
         self._create_process_frame(legend_frame)
@@ -170,103 +261,110 @@ class WindowConflicts(TemplateToplevel):
         self._create_legend_label(
             legend_frame,
             text=f"{translate('merge_screen_conflicts_no_conflicts_count')} {self.conflict_counts['no_conflicts_count']}",
-            style="Success.TLabel",
+            style="Success.CTkLabel",
             row=1,
         )
         self._create_legend_label(
             legend_frame,
             text=f"{translate('merge_screen_conflicts_dual_match_count')} {self.conflict_counts['dual_match_count']}",
-            style="Small.TLabel",
+            style="CTkLabel",
             row=2,
         )
         self._create_legend_label(
             legend_frame,
             text=f"{translate('merge_screen_conflicts_dual_no_match_count')} {self.conflict_counts['dual_no_match_count']}",
-            style="Attention.TLabel",
+            style="Attention.CTkLabel",
             row=3,
         )
         self._create_legend_label(
             legend_frame,
             text=f"{translate('merge_screen_conflicts_tri_count')} {self.conflict_counts['tri_count']}",
-            style="Warning.TLabel",
+            style="Warning.CTkLabel",
             row=4,
         )
         self._create_legend_label(
             legend_frame,
             text=f"{translate('merge_screen_conflicts_complex_count')} {self.conflict_counts['complex_count']}",
-            style="Error.TLabel",
+            style="Error.CTkLabel",
             row=5,
         )
 
     def _create_legend_label(self, legend_frame, text, style, row):
-        hints_label = ttk.Label(legend_frame, text=text, style=style)
-        hints_label.grid(
-            row=row,
-            column=0,
-            sticky="ew",
-            padx=(self.padding, 0),
-            pady=(0, self.padding / 4),
+        self.create_ctk_widget(
+            ctk_widget=ctk.CTkLabel,
+            widget_args={
+                "master": legend_frame,
+                "text": text,
+                "justify": "left",
+                "anchor": "w",
+            },
+            widget_style=style,
+            grid_args={
+                "row": row,
+                "column": 0,
+                "sticky": "ew",
+            },
         )
 
     def _create_process_frame(self, legend_frame):
-        process_frame = ttk.Frame(legend_frame, style="TFrame")
-        process_frame.grid(
+        process_frame = self.create_frame(
+            legend_frame,
             row=1,
             column=1,
             rowspan=4,
-            padx=(self.padding * 2, self.padding),
+            padx=(self.padding * 2, 0),
             sticky="ne",
         )
 
         self.ignore_no_conflicts = True
         self.ignore_no_conflicts_var = tk.BooleanVar(value=self.ignore_no_conflicts)
 
-        self.ignore_no_conflicts_check_button = ttk.Checkbutton(
-            process_frame,
-            text=translate("merge_screen_ignore_no_conflicts_checkbutton"),
-            variable=self.ignore_no_conflicts_var,
-            command=self._toggle_ignore_no_conflicts,
-            style="TCheckbutton",
-        )
-        self.ignore_no_conflicts_check_button.grid(
-            row=0, column=0, pady=(0, self.padding / 2), sticky="ne"
+        self.ignore_no_conflicts_check_button = self.create_ctk_widget(
+            ctk_widget=ctk.CTkCheckBox,
+            widget_args={
+                "master": process_frame,
+                "text": translate("merge_screen_ignore_no_conflicts_checkbutton"),
+                "variable": self.ignore_no_conflicts_var,
+                "command": self._toggle_ignore_no_conflicts,
+            },
+            grid_args={
+                "row": 0,
+                "column": 0,
+                "pady": (0, self.padding / 2),
+                "sticky": "ne",
+            },
         )
 
-        buttons_frame = ttk.Frame(process_frame, style="TFrame")
-        buttons_frame.grid(
+        buttons_frame = self.create_frame(
+            process_frame,
             row=1,
             column=0,
             sticky="ne",
         )
 
-        # select_all_button = CustomButton(
-        #     parent=buttons_frame,
-        #     customization_manager=self.root.customization_manager,
-        #     text=translate("merge_screen_conflicts_select_all_button"),
-        #     command=lambda: self._select_tagged_items(),
-        #     style="TButton",
-        #     width=160,
-        #     height=55,
-        #     window=self.window,
-        # )
-        # select_all_button.grid(
-        #     row=0,
-        #     column=0,
-        #     padx=(0, self.padding),
-        #     sticky="ne",
-        # )
+        self.create_button(
+            buttons_frame,
+            text=translate("merge_screen_conflicts_select_all_button"),
+            command=lambda: self._select_tagged_items(),
+            width=150,
+            height=40,
+            row=0,
+            column=0,
+            padx=(0, self.padding),
+            sticky="ne",
+        )
 
-        # process_button = CustomButton(
-        #     parent=buttons_frame,
-        #     customization_manager=self.root.customization_manager,
-        #     text=translate("merge_screen_conflicts_action_button"),
-        #     command=lambda: self._process_selected_files(),
-        #     style="Accent.TButton",
-        #     width=160,
-        #     height=55,
-        #     window=self.window,
-        # )
-        # process_button.grid(row=0, column=1, sticky="ne")
+        self.create_button(
+            buttons_frame,
+            text=translate("merge_screen_conflicts_action_button"),
+            command=lambda: self._process_selected_files(),
+            style="Action.CTkButton",
+            width=150,
+            height=40,
+            row=0,
+            column=1,
+            sticky="ne",
+        )
 
     def _select_tagged_items(self):
         self.tree.selection_remove(self.tree.selection())
@@ -287,8 +385,8 @@ class WindowConflicts(TemplateToplevel):
 
     def _create_hints_frame(self):
         if eval(settings.SHOW_HINTS):
-            hints_frame = ttk.Frame(self.window, style="TFrame")
-            hints_frame.grid(
+            hints_frame = self.create_frame(
+                self,
                 row=3,
                 column=0,
                 columnspan=2,
@@ -296,18 +394,29 @@ class WindowConflicts(TemplateToplevel):
                 padx=self.padding,
                 pady=(0, self.padding),
             )
+
             self._create_hints_label(hints_frame)
 
     def _create_hints_label(self, hints_frame):
-        hints_label = ttk.Label(
-            hints_frame,
-            text=translate("merge_screen_conflicts_hints"),
-            style="Hints.TLabel",
+        self.create_ctk_widget(
+            ctk_widget=ctk.CTkLabel,
+            widget_args={
+                "master": hints_frame,
+                "text": translate("merge_screen_conflicts_hints"),
+                "justify": "left",
+                "anchor": "w",
+            },
+            widget_style="Hints.CTkLabel",
+            grid_args={
+                "row": 0,
+                "column": 0,
+                "columnspan": 2,
+                "sticky": "ew",
+            },
         )
-        hints_label.grid(row=0, column=0, columnspan=2, sticky="ew")
 
     def _process_selected_files(self):
-        processor = ConflictProcessor(self.tree, self.ignore_no_conflicts)
+        processor = ConflictProcessor(self, self.ignore_no_conflicts)
         messagebox_type, messagebox_message = processor.process_selected_files()
         messagebox_functions = {
             "info": WindowMessageBox.showinfo,
@@ -446,5 +555,9 @@ class WindowConflicts(TemplateToplevel):
             self.tree.column("PAK Sources Paths", width=0, stretch=tk.NO)
 
     def _has_vanilla_match(self, conflict):
-        vanilla_path = Path(settings.GAME_PATHS.get("vanilla_unpacked")) / conflict
-        return vanilla_path.exists() and vanilla_path.is_file()
+        for vanilla_file in self.games_manager.vanilla_files:
+            unpacked = vanilla_file["unpacked"]
+            vanilla_path = Path(unpacked) / conflict
+            if vanilla_path.exists() and vanilla_path.is_file():
+                return True
+        return False

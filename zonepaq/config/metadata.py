@@ -1,14 +1,14 @@
 from config.translations import translate
 
 APP_NAME = "ZonePaq Toolkit"
-# APP_VERSION = "2.0-rc.1"
-APP_VERSION = "0.1"
+APP_VERSION = "2.0-rc.1"
+# APP_VERSION = "0.1"  # for testing update notification
 APP_AUTHOR = "63OR63"
 APP_LICENSE = "MIT"
 APP_DESCRIPTION = translate("meta_description")
 APP_DESCRIPTION_EN = translate("meta_description", "English")
-APP_URL = "https://github.com/63OR63/zonepaq"
 APP_REPO = "63OR63/zonepaq"
+APP_URL = "https://github.com/" + APP_REPO
 
 APP_ICONS = {
     "ico": r"zonepaq\assets\icons\main.ico",

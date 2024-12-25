@@ -161,7 +161,6 @@ def check_for_update():
         )
         master.destroy()
 
-        print(reply)
         if reply == True:
             import webbrowser
 
