@@ -556,4 +556,5 @@ class TemplateBase(CTk):
     def add_tooltip(self, widget, message):
         if settings.SHOW_HINTS:
             if hasattr(widget, "_apply_appearance_mode"):
+                # CTkToolTip(widget, message=message, wraplength=200, justify="left")
                 CTkToolTip(widget, message=message)

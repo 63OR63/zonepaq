@@ -82,9 +82,10 @@ class WindowMerge(TemplateSecondary):
 
             content_tree = Data.build_content_tree(results_ok)
 
+            self.update_idletasks()
             log.debug("Opening conflicts resolver screen...")
             WindowConflicts(master=self, content_tree=content_tree)
-            # self.open_gui("WindowConflicts")
+            # self.withdraw()
 
         else:
             WindowMessageBox.showwarning(

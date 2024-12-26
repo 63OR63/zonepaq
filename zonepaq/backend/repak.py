@@ -11,7 +11,7 @@ class Repak:
     """Provides methods for listing, unpacking, and repacking files using the Repak CLI tool."""
 
     @classmethod
-    @run_in_executor
+    @run_in_executor  # ! sometimes hang the app on consecutive call
     def get_list(cls, file):
         log.debug(f"Attempting to list contents of the file: {file}")
         try:

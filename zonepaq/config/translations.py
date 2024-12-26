@@ -161,6 +161,8 @@ TRANSLATIONS = {
         "dialogue_setup_sequence_success": "Initial setup finished succesfully.",
         "dialogue_setup_sequence_warning": "Initial setup was incomplete.\n\nPlease navigate to the Settings and finish the required configuration.",
         "dialogue_relaunch": "Please, relaunch the app.",
+        "filedialogue_askdirectory": "Select Directory",
+        "filedialogue_askopenfilenames": "Select Files",
         "tooltip_settings": "Settings",
         "tooltip_button_unpack": "Unpack files to destination",
         "tooltip_button_repack": "Repack folders to destination",

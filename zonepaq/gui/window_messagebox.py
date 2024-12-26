@@ -187,7 +187,9 @@ class WindowMessageBox(TemplateToplevel):
 
 class ModalFileDialog:
     @staticmethod
-    def askdirectory(parent, initialdir=None, title="Select Directory"):
+    def askdirectory(
+        parent, initialdir=None, title=translate("filedialogue_askdirectory")
+    ):
         return ModalFileDialog._show_modal_dialog(
             parent,
             lambda: filedialog.askdirectory(
@@ -197,7 +199,10 @@ class ModalFileDialog:
 
     @staticmethod
     def askopenfilenames(
-        parent, initialdir=None, title="Select Files", filetypes=(("All Files", "*.*"),)
+        parent,
+        initialdir=None,
+        title=translate("filedialogue_askopenfilenames"),
+        filetypes=(("All Files", "*.*"),),
     ):
         return ModalFileDialog._show_modal_dialog(
             parent,

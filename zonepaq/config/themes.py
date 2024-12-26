@@ -203,6 +203,11 @@ class ThemeManager:
             "Windows": {"family": "Arial", "size": 13, "weight": "normal"},
             "Linux": {"family": "Roboto", "size": 13, "weight": "normal"},
         },
+        "Monospace.CustomFont": {
+            "macOS": {"family": "SF Display", "size": 14, "weight": "normal"},
+            "Windows": {"family": "Consolas", "size": 14, "weight": "normal"},
+            "Linux": {"family": "Roboto", "size": 14, "weight": "normal"},
+        },
         "Dnd.CustomFont": {
             "macOS": {"family": "SF Display", "size": 18, "weight": "normal"},
             "Windows": {"family": "Consolas", "size": 18, "weight": "normal"},
@@ -217,11 +222,6 @@ class ThemeManager:
             "macOS": {"family": "SF Display", "size": 16, "weight": "normal"},
             "Windows": {"family": "Arial", "size": 16, "weight": "normal"},
             "Linux": {"family": "Roboto", "size": 16, "weight": "normal"},
-        },
-        "List.CustomFont": {
-            "macOS": {"family": "SF Display", "size": 14, "weight": "normal"},
-            "Windows": {"family": "Consolas", "size": 14, "weight": "normal"},
-            "Linux": {"family": "Roboto", "size": 14, "weight": "normal"},
         },
         "Entry.CustomFont": {
             "macOS": {"family": "SF Display", "size": 14, "weight": "normal"},
@@ -844,8 +844,8 @@ class StyleManager:
                 "color_accent_tertiary", color_palette
             ),
             font=ctk.CTkFont(
-                family=ctk.ThemeManager.theme["List.CustomFont"]["family"],
-                size=ctk.ThemeManager.theme["List.CustomFont"]["size"],
-                weight=ctk.ThemeManager.theme["List.CustomFont"]["weight"],
+                family=ctk.ThemeManager.theme["Monospace.CustomFont"]["family"],
+                size=ctk.ThemeManager.theme["Monospace.CustomFont"]["size"],
+                weight=ctk.ThemeManager.theme["Monospace.CustomFont"]["weight"],
             ),
         )

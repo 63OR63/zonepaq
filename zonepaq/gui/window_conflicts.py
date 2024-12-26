@@ -8,10 +8,21 @@ from backend.conflicts import ConflictProcessor
 from backend.logger import log
 from config.settings_manager import settings
 from config.translations import translate
+from gui.template_base import TemplateBase
 from gui.template_toplevel import TemplateToplevel
 from gui.window_messagebox import WindowMessageBox
 
 
+# class WindowConflicts(TemplateBase):
+#     """Displays conflict reports and provides tools to analyze and merge files."""
+
+#     def __init__(self, content_tree, master=None):
+#         super().__init__(
+#             title=translate("merge_screen_conflicts_title"),
+#         )
+
+
+# ! BUG: hangs app on second open
 class WindowConflicts(TemplateToplevel):
     """Displays conflict reports and provides tools to analyze and merge files."""
 
@@ -20,23 +31,23 @@ class WindowConflicts(TemplateToplevel):
             master=master,
             title=translate("merge_screen_conflicts_title"),
         )
+
         self.content_tree = content_tree
         self.original_data = content_tree
-        # self.theme_dict = settings.THEME_DICT  # !fixme
 
         # Variable for checkbutton state
         self.show_full_paths = tk.BooleanVar(value=False)
 
         self.setup()
 
-        self.adjust_to_content(self, adjust_width=True, adjust_height=False)
+        self.adjust_to_content(self, adjust_width=True, adjust_height=True)
 
         log.info("Conflicts resolver window opened.")
 
     def on_closing(self):
         log.info("Conflicts resolver window closed.")
         self.destroy()
-        self.master.deiconify()
+        # self.master.deiconify()
 
     def setup(self):
         self._create_search_frame()
@@ -144,6 +155,7 @@ class WindowConflicts(TemplateToplevel):
             foreground=text_color,
             fieldbackground=bg_color,
             borderwidth=0,
+            font=("Consolas", 10, "normal"),
         )
         treestyle.map(
             "Treeview",
@@ -213,7 +225,7 @@ class WindowConflicts(TemplateToplevel):
         )
 
     def _configure_treeview_columns(self):
-        self.tree.column("#0", stretch=False, width=360)
+        self.tree.column("#0", stretch=False, width=400)
         self.tree.column("PAK Sources", stretch=True)
         self.tree.column(
             "PAK Sources Paths", width=0, stretch=tk.NO
