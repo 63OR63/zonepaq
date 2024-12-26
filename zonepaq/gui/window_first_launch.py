@@ -58,8 +58,8 @@ class WindowFirstLaunch(TemplateBase):
         ]
 
         self.create()
-        settings.set("SETTINGS", "first_launch", False)
-        settings.save()
+
+        settings.update_config("SETTINGS", "first_launch", False)
 
         self.adjust_to_content(self)
 

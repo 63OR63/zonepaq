@@ -1,5 +1,6 @@
 import re
 from pathlib import Path
+import threading
 
 from backend.logger import log
 from config.defaults import DEFAULT_SETTINGS, GAMES, TOOLS
@@ -7,62 +8,61 @@ from config.defaults import DEFAULT_SETTINGS, GAMES, TOOLS
 
 class GamesManager:
     _instance = None
+    _lock = threading.Lock()
 
     def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-            cls.init()
+        with cls._lock:
+            if cls._instance is None:
+                cls._instance = super().__new__(cls)
+                cls._instance.initialize()
         return cls._instance
 
-    @classmethod
-    def init(cls):
+    def initialize(self):
 
-        cls.game_name = DEFAULT_SETTINGS["game"]
-        cls.game_meta = GAMES[cls.game_name]
-        cls.game_display_name = cls.game_meta["display_name"]
+        self.game_name = DEFAULT_SETTINGS["game"]
+        self.game_meta = GAMES[self.game_name]
+        self.game_display_name = self.game_meta["display_name"]
 
-        cls.game_installation, cls.game_path = cls.detect_game_installation()
+        self.game_installation, self.game_path = self.detect_game_installation()
 
-        cls.shipping_exe = (
-            Path(cls.game_path)
-            / cls.game_meta[cls.game_installation]["shipping_exe_suffix"]
+        self.shipping_exe = (
+            Path(self.game_path)
+            / self.game_meta[self.game_installation]["shipping_exe_suffix"]
         )
 
-        cls.vanilla_files = [
+        self.vanilla_files = [
             {
-                "archive": Path(cls.game_path) / suffix,
-                "unpacked": (Path(cls.game_path) / suffix).with_suffix(""),
+                "archive": Path(self.game_path) / suffix,
+                "unpacked": (Path(self.game_path) / suffix).with_suffix(""),
             }
-            for suffix in cls.game_meta[cls.game_installation][
+            for suffix in self.game_meta[self.game_installation][
                 "vanilla_archives_suffixes"
             ]
         ]
 
-        cls.mods_path = (
-            Path(cls.game_path)
-            / cls.game_meta[cls.game_installation]["mods_path_suffix"]
+        self.mods_path = (
+            Path(self.game_path)
+            / self.game_meta[self.game_installation]["mods_path_suffix"]
         )
 
-    @classmethod
-    def detect_game_installation(cls):
-        if steam_path := cls.find_steam_game_path(cls.game_meta["steam"]["steam_id"]):
+    def detect_game_installation(self):
+        if steam_path := self.find_steam_game_path(self.game_meta["steam"]["steam_id"]):
             steam_path = str(Path(steam_path))
             log.debug(f"Steam installation found: {steam_path}")
             return "steam", steam_path
 
-        if game_pass_path := cls.find_game_pass_game_path(
-            cls.game_meta["game_pass"]["game_pass_id"]
+        if game_pass_path := self.find_game_pass_game_path(
+            self.game_meta["game_pass"]["game_pass_id"]
         ):
             game_pass_path = str(Path(game_pass_path))
             log.debug(f"Game Pass installation found: {game_pass_path}")
             return "game_pass", game_pass_path
 
-        fallback_path = str(Path(cls.game_meta["fallback_path"]))
+        fallback_path = str(Path(self.game_meta["fallback_path"]))
         log.debug(f"No installation found, using fallback path: {fallback_path}")
         return "unknown", fallback_path
 
-    @classmethod
-    def find_steam_game_path(cls, game_id):
+    def find_steam_game_path(self, game_id):
         try:
             import winreg
 
@@ -98,12 +98,10 @@ class GamesManager:
         except Exception:
             return None
 
-    @classmethod
-    def find_game_pass_game_path(cls, game_id):
+    def find_game_pass_game_path(self, game_id):
         log.debug("Game Pass installation detection isn't implemented.")
         return None
 
-    @classmethod
-    def get_aes_key(cls, game_id):
+    def get_aes_key(self, game_id):
         log.debug("Game Pass installation detection isn't implemented.")
         return None

@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
+import threading
 
 from backend.logger import log
 from backend.utilities import Files
@@ -75,38 +76,21 @@ class ConfigurationLoader:
 
 class SettingsManager:
     _instance = None
-
-    MERGING_ENGINE = None
-    LANG_NAME = None
-    THEME_NAME = None
-    SHOW_HINTS = None
-    DARK_MODE = None
-    AES_KEY = None
-    TOOLS_PATHS = None
-    GAME_PATHS = None
-    LANG_DICT = None
-    ALL_LANG_NAMES = None
-    ALL_THEME_NAMES = None
-    SUPPORTED_MERGING_ENGINES = None
-    TOOLS = None
+    _lock = threading.Lock()
 
     def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-            cls.init()
+        with cls._lock:
+            if cls._instance is None:
+                cls._instance = super().__new__(cls)
+                cls._instance.initialize()
         return cls._instance
 
-    @classmethod
-    def reset_instance(cls):
-        cls._instance = None
-
-    @classmethod
-    def init(cls):
-        cls.INI_SETTINGS_FILE = r"zonepaq\settings.ini"
-        Files.create_dir(Path(cls.INI_SETTINGS_FILE).parent)
+    def initialize(self):
+        self.INI_SETTINGS_FILE = r"zonepaq\settings.ini"
+        Files.create_dir(Path(self.INI_SETTINGS_FILE).parent)
 
         sources = [
-            IniConfigSource(cls.INI_SETTINGS_FILE),
+            IniConfigSource(self.INI_SETTINGS_FILE),
         ]
 
         from backend.games_manager import GamesManager
@@ -119,50 +103,42 @@ class SettingsManager:
             "GAME_PATHS": {games_manager.game_name: str(Path(games_manager.game_path))},
         }
 
-        cls.loader = ConfigurationLoader(sources, defaults)
+        self.loader = ConfigurationLoader(sources, defaults)
 
-        cls.config = cls.loader.load()
+        self.config = self.loader.load()
 
-        cls.load()
+        self.load()
 
-    @classmethod
-    def load(cls):
-        cls.MERGING_ENGINE = cls.get("SETTINGS", "merging_engine")
-        cls.LANG_NAME = cls.get("SETTINGS", "lang_name")
-        cls.THEME_NAME = cls.get("SETTINGS", "theme_name")
-        cls.SHOW_HINTS = cls.get("SETTINGS", "show_hints")
-        cls.DARK_MODE = cls.get("SETTINGS", "dark_mode")
-        cls.AES_KEY = cls.get("SETTINGS", "aes_key")
-        cls.TOOLS_PATHS = cls.get("TOOLS_PATHS")
-        cls.GAME_PATHS = cls.get("GAME_PATHS")
-        cls.LANG_DICT = get_translation(cls.LANG_NAME)
-        cls.ALL_LANG_NAMES = get_available_languages()
-        cls.ALL_THEME_NAMES = ThemeManager.get_available_theme_names()
-        cls.SUPPORTED_MERGING_ENGINES = [
+    def load(self):
+        self.MERGING_ENGINE = self.get("SETTINGS", "merging_engine")
+        self.LANG_NAME = self.get("SETTINGS", "lang_name")
+        self.THEME_NAME = self.get("SETTINGS", "theme_name")
+        self.SHOW_HINTS = self.get("SETTINGS", "show_hints")
+        self.DARK_MODE = self.get("SETTINGS", "dark_mode")
+        self.AES_KEY = self.get("SETTINGS", "aes_key")
+        self.TOOLS_PATHS = self.get("TOOLS_PATHS")
+        self.GAME_PATHS = self.get("GAME_PATHS")
+        self.LANG_DICT = get_translation(self.LANG_NAME)
+        self.ALL_LANG_NAMES = get_available_languages()
+        self.ALL_THEME_NAMES = ThemeManager.get_available_theme_names()
+        self.SUPPORTED_MERGING_ENGINES = [
             engine["name"] for engine in SUPPORTED_MERGING_ENGINES.values()
         ]
-        cls.TOOLS = TOOLS
+        self.TOOLS = TOOLS
 
-    @classmethod
-    def update_config(cls, section, key, value):
-        cls.set(section, key, value)
-        cls.save()
-        cls.load()
-        return cls._instance
+    def update_config(self, section, key, value):
+        self.config[section][key] = str(value)
+        self.save()
+        self.load()
+        return self._instance
 
-    @classmethod
-    def set(cls, section, key, value):
-        cls.config[section][key] = str(value)
-
-    @classmethod
-    def get(cls, section, key=None):
+    def get(self, section, key=None):
         if key is None:
-            return cls.config.get(section)
-        return cls.config.get(section).get(key)
+            return self.config.get(section)
+        return self.config.get(section).get(key)
 
-    @classmethod
-    def save(cls):
-        cls.loader.save(cls.config)
+    def save(self):
+        self.loader.save(self.config)
 
 
 settings = SettingsManager()

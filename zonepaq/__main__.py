@@ -184,7 +184,7 @@ if __name__ == "__main__":
         Files.delete_path(settings.INI_SETTINGS_FILE)
 
         # Reset Settings class
-        settings.reset_instance()
+        settings.initialize()
 
         gui = WindowFirstLaunch()
         gui.mainloop()
