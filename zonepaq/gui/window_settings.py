@@ -8,7 +8,7 @@ from config.settings_manager import settings
 from config.translations import translate
 from gui.template_toplevel import TemplateToplevel
 from gui.window_help import WindowHelp
-from gui.window_messagebox import ModalFileDialog
+from gui.window_messagebox import ModalFileDialog, WindowMessageBox
 
 
 class WindowSettings(TemplateToplevel):
@@ -102,7 +102,24 @@ class WindowSettings(TemplateToplevel):
         )
 
         save_frame = self.create_frame(
-            self, row=2, column=0, style="Tertiary.CTkFrame", column_weights=[(0, 1)]
+            self,
+            row=2,
+            column=0,
+            style="Tertiary.CTkFrame",
+            column_weights=[(0, 1), (1, 0), (2, 0)],
+        )
+
+        self.create_button(
+            save_frame,
+            text=translate("generic_reset"),
+            command=self._reset_settings,
+            style="Reset.CTkButton",
+            width=120,
+            padx=self.padding,
+            pady=self.padding / 2,
+            sticky="w",
+            row=0,
+            column=0,
         )
 
         self.create_ctk_widget(
@@ -115,8 +132,8 @@ class WindowSettings(TemplateToplevel):
             },
             widget_style="Hints2.CTkLabel",
             grid_args={
-                "row": self._get_next_row(save_frame),
-                "column": 0,
+                "row": 0,
+                "column": 1,
                 "sticky": "e",
             },
         )
@@ -130,8 +147,8 @@ class WindowSettings(TemplateToplevel):
             padx=self.padding,
             pady=self.padding / 2,
             sticky="e",
-            row="-1",
-            column=1,
+            row=0,
+            column=2,
         )
 
         self.tools_button = self.create_button(
@@ -761,3 +778,48 @@ class WindowSettings(TemplateToplevel):
             install_metadata["entry_type"],
             install_metadata["entry_widget"],
         )
+
+    def _reset_settings(self):
+
+        # import subprocess, os
+
+        # self.master.destroy()
+
+        # subprocess.Popen([sys.executable, *sys.argv])  # This will restart the app
+        # script = sys.argv[0]
+        # args = sys.argv[1:]
+
+        # # Restart the app
+        # os.execv(sys.executable, [sys.executable, script] + args)
+        # self.master.destroy()
+        # print(sys.argv)
+        # os.execv(sys.executable, [sys.executable] + sys.argv)
+
+        # print(self.master.restart_callback(self.master))
+
+        # print(self.destroy())
+        # print(self.master.destroy())
+
+        # print(sys.executable)
+        # print(Path.cwd() / "__main__.py")
+
+        # import subprocess, os
+
+        # print(*sys.argv)
+
+        # subprocess.Popen([sys.executable, Path.cwd() / "zonepaq" / "__main__.py"])
+
+        # from __main__ import restart_application
+
+        # restart_application()
+
+        # os.execl(sys.executable, sys.executable, *sys.argv)
+        # os.execl(sys.executable, sys.executable, Path.cwd() / "zonepaq" / "__main__.py")
+
+        WindowMessageBox.showinfo(self, message=translate("dialogue_relaunch"))
+        log.info("Resetting settings...")
+        Files.delete_path(settings.INI_SETTINGS_FILE)
+        log.info("Exiting the app...")
+        self.destroy()
+        self.master.destroy()
+        sys.exit(0)

@@ -113,12 +113,18 @@ GAMES = {
             "vanilla_archives_suffixes": ["Stalker2/Content/Paks/pakchunk0-WinGDK.pak"],
             "mods_path_suffix": "Stalker2/Content/Paks/~mods",
         },
+        # "unknown": {
+        #     "display_name": "Unknown",
+        #     "shipping_exe_suffix": "Stalker2/Binaries/Win64/Stalker2-Win64-Shipping.exe",
+        #     "vanilla_archives_suffixes": [
+        #         "Stalker2/Content/Paks/pakchunk0-Windows.pak"
+        #     ],
+        #     "mods_path_suffix": "Stalker2/Content/Paks/~mods",
+        # },
         "unknown": {
             "display_name": "Unknown",
-            "shipping_exe_suffix": "Stalker2/Binaries/Win64/Stalker2-Win64-Shipping.exe",
-            "vanilla_archives_suffixes": [
-                "Stalker2/Content/Paks/pakchunk0-Windows.pak"
-            ],
+            "shipping_exe_suffix": "Stalker2/Binaries/Win64/Stalker2-WinGDK-Shipping.exe",
+            "vanilla_archives_suffixes": ["Stalker2/Content/Paks/pakchunk0-WinGDK.pak"],
             "mods_path_suffix": "Stalker2/Content/Paks/~mods",
         },
         # "fallback_path": "S.T.A.L.K.E.R. 2 Heart of Chornobyl",

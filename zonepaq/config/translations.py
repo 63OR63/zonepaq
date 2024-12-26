@@ -53,6 +53,7 @@ TRANSLATIONS = {
         "generic_search": "Search:",
         "generic_process": "Process",
         "generic_none": "None",
+        "generic_reset": "Reset",
         "generic_unpacked": "Unpacked",
         "generic_not_unpacked": "Not Unpacked",
         "generic_installed": "Installed",
@@ -166,6 +167,7 @@ TRANSLATIONS = {
         "dialogue_skip_setup_sequence": "Please navigate to the Settings and finish the required configuration.",
         "dialogue_setup_sequence_success": "Initial setup finished succesfully.",
         "dialogue_setup_sequence_warning": "Initial setup was incomplete.\n\nPlease navigate to the Settings and finish the required configuration.",
+        "dialogue_relaunch": "Please, relaunch the app.",
     },
     "Русский": {
         "meta_description": "Удобное графическое приложение для распаковки, упаковки и разрешения конфликтов .pak модов.",
@@ -221,6 +223,7 @@ TRANSLATIONS = {
         "generic_search": "Поиск:",
         "generic_process": "Обработать",
         "generic_none": "Ни одного",
+        "generic_reset": "Сбросить",
         "generic_unpacked": "Распакован",
         "generic_not_unpacked": "Не распакован",
         "generic_installed": "Установлен",
@@ -334,6 +337,7 @@ TRANSLATIONS = {
         "dialogue_skip_setup_sequence": "Для обеспечения корректной работы перейдите в Настройки и завершите необходимую конфигурацию.",
         "dialogue_setup_sequence_success": "Первоначальная установка была проведена успешно.",
         "dialogue_setup_sequence_warning": "Первоначальная установка была проведена не полностью.\n\nПожалуйста, перейдите в Настройки и завершите необходимую конфигурацию.",
+        "dialogue_relaunch": "Пожалуйста, перезвпустите приложение.",
     },
 }
 

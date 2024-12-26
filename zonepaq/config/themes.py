@@ -758,6 +758,18 @@ class StyleManager:
         )
 
         cls.define_style(
+            "Reset.CTkButton",
+            fg_color=ThemeManager.get_colors("color_error", color_palette),
+            hover_color=ThemeManager.get_colors("color_error", color_palette),
+            border_color=ThemeManager.get_colors("color_error", color_palette),
+            font=ctk.CTkFont(
+                family=ctk.ThemeManager.theme["Action.Button.CustomFont"]["family"],
+                size=ctk.ThemeManager.theme["Action.Button.CustomFont"]["size"],
+                weight=ctk.ThemeManager.theme["Action.Button.CustomFont"]["weight"],
+            ),
+        )
+
+        cls.define_style(
             "Muted.CTkButton",
             fg_color=ThemeManager.get_colors(
                 "color_background_secondary", color_palette

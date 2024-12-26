@@ -1,7 +1,7 @@
 from config.translations import translate
 
 APP_NAME = "ZonePaq Toolkit"
-APP_VERSION = "2.0-rc.1"
+APP_VERSION = "2.0-beta.1.1"
 # APP_VERSION = "0.1"  # for testing update notification
 APP_AUTHOR = "63OR63"
 APP_LICENSE = "MIT"
