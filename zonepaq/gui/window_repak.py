@@ -44,7 +44,8 @@ class WindowRepak(TemplateSecondary):
                 ),
                 "action_name": translate("repak_screen_unpack_button"),
                 "action_command": self.unpack_files,
-                "hints": translate("repak_screen_unpack_hints"),
+                # "hints": translate("repak_screen_unpack_hints"),
+                "tooltip_action_button": translate("tooltip_button_unpack"),
             },
             {
                 "title": translate("repak_screen_repack_header"),
@@ -61,7 +62,8 @@ class WindowRepak(TemplateSecondary):
                 ),
                 "action_name": translate("repak_screen_repack_button"),
                 "action_command": self._repack_folders,
-                "hints": translate("repak_screen_repack_hints"),
+                # "hints": translate("repak_screen_repack_hints"),
+                "tooltip_action_button": translate("tooltip_button_repack"),
             },
         ]
         for section in sections:

@@ -50,6 +50,7 @@ class TemplateToplevel(CTkToplevel):
             "create_button",
             "create_header_button",
             "create_settings_button",
+            "add_tooltip",
         ]
 
         for name in attribute_names + method_names:

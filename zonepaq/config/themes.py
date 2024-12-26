@@ -625,6 +625,12 @@ class StyleManager:
         )
 
         cls.define_style(
+            "Normal.CTkLabel",
+            fg_color="transparent",
+            text_color=ThemeManager.get_colors("color_text_secondary", color_palette),
+        )
+
+        cls.define_style(
             "Success.CTkLabel",
             fg_color="transparent",
             text_color=ThemeManager.get_colors("color_success", color_palette),

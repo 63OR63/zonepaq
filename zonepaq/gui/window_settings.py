@@ -4,8 +4,9 @@ from pathlib import Path
 import customtkinter as ctk
 from backend.logger import log
 from backend.utilities import Data, Files
+from config.defaults import SUPPORTED_MERGING_ENGINES
 from config.settings_manager import settings
-from config.translations import translate
+from config.translations import get_available_languages, translate
 from gui.template_toplevel import TemplateToplevel
 from gui.window_help import WindowHelp
 from gui.window_messagebox import ModalFileDialog, WindowMessageBox
@@ -51,6 +52,7 @@ class WindowSettings(TemplateToplevel):
                 settings.AES_KEY = new_value
             elif settings_key in settings.GAME_PATHS:
                 settings.GAME_PATHS[settings_key] = Files.get_relative_path(new_value)
+                self.games_manager.update_paths(new_value)
             elif settings_key in settings.TOOLS_PATHS:
                 settings.TOOLS_PATHS[settings_key] = Files.get_relative_path(new_value)
         settings.save()
@@ -109,7 +111,7 @@ class WindowSettings(TemplateToplevel):
             column_weights=[(0, 1), (1, 0), (2, 0)],
         )
 
-        self.create_button(
+        button_reset = self.create_button(
             save_frame,
             text=translate("generic_reset"),
             command=self._reset_settings,
@@ -121,6 +123,7 @@ class WindowSettings(TemplateToplevel):
             row=0,
             column=0,
         )
+        self.add_tooltip(button_reset, translate("tooltip_button_reset"))
 
         self.create_ctk_widget(
             ctk_widget=ctk.CTkLabel,
@@ -284,7 +287,9 @@ class WindowSettings(TemplateToplevel):
             widget_args={
                 "master": group_frame,
                 "variable": self.engine_name,
-                "values": list(settings.SUPPORTED_MERGING_ENGINES),
+                "values": list(
+                    [engine["name"] for engine in SUPPORTED_MERGING_ENGINES.values()]
+                ),
                 "command": lambda engine_name=self.engine_name: (
                     settings.update_config("SETTINGS", "merging_engine", engine_name),
                 ),
@@ -423,7 +428,7 @@ class WindowSettings(TemplateToplevel):
                             "style": "Generic.CTkButton",
                         },
                         {
-                            "command": self._detect_game_installation_wrapper,
+                            "command": self._get_game_path_wrapper,
                             "text": translate("settings_game_find"),
                             "style": "Alt.CTkButton",
                         },
@@ -527,7 +532,7 @@ class WindowSettings(TemplateToplevel):
         self.create_button(
             group_frame,
             text=translate("settings_tools_unpack"),
-            command=lambda: self.tools_manager.unpack_file_by_index(
+            command=lambda: self.tools_manager.unpack_vanilla_files(
                 self, install_metadata={"index": index}
             ),
             style="Alt.CTkButton",
@@ -641,7 +646,7 @@ class WindowSettings(TemplateToplevel):
             group_frame,
             label_text=f"{translate('settings_appearance_color_theme')} *:",
             variable=self.selected_theme,
-            values=settings.ALL_THEME_NAMES,
+            values=self.theme_manager.get_available_theme_names(),
             command=lambda selected_theme: settings.update_config(
                 "SETTINGS", "theme_name", selected_theme
             ),
@@ -673,7 +678,7 @@ class WindowSettings(TemplateToplevel):
             group_frame,
             label_text=f"{translate('settings_appearance_language')}:",
             variable=self.selected_lang,
-            values=list(settings.ALL_LANG_NAMES),
+            values=list(get_available_languages()),
             command=lambda selected_lang: settings.update_config(
                 "SETTINGS", "lang_name", selected_lang
             ),
@@ -768,8 +773,8 @@ class WindowSettings(TemplateToplevel):
                 install_metadata["entry_widget"],
             )
 
-    def _detect_game_installation_wrapper(self, parent, install_metadata):
-        game_installation, game_path = self.games_manager.detect_game_installation()
+    def _get_game_path_wrapper(self, parent, install_metadata):
+        game_path = self.games_manager.get_game_path()
 
         install_metadata["entry_variable"].set(Files.get_relative_path(game_path))
         self._store_temp_path_and_apply_style(

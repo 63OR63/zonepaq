@@ -146,3 +146,4 @@ settings.txt
 .VSCodeCounter
 /README.bbcode
 /nexus.py
+/pipreqs.py

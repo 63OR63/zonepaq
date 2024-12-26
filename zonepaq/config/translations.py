@@ -143,13 +143,6 @@ TRANSLATIONS = {
             "...the source .pak files for each conflict will be unpacked, and the conflicting files will be opened in the merging engine in groups...\n"
             "2. Resolve each conflict manually or use auto-merge, then save the resulting file. Important: don't change suggested save location!\n"
             "...once all conflicts are resolved and the last merging engine window is closed, saved files will be repacked into a merged mod at the location of your choice...\n"
-            "\n"
-            "Please, note:\n"
-            "- You have to unpack vanilla files and set their location in the settings menu if you plan to use them in comparisons;\n"
-            '- Files without conflicts will be included in the merged mod only if "Ignore files without conflicts" is unchecked;\n'
-            "- Dual-source conflicts will be opened in the merging engine with a matching vanilla file as a base for merging;\n"
-            "- Tri-source conflicts will be opened in the merging engine without vanilla base;\n"
-            "- Complex conflicts can't be processed due to the limitation of 3 files open at a time in the merging engine."
         ),
         "dialogue_pak_files": "PAK files",
         "dialogue_tools_redowndload_installer": (
@@ -168,6 +161,18 @@ TRANSLATIONS = {
         "dialogue_setup_sequence_success": "Initial setup finished succesfully.",
         "dialogue_setup_sequence_warning": "Initial setup was incomplete.\n\nPlease navigate to the Settings and finish the required configuration.",
         "dialogue_relaunch": "Please, relaunch the app.",
+        "tooltip_settings": "Settings",
+        "tooltip_button_unpack": "Unpack files to destination",
+        "tooltip_button_repack": "Repack folders to destination",
+        "tooltip_button_merge": "Analyze conflicts",
+        "tooltip_button_label_no_conflicts_count": 'Files modified by 1 mod; won\'t be compared if "Ignore files without conflicts" is checked',
+        "tooltip_button_label_dual_match_count": "Files modified by 2 mods; matching vanilla file is unpacked and will be used in comparison",
+        "tooltip_button_label_dual_no_match_count": "Files modified by 2 mods; matching vanilla file isn't found, please unpack vanilla files in settings!",
+        "tooltip_button_label_tri_count": "Files modified by 3 mods; will be compared without vanilla base",
+        "tooltip_button_label_complex_count": "Files modified by 4+ mods; can't be compared due to merging engine limitations!",
+        "tooltip_checkbox_ignore_no_conflicts": "Uncheck to include non-conflicting files to a merge mod or to compare them with matching vanilla file",
+        "tooltip_button_select_all": "Select all files in the treeview",
+        "tooltip_button_process": "Start merging selected files in groups",
     },
     "Русский": {
         "meta_description": "Удобное графическое приложение для распаковки, упаковки и разрешения конфликтов .pak модов.",
@@ -337,7 +342,7 @@ TRANSLATIONS = {
         "dialogue_skip_setup_sequence": "Для обеспечения корректной работы перейдите в Настройки и завершите необходимую конфигурацию.",
         "dialogue_setup_sequence_success": "Первоначальная установка была проведена успешно.",
         "dialogue_setup_sequence_warning": "Первоначальная установка была проведена не полностью.\n\nПожалуйста, перейдите в Настройки и завершите необходимую конфигурацию.",
-        "dialogue_relaunch": "Пожалуйста, перезвпустите приложение.",
+        "dialogue_relaunch": "Пожалуйста, перезапустите приложение.",
     },
 }
 
@@ -353,9 +358,6 @@ def get_available_languages():
 def translate(text, lang=None):
     from config.settings_manager import settings  # ! FIXME
 
-    # Get settings class
-    # settings = SettingsManager()
-    # return settings.LANG_DICT[text]  # to debug raise errors
     if lang:
         try:
             return get_translation(lang).get(text) or get_translation("English").get(

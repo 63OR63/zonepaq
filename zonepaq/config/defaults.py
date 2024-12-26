@@ -94,36 +94,6 @@ DEFAULT_SETTINGS = {
     # "aes_key": "0x33A604DF49A07FFD4A4C919962161F5C35A134D37EFA98DB37A34F6450D7D386",
 }
 
-GAMES = {
-    "stalker_2": {
-        "display_name": "S.T.A.L.K.E.R. 2",
-        "steam": {
-            "display_name": "Steam",
-            "steam_id": "1643320",
-            "shipping_exe_suffix": "Stalker2/Binaries/Win64/Stalker2-Win64-Shipping.exe",
-            "vanilla_archives_suffixes": [
-                "Stalker2/Content/Paks/pakchunk0-Windows.pak"
-            ],
-            "mods_path_suffix": "Stalker2/Content/Paks/~mods",
-        },
-        "game_pass": {
-            "display_name": "Game Pass",
-            "game_pass_id": "",
-            "shipping_exe_suffix": "Stalker2/Binaries/Win64/Stalker2-WinGDK-Shipping.exe",
-            "vanilla_archives_suffixes": ["Stalker2/Content/Paks/pakchunk0-WinGDK.pak"],
-            "mods_path_suffix": "Stalker2/Content/Paks/~mods",
-        },
-        "unknown": {
-            "display_name": "Unknown",
-            "shipping_exe_suffix": "Stalker2/Binaries/Win64/Stalker2-Win64-Shipping.exe",
-            "vanilla_archives_suffixes": [
-                "Stalker2/Content/Paks/pakchunk0-Windows.pak"
-            ],
-            "mods_path_suffix": "Stalker2/Content/Paks/~mods",
-        },
-        "fallback_path": "G:/Games/S.T.A.L.K.E.R. 2 Heart of Chornobyl",
-    },
-}
 
 # "unknown": {
 #     "display_name": "Unknown",

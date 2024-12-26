@@ -44,7 +44,8 @@ class WindowMerge(TemplateSecondary):
                 ),
                 "action_name": translate("merge_screen_analyze_button"),
                 "action_command": self._find_conflicts,
-                "hints": translate("merge_screen_hints"),
+                # "hints": translate("merge_screen_hints"),
+                "tooltip_action_button": translate("tooltip_button_merge"),
             },
         ]
         for section in sections:

@@ -254,39 +254,58 @@ class WindowConflicts(TemplateToplevel):
         self._create_process_frame(legend_frame)
 
     def _create_legend_labels(self, legend_frame):
-        self._create_legend_label(
+        label_no_conflicts_count = self._create_legend_label(
             legend_frame,
             text=f"{translate('merge_screen_conflicts_no_conflicts_count')} {self.conflict_counts['no_conflicts_count']}",
             style="Success.CTkLabel",
             row=1,
         )
-        self._create_legend_label(
+        self.add_tooltip(
+            label_no_conflicts_count,
+            translate("tooltip_button_label_no_conflicts_count"),
+        )
+
+        label_dual_match_count = self._create_legend_label(
             legend_frame,
             text=f"{translate('merge_screen_conflicts_dual_match_count')} {self.conflict_counts['dual_match_count']}",
-            style="CTkLabel",
+            style="Normal.CTkLabel",
             row=2,
         )
-        self._create_legend_label(
+        self.add_tooltip(
+            label_dual_match_count, translate("tooltip_button_label_dual_match_count")
+        )
+
+        label_dual_no_match_count = self._create_legend_label(
             legend_frame,
             text=f"{translate('merge_screen_conflicts_dual_no_match_count')} {self.conflict_counts['dual_no_match_count']}",
             style="Attention.CTkLabel",
             row=3,
         )
-        self._create_legend_label(
+        self.add_tooltip(
+            label_dual_no_match_count,
+            translate("tooltip_button_label_dual_no_match_count"),
+        )
+
+        label_tri_count = self._create_legend_label(
             legend_frame,
             text=f"{translate('merge_screen_conflicts_tri_count')} {self.conflict_counts['tri_count']}",
             style="Warning.CTkLabel",
             row=4,
         )
-        self._create_legend_label(
+        self.add_tooltip(label_tri_count, translate("tooltip_button_label_tri_count"))
+
+        label_complex_count = self._create_legend_label(
             legend_frame,
             text=f"{translate('merge_screen_conflicts_complex_count')} {self.conflict_counts['complex_count']}",
             style="Error.CTkLabel",
             row=5,
         )
+        self.add_tooltip(
+            label_complex_count, translate("tooltip_button_label_complex_count")
+        )
 
     def _create_legend_label(self, legend_frame, text, style, row):
-        self.create_ctk_widget(
+        return self.create_ctk_widget(
             ctk_widget=ctk.CTkLabel,
             widget_args={
                 "master": legend_frame,
@@ -330,6 +349,10 @@ class WindowConflicts(TemplateToplevel):
                 "sticky": "ne",
             },
         )
+        self.add_tooltip(
+            self.ignore_no_conflicts_check_button,
+            translate("tooltip_checkbox_ignore_no_conflicts"),
+        )
 
         buttons_frame = self.create_frame(
             process_frame,
@@ -338,7 +361,7 @@ class WindowConflicts(TemplateToplevel):
             sticky="ne",
         )
 
-        self.create_button(
+        button_select_all = self.create_button(
             buttons_frame,
             text=translate("merge_screen_conflicts_select_all_button"),
             command=lambda: self._select_tagged_items(),
@@ -349,8 +372,12 @@ class WindowConflicts(TemplateToplevel):
             padx=(0, self.padding),
             sticky="ne",
         )
+        self.add_tooltip(
+            button_select_all,
+            translate("tooltip_button_select_all"),
+        )
 
-        self.create_button(
+        button_process = self.create_button(
             buttons_frame,
             text=translate("merge_screen_conflicts_action_button"),
             command=lambda: self._process_selected_files(),
@@ -360,6 +387,10 @@ class WindowConflicts(TemplateToplevel):
             row=0,
             column=1,
             sticky="ne",
+        )
+        self.add_tooltip(
+            button_process,
+            translate("tooltip_button_process"),
         )
 
     def _select_tagged_items(self):

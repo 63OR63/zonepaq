@@ -10,8 +10,11 @@ from config import metadata
 from config.metadata import APP_NAME, APP_VERSION
 from config.settings_manager import settings
 from config.themes import StyleManager, ThemeManager
+from config.translations import translate
 from gui.ctk_wraps import CTk
 from gui.window_settings import WindowSettings
+
+from CTkToolTip import CTkToolTip
 
 
 class TemplateBase(CTk):
@@ -94,7 +97,7 @@ class TemplateBase(CTk):
         )
 
     def create_header_button(self, master, command, image, image_hover, sticky):
-        button = self.create_ctk_widget(
+        return self.create_ctk_widget(
             ctk_widget=ctk.CTkButton,
             widget_args={
                 "master": self.get_first_widget(master),
@@ -540,10 +543,17 @@ class TemplateBase(CTk):
         )
 
     def create_settings_button(self, master):
-        return self.create_header_button(
+        button_settings = self.create_header_button(
             master,
             command=lambda: WindowSettings(master),
             image=self.cog_image,
             image_hover=self.cog_image_hover,
             sticky="e",
         )
+        self.add_tooltip(button_settings, translate("tooltip_settings"))
+        return button_settings
+
+    def add_tooltip(self, widget, message):
+        if settings.SHOW_HINTS:
+            if hasattr(widget, "_apply_appearance_mode"):
+                CTkToolTip(widget, message=message)

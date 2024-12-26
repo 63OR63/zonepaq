@@ -34,6 +34,7 @@ class TemplateSecondary(TemplateToplevel):
         clear_command,
         action_name,
         action_command,
+        tooltip_action_button,
         hints=None,
     ):
         self.create_header(self, title)
@@ -54,7 +55,10 @@ class TemplateSecondary(TemplateToplevel):
             section_frame, add_command, remove_command, clear_command
         )
 
-        self._create_action_button(section_frame, action_name, action_command)
+        action_button = self._create_action_button(
+            section_frame, action_name, action_command
+        )
+        self.add_tooltip(action_button, tooltip_action_button)
 
     def _create_listbox(self, root, listbox_name, listbox_mode):
         listbox = self.create_ctk_widget(
@@ -142,7 +146,7 @@ class TemplateSecondary(TemplateToplevel):
         )
 
     def _create_action_button(self, section_frame, action_name, action_command):
-        self.create_button(
+        return self.create_button(
             section_frame,
             text=action_name,
             command=action_command,
@@ -159,64 +163,66 @@ class TemplateSecondary(TemplateToplevel):
         try:
             dropped_files_raw = event.data
             files = [path for path in dropped_files_raw.split("}") if path]
+
+            collector = []
             for path in files:
                 path = path.replace("{", "").replace("}", "")
                 path = Path(path.strip())
                 if str(path) not in listbox.get("all"):
-                    dnd.grid_forget()
                     if (
                         mode == "pak"
                         and path.is_file()
                         and path.suffix.lower() == ".pak"
                     ):
-                        listbox.insert("END", str(path))
-                        # !WORKAROUND for lacking anchor option in the text Label
-                        list(listbox.buttons.values())[-1]._text_label.configure(
-                            anchor="w"
-                        )
-                        list(listbox.buttons.values())[-1].configure(
-                            anchor="w", height=0
-                        )
-                        log.debug(f"Added {str(path)} to listbox")
+                        collector.append(str(path))
                     elif mode == "folders" and path.is_dir():
-                        listbox.insert("END", str(path))
-                        # !WORKAROUND for lacking anchor option in the text Label
-                        list(listbox.buttons.values())[-1]._text_label.configure(
-                            anchor="w"
-                        )
-                        list(listbox.buttons.values())[-1].configure(
-                            anchor="w", height=0
-                        )
-                        log.debug(f"Added {str(path)} to listbox")
+                        collector.append(str(path))
                     else:
                         log.debug(f"Invalid path: {str(path)} (Mode: {mode})")
+
+            if collector:
+                dnd.grid_forget()
+
+                for item in collector:
+                    listbox.insert("END", item)
+                    log.debug(f"Added {item} to listbox")
+
+                for value in list(listbox.buttons.values()):
+                    # !WORKAROUND for lacking anchor option in the text Label
+                    value._text_label.configure(anchor="w")
+                    value.configure(anchor="w", height=0)
+
         except Exception as e:
             log.error(f"DnD error: {e}")
 
         if not listbox.get("all"):
-            dnd.grid(
-                row=0,
-                column=0,
-            )
+            dnd.grid(row=0, column=0)
 
     def _add_file_to_listbox(self, listbox, dnd):
         files = ModalFileDialog.askopenfilenames(
             parent=self, filetypes=[(translate("dialogue_pak_files"), "*.pak")]
         )
+
+        collector = []
         for file in files:
             file = Path(file.strip())
             if str(file) not in listbox.get("all"):
-                dnd.grid_forget()
-                listbox.insert("END", str(file))
+                collector.append(str(file))
+
+        if collector:
+            dnd.grid_forget()
+
+            for item in collector:
+                listbox.insert("END", item)
+                log.debug(f"Added {item} to listbox")
+
+            for value in list(listbox.buttons.values()):
                 # !WORKAROUND for lacking anchor option in the text Label
-                list(listbox.buttons.values())[-1]._text_label.configure(anchor="w")
-                list(listbox.buttons.values())[-1].configure(anchor="w", height=0)
-                log.debug(f"Added {str(file)} to listbox")
+                value._text_label.configure(anchor="w")
+                value.configure(anchor="w", height=0)
+
         if not listbox.get("all"):
-            dnd.grid(
-                row=0,
-                column=0,
-            )
+            dnd.grid(row=0, column=0)
 
     def _add_folder_to_listbox(self, listbox, dnd):
         folder = ModalFileDialog.askdirectory(parent=self)
@@ -230,10 +236,7 @@ class TemplateSecondary(TemplateToplevel):
                 list(listbox.buttons.values())[-1].configure(anchor="w", height=0)
                 log.debug(f"Added {str(folder)} to listbox")
         if not listbox.get("all"):
-            dnd.grid(
-                row=0,
-                column=0,
-            )
+            dnd.grid(row=0, column=0)
 
     def _remove_from_listbox(self, listbox, dnd):
         try:
@@ -248,19 +251,13 @@ class TemplateSecondary(TemplateToplevel):
         except Exception as e:
             log.error(f"Error removing selected items: {e}")
         if not listbox.get("all"):
-            dnd.grid(
-                row=0,
-                column=0,
-            )
+            dnd.grid(row=0, column=0)
 
     def _clear_listbox(self, listbox, dnd):
         listbox.delete("all")
         log.debug(f"Cleared listbox")
 
-        dnd.grid(
-            row=0,
-            column=0,
-        )
+        dnd.grid(row=0, column=0)
 
     def show_results(self, results_ok, results_ko):
         message_ok = "\n".join(results_ok) if results_ok else ""

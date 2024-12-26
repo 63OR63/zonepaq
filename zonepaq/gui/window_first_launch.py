@@ -343,7 +343,7 @@ class WindowFirstLaunch(TemplateBase):
             for index in range(len(self.games_manager.vanilla_files)):
                 self.installation_progress_callback(f"vanilla_{index}")
                 self.queue_update_ui()
-                unpack_result = tools_manager.unpack_file_by_index(
+                unpack_result = tools_manager.unpack_vanilla_files(
                     parent=self,
                     install_metadata={"index": index},
                     auto_mode=True,

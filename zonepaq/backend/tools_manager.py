@@ -80,7 +80,7 @@ class ToolsManager:
             auto_mode=auto_mode,
         )
 
-    def unpack_file_by_index(
+    def unpack_vanilla_files(
         self,
         parent,
         install_metadata={},
@@ -112,8 +112,8 @@ class ToolsManager:
 
         # Select the file based on the provided index
         item = games_manager.vanilla_files[file_index]
-        vanilla_file = item["archive"]
-        unpacked_folder = item["unpacked"]
+        vanilla_file = Path(item["archive"])
+        unpacked_folder = Path(item["unpacked"])
         parent_folder = unpacked_folder.parent
 
         # Skip unpacking if unpacked_folder isn't empty
@@ -122,10 +122,18 @@ class ToolsManager:
                 f'{translate("generic_skipped")} {str(unpacked_folder)} {translate("generic_is_not_empty")}'
             )
         elif Files.is_existing_file(vanilla_file):
-            vanilla_file = Path(vanilla_file)
+            link_name = parent_folder / vanilla_file.name
+
+            # If the link already exists, remove it
+            if link_name.exists():
+                link_name.unlink()
+
+            # Create the symbolic link
+            link_name.symlink_to(vanilla_file)
+
             futures[
                 Repak.unpack(
-                    vanilla_file,
+                    link_name,
                     parent_folder,
                     allowed_extensions=[".cfg", ".ini"],
                 )

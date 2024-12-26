@@ -2,6 +2,8 @@ from backend.logger import log
 from config.translations import translate
 from gui.template_base import TemplateBase
 
+from config.settings_manager import settings
+
 
 class WindowMain(TemplateBase):
     """Launch screen GUI for navigating to primary application features."""
@@ -47,6 +49,7 @@ class WindowMain(TemplateBase):
         )
         width = 300
         height = 60
+
         self.create_button(
             buttons_frame,
             text=translate("launch_screen_button_repak"),
@@ -58,6 +61,7 @@ class WindowMain(TemplateBase):
             padx=self.padding // 2,
             pady=self.padding // 2,
         )
+
         self.create_button(
             buttons_frame,
             text=translate("launch_screen_button_merge"),

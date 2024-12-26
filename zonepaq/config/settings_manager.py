@@ -100,7 +100,9 @@ class SettingsManager:
         defaults = {
             "SETTINGS": DEFAULT_SETTINGS,
             "TOOLS_PATHS": DEFAULT_TOOLS_PATHS,
-            "GAME_PATHS": {games_manager.game_name: str(Path(games_manager.game_path))},
+            "GAME_PATHS": {
+                games_manager.game_name: str(Path(games_manager.get_game_path()))
+            },
         }
 
         self.loader = ConfigurationLoader(sources, defaults)
@@ -110,6 +112,7 @@ class SettingsManager:
         self.load()
 
     def load(self):
+        # shortcuts
         self.MERGING_ENGINE = self.get("SETTINGS", "merging_engine")
         self.LANG_NAME = self.get("SETTINGS", "lang_name")
         self.THEME_NAME = self.get("SETTINGS", "theme_name")
@@ -118,12 +121,8 @@ class SettingsManager:
         self.AES_KEY = self.get("SETTINGS", "aes_key")
         self.TOOLS_PATHS = self.get("TOOLS_PATHS")
         self.GAME_PATHS = self.get("GAME_PATHS")
-        self.LANG_DICT = get_translation(self.LANG_NAME)
-        self.ALL_LANG_NAMES = get_available_languages()
-        self.ALL_THEME_NAMES = ThemeManager.get_available_theme_names()
-        self.SUPPORTED_MERGING_ENGINES = [
-            engine["name"] for engine in SUPPORTED_MERGING_ENGINES.values()
-        ]
+
+        # links
         self.TOOLS = TOOLS
 
     def update_config(self, section, key, value):
