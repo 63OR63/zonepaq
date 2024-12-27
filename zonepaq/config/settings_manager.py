@@ -1,16 +1,12 @@
-from abc import ABC, abstractmethod
-from pathlib import Path
 import re
 import sys
 import threading
+from abc import ABC, abstractmethod
+from pathlib import Path
 
 from backend.logger import log
 from backend.utilities import Files
-from config.defaults import (
-    DEFAULT_SETTINGS,
-    DEFAULT_TOOLS_PATHS,
-    TOOLS,
-)
+from config.defaults import DEFAULT_SETTINGS, DEFAULT_TOOLS_PATHS, TOOLS
 
 
 class ConfigSource(ABC):
@@ -165,7 +161,7 @@ GAMES = {
             "game_pass": {
                 "display_name": "Game Pass",
                 "game_folder_name": "S.T.A.L.K.E.R. 2",
-                "shipping_exe_suffix": "Stalker2/Binaries/Win64/Stalker2-WinGDK-Shipping.exe",
+                "shipping_exe_suffix": "Stalker2/Binaries/WinGDK/Stalker2-WinGDK-Shipping.exe",
                 "vanilla_archives_suffixes": [
                     "Stalker2/Content/Paks/pakchunk0-WinGDK.pak"
                 ],

@@ -1,10 +1,9 @@
 import logging
-import threading
 import tkinter as tk
 from pathlib import Path
 
 import customtkinter as ctk
-from backend.logger import LogConfig, log
+from backend.logger import log
 from backend.parallel_orchestrator import ThreadExecutor, ThreadManager
 from backend.utilities import Data, Files
 from config.defaults import TOOLS
@@ -14,7 +13,6 @@ from config.themes import StyleManager
 from config.translations import translate
 from gui.template_base import TemplateBase
 from gui.window_messagebox import WindowMessageBox
-from functools import partial
 
 
 class TextBoxHandler(logging.Handler):
@@ -131,13 +129,14 @@ class WindowFirstLaunch(TemplateBase):
 
             progress_bar.grid_forget()
 
-        report = {}
+        self.report = {}
 
         # Add tools to the report
         for tool_key, tool_path in settings.TOOLS_PATHS.items():
             display_name = TOOLS.get(tool_key, {}).get("display_name", "Unknown")
             status = Data.is_valid_data(tool_path)
-            report[display_name] = {
+            self.report[tool_key] = {
+                "label_text": display_name,
                 "tool_key": tool_key,
                 "status": status,
                 "text": self.text_installed,
@@ -145,7 +144,8 @@ class WindowFirstLaunch(TemplateBase):
 
         # Add AES key to the report
         status = Data.is_valid_data(settings.AES_KEY, "aes")
-        report[translate("settings_game_aes_key")] = {
+        self.report["aes_key"] = {
+            "label_text": translate("settings_game_aes_key"),
             "tool_key": "aes_key",
             "status": status,
             "text": self.text_detected,
@@ -156,7 +156,8 @@ class WindowFirstLaunch(TemplateBase):
             unpacked = value["unpacked"]
             display_name = str(Path(unpacked).name)
             status = not Files.is_folder_empty(unpacked)
-            report[display_name] = {
+            self.report[f"vanilla_{index}"] = {
+                "label_text": display_name,
                 "tool_key": f"vanilla_{index}",
                 "status": status,
                 "text": self.text_unpacked,
@@ -198,11 +199,11 @@ class WindowFirstLaunch(TemplateBase):
             },
         )
 
-        for key, value in report.items():
+        for key, value in self.report.items():
             current_row = self._get_next_row(report_frame)
             create_labeled_text(
                 report_frame,
-                label_text=key,
+                label_text=value["label_text"],
                 tool_key=value["tool_key"],
                 status=value["status"],
                 text=value["text"],
@@ -296,7 +297,11 @@ class WindowFirstLaunch(TemplateBase):
         results = []
 
         def execute_tool_installation():
+
             for tool_key in settings.TOOLS_PATHS.keys():
+                if self.report[tool_key]["status"]:
+                    results.append(True)
+                    continue
                 self.installation_progress_callback(tool_key)
                 self.update_ui()
                 install_method = getattr(self.tools_manager, f"install_{tool_key}")
@@ -315,6 +320,9 @@ class WindowFirstLaunch(TemplateBase):
                 self.update_ui()
 
         def execute_aes_key_detection():
+            if self.report["aes_key"]["status"]:
+                results.append(True)
+                return
             self.installation_progress_callback("aes_key")
             detect_result = self.tools_manager.get_aes_key(
                 parent=self, auto_mode=True, skip_aes_dumpster_download=True
@@ -332,6 +340,9 @@ class WindowFirstLaunch(TemplateBase):
 
         def execute_vanilla_unpack():
             for index in range(len(self.games_manager.vanilla_files)):
+                if self.report[f"vanilla_{index}"]["status"]:
+                    results.append(True)
+                    continue
                 self.installation_progress_callback(f"vanilla_{index}")
                 self.update_ui()
                 unpack_result = self.tools_manager.unpack_vanilla_files(
@@ -341,7 +352,6 @@ class WindowFirstLaunch(TemplateBase):
                         "aes_key": settings.get("SETTINGS", "aes_key"),
                     },
                     auto_mode=True,
-                    skip_aes_extraction=True,
                 )
                 results.append(unpack_result)
                 if unpack_result:
@@ -357,10 +367,12 @@ class WindowFirstLaunch(TemplateBase):
                 self.update_ui()
 
         def finalize_report():
-            if all(results):
-                self.report("info", translate("dialogue_setup_sequence_success"))
+            if results and all(results):
+                self.show_report("info", translate("dialogue_setup_sequence_success"))
             else:
-                self.report("warning", translate("dialogue_setup_sequence_warning"))
+                self.show_report(
+                    "warning", translate("dialogue_setup_sequence_warning")
+                )
 
         # Schedule tasks sequentially in a background thread
         def task_sequence():
@@ -384,8 +396,8 @@ class WindowFirstLaunch(TemplateBase):
     def update_ui(self):
         self.executor.run(self.update_idletasks)
 
-    def report(self, msg_type, message):
-        def show_report():
+    def show_report(self, msg_type, message):
+        def show_messagebox():
             if msg_type == "info":
                 WindowMessageBox.showinfo(self, message=message)
             elif msg_type == "warning":
@@ -393,7 +405,7 @@ class WindowFirstLaunch(TemplateBase):
 
             self.after(0, self.on_closing)
 
-        self.executor.run(show_report)
+        self.executor.run(show_messagebox)
 
     def _apply_style(self, is_valid, entry_widget, text):
         if is_valid:

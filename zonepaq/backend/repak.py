@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from backend.parallel_orchestrator import SubprocessManager, ThreadManager
 from backend.logger import log
+from backend.parallel_orchestrator import SubprocessManager, ThreadManager
 from backend.utilities import Data, Files
 from config.settings_manager import settings
 
@@ -58,7 +58,7 @@ class Repak:
                 command.extend(["-a", aes_key])
             command.extend(["unpack", str(source)])
 
-            log.debug(f"Unpacking {str(source)} to parent folder...")
+            log.debug(f"Unpacking {str(source)}...")
             result_container = ThreadManager.run_in_thread_with_result(
                 SubprocessManager.execute_subprocess, timeout=360, command=command
             )
@@ -91,7 +91,7 @@ class Repak:
                     log.error(f"Failed to unpack {str(source)}: {message}")
                     raise RuntimeError(f"Command failed with error:\n{message}")
 
-            log.debug(f"Successfully unpacked {str(source)} to parent folder.")
+            log.debug(f"Successfully unpacked {str(source)}.")
 
             if allowed_extensions:
                 log.debug(f"Cleaning unpacked folder...")

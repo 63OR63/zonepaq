@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 import customtkinter as ctk
@@ -162,11 +163,10 @@ class TemplateSecondary(TemplateToplevel):
     def _add_dnd_files_to_listbox(self, event, listbox, mode, dnd):
         try:
             dropped_files_raw = event.data
-            files = [path for path in dropped_files_raw.split("}") if path]
+            files = re.findall(r"\{[^}]+\}|\S+", dropped_files_raw)
 
             collector = []
             for path in files:
-                path = path.replace("{", "").replace("}", "")
                 path = Path(path.strip())
                 if str(path) not in listbox.get("all"):
                     if (

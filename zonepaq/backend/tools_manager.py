@@ -97,11 +97,10 @@ class ToolsManager:
         install_metadata={},
         auto_mode=False,
         skip_aes_dumpster_download=False,
-        skip_aes_extraction=False,
     ):
         aes_key = install_metadata.get("aes_key")
 
-        if not aes_key and not skip_aes_extraction:
+        if not aes_key:
             self.get_aes_key(
                 parent=parent,
                 auto_mode=True,
@@ -141,8 +140,7 @@ class ToolsManager:
                 link_name.unlink()
 
             # Create the symbolic link
-            Files.create_dir(parent_folder)
-            link_name.symlink_to(vanilla_file)
+            Files.link_path(vanilla_file, link_name)
 
             task_retry_manager = TaskRetryManager(ThreadExecutor())
 
@@ -202,10 +200,13 @@ class ToolsManager:
 
                 temp_shipping_exe_dir = Path(temp_shipping_exe_dir)
                 temp_shipping_exe = temp_shipping_exe_dir / "shipping.exe"
-                Files.copy_path(
-                    games_manager.shipping_exe,
-                    temp_shipping_exe,
-                )
+
+                # Files.copy_path(
+                #     games_manager.shipping_exe,
+                #     temp_shipping_exe,
+                # )
+
+                Files.link_path(games_manager.shipping_exe, temp_shipping_exe)
                 aes_dumpster_exe = settings.TOOLS_PATHS["aes_dumpster"]
 
                 command = [str(aes_dumpster_exe), str(temp_shipping_exe)]

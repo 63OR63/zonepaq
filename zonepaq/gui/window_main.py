@@ -2,8 +2,6 @@ from backend.logger import log
 from config.translations import translate
 from gui.template_base import TemplateBase
 
-from config.settings_manager import settings
-
 
 class WindowMain(TemplateBase):
     """Launch screen GUI for navigating to primary application features."""
@@ -11,7 +9,7 @@ class WindowMain(TemplateBase):
     def __init__(self, master=None):
 
         super().__init__(title=translate("launch_screen_title"))
-        self._setup2()
+        self.draw()
 
         self.adjust_to_content(self)
 
@@ -35,8 +33,7 @@ class WindowMain(TemplateBase):
         log.debug("Main window withdrawn.")
         WindowMerge(self)
 
-    # !RENAME method
-    def _setup2(self):
+    def draw(self):
         self.create_header(self, text=translate("launch_screen_header"))
 
         buttons_frame = self.create_frame(

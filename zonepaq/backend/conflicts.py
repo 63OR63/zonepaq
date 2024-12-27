@@ -1,6 +1,5 @@
 import tempfile
 from collections import deque
-from concurrent.futures import as_completed
 from datetime import datetime
 from pathlib import Path
 

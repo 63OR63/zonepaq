@@ -18,7 +18,6 @@ TOOLS = {
         "asset_regex": r"repak_cli-x86_64-pc-windows-msvc.zip$",
         "extract_parameter": "",
         "local_exe": Path("zonepaq/tools/repak_cli/repak.exe"),
-        # "fallback_exe": Path("C:/TEST.exe"),
         "fallback_exe": Path("C:/Program Files/repak_cli/bin/repak.exe"),
     },
     "kdiff3": {
@@ -27,9 +26,7 @@ TOOLS = {
         "exe_name": "kdiff3.exe",
         "extract_parameter": "bin",
         "local_exe": Path("zonepaq/tools/KDiff3/kdiff3.exe"),
-        # "winreg_path": r"SOFTWARE\TEST",
         "winreg_path": r"SOFTWARE\KDiff3",
-        # "fallback_exe": Path("C:/TEST.exe"),
         "fallback_exe": Path("C:/Program Files/KDiff3/kdiff3.exe"),
     },
     "winmerge": {
@@ -39,7 +36,6 @@ TOOLS = {
         "asset_regex": r"winmerge-\d+(\.\d+)*-exe.zip$",
         "extract_parameter": "WinMerge",
         "local_exe": Path("zonepaq/tools/WinMerge/WinMergeU.exe"),
-        # "fallback_exe": Path.home() / "TEST.exe",
         "fallback_exe": Path.home() / "AppData/Local/Programs/WinMerge/WinMergeU.exe",
     },
     "aes_dumpster": {
@@ -91,14 +87,5 @@ DEFAULT_SETTINGS = {
     "theme_name": "Nord",
     "dark_mode": "True",
     "show_hints": "True",
-    # "aes_key": "0x33A604DF49A07FFD4A4C919962161F5C35A134D37EFA98DB37A34F6450D7D386",
+    "aes_key": "0x33A604DF49A07FFD4A4C919962161F5C35A134D37EFA98DB37A34F6450D7D386",
 }
-
-
-# "unknown": {
-#     "display_name": "Unknown",
-#     "shipping_exe_suffix": "Stalker2/Binaries/Win64/Stalker2-WinGDK-Shipping.exe",
-#     "vanilla_archives_suffixes": ["Stalker2/Content/Paks/pakchunk0-WinGDK.pak"],
-#     "mods_path_suffix": "Stalker2/Content/Paks/~mods",
-# },
-# "fallback_path": "S.T.A.L.K.E.R. 2 Heart of Chornobyl",

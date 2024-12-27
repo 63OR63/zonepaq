@@ -306,9 +306,6 @@ class WindowSettings(TemplateToplevel):
         )
 
         self.create_spacer(group_frame)
-        # ! make sure first tab has largest height
-        # self.create_spacer(group_frame)
-        # self.create_spacer(group_frame)
 
     def _create_entry_group(self, master, group_name, entries):
 
@@ -562,7 +559,11 @@ class WindowSettings(TemplateToplevel):
             group_frame,
             text=translate("settings_tools_unpack"),
             command=lambda: self.tools_manager.unpack_vanilla_files_in_background(
-                self, install_metadata={"index": index}
+                self,
+                install_metadata={
+                    "index": index,
+                    "aes_key": settings.get("SETTINGS", "aes_key"),
+                },
             ),
             style="Alt.CTkButton",
             width=120,

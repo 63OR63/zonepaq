@@ -10,17 +10,7 @@ from config.translations import translate
 from gui.template_toplevel import TemplateToplevel
 from gui.window_messagebox import WindowMessageBox
 
-# from gui.template_base import TemplateBase
-# class WindowConflicts(TemplateBase):
-#     """Displays conflict reports and provides tools to analyze and merge files."""
 
-#     def __init__(self, content_tree, master=None):
-#         super().__init__(
-#             title=translate("merge_screen_conflicts_title"),
-#         )
-
-
-# ! BUG: hangs app on second open
 class WindowConflicts(TemplateToplevel):
     """Displays conflict reports and provides tools to analyze and merge files."""
 

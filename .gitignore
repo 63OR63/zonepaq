@@ -147,3 +147,5 @@ settings.txt
 /README.bbcode
 /nexus.py
 /pipreqs.py
+/archive.py
+/*.zip

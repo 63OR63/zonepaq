@@ -152,6 +152,44 @@ class Files:
             return False
 
     @classmethod
+    def link_path(cls, src, dest, retries=3, delay=1):
+        """
+        Create a symbolic link from src to dest with retries and error handling.
+        """
+        try:
+            src = Path(src).resolve()
+            dest = Path(dest).resolve()
+
+            cls.create_dir(dest.parent)
+
+            if not src.exists():
+                log.error(f"Source path does not exist: {src}")
+                return False
+
+            for attempt in range(1, retries + 2):
+                try:
+                    if dest.exists() or dest.is_symlink():
+                        dest.unlink()  # Remove existing file/symlink
+
+                    dest.symlink_to(src)
+                    # log.debug(f"Created symlink from {src} to {dest}")
+                    return True
+                except Exception as e:
+                    log.warning(
+                        f"Attempt {attempt} failed for creating symlink from {src} to {dest}: {e}"
+                    )
+                    if attempt < retries + 1:
+                        time.sleep(cls._calculate_backoff(attempt, delay))
+                    else:
+                        log.error(
+                            f"Failed to create symlink after {retries} retries: {src} to {dest}"
+                        )
+                        return False
+        except Exception as e:
+            log.exception(f"Unexpected error during symlink operation: {e}")
+            return False
+
+    @classmethod
     def copy_path(cls, src, dest, retries=3, delay=1, timeout=10):
         """
         Copy a file or folder to a destination with retries and error handling.
