@@ -6,6 +6,7 @@ from pathlib import Path
 
 from backend.logger import log
 from backend.merging import Merging
+from backend.parallel_orchestrator import TaskRetryManager, ThreadExecutor
 from backend.repak import Repak
 from backend.utilities import Files
 from config.settings_manager import GamesManager, settings
@@ -22,6 +23,9 @@ class ConflictProcessor:
         self.ignore_no_conflicts = ignore_no_conflicts
         self.processed_conflicts = deque()
         self.not_processed = deque()
+
+        self.executor = ThreadExecutor()
+        self.retry_manager = TaskRetryManager(self.executor)
 
     def process_selected_files(self):
         merging_engine = settings.MERGING_ENGINE
@@ -158,12 +162,11 @@ class ConflictProcessor:
                     log.info(
                         f"Repacking: {str(temp_merging_dir)} into {str(folder_to_place_merged_mod)}"
                     )
-                    future = Repak.repack(
-                        temp_merging_dir, forced_destination=merged_mod_path
-                    )
 
                     try:
-                        repack_success, repak_result = future.result()
+                        repack_success, repak_result = Repak.repack(
+                            temp_merging_dir, forced_destination=merged_mod_path
+                        )
 
                         if repack_success:
                             processed_str = "\n".join(
@@ -228,37 +231,75 @@ class ConflictProcessor:
                 use_vanilla,
             )
 
+    # def unpack_files(
+    #     self, item_sources_paths, item_sources_names, item_path, temp_dir_path
+    # ):
+    #     unpacked_files = deque()
+    #     futures = {}
+
+    #     for i, item_source_path in enumerate(item_sources_paths):
+    #         item_source_path = str(Path(item_source_path))
+    #         future = Repak.unpack(item_source_path, temp_dir_path)
+    #         futures[future] = (i, item_source_path)
+
+    #     for future in as_completed(futures):
+    #         i, item_source_path = futures[future]
+    #         try:
+    #             unpack_success, unpacked_folder = future.result()
+    #             if unpack_success:
+    #                 unpacked_file = Path(unpacked_folder) / item_path
+    #                 if unpacked_file.exists() and unpacked_file.is_file():
+    #                     unpacked_files.append(unpacked_file)
+    #                 else:
+    #                     log.warning(f"Unpacked file does not exist: {unpacked_file}")
+    #             else:
+    #                 log.error(f"Unpack failed for {item_source_path}")
+    #         except FileNotFoundError as e:
+    #             log.exception(
+    #                 f"File not found: {item_sources_names[i]} -> {item_source_path}: {e}"
+    #             )
+    #         except Exception as e:
+    #             log.exception(
+    #                 f"Unexpected error unpacking {item_sources_names[i]}: {e}"
+    #             )
+
+    #     return unpacked_files
+
+    def unpack_file(self, file_path, temp_dir_path):
+
+        try:
+            success, unpacked_folder = Repak.unpack(file_path, temp_dir_path)
+            if success:
+                return True, unpacked_folder
+            else:
+                log.error(f"Unpack failed for {file_path}")
+                return False, f"Unpack failed for {file_path}"
+        except Exception as e:
+            log.exception(f"Error unpacking file {file_path}: {e}")
+            return False, str(e)
+
     def unpack_files(
         self, item_sources_paths, item_sources_names, item_path, temp_dir_path
     ):
+
         unpacked_files = deque()
-        futures = {}
 
-        for i, item_source_path in enumerate(item_sources_paths):
-            item_source_path = str(Path(item_source_path))
-            future = Repak.unpack(item_source_path, temp_dir_path)
-            futures[future] = (i, item_source_path)
+        def unpack_task(file_path):
+            return self.unpack_file(file_path, temp_dir_path)
 
-        for future in as_completed(futures):
-            i, item_source_path = futures[future]
-            try:
-                unpack_success, unpacked_folder = future.result()
-                if unpack_success:
-                    unpacked_file = Path(unpacked_folder) / item_path
-                    if unpacked_file.exists() and unpacked_file.is_file():
-                        unpacked_files.append(unpacked_file)
-                    else:
-                        log.warning(f"Unpacked file does not exist: {unpacked_file}")
-                else:
-                    log.error(f"Unpack failed for {item_source_path}")
-            except FileNotFoundError as e:
-                log.exception(
-                    f"File not found: {item_sources_names[i]} -> {item_source_path}: {e}"
-                )
-            except Exception as e:
-                log.exception(
-                    f"Unexpected error unpacking {item_sources_names[i]}: {e}"
-                )
+        results_ok, results_ko = self.retry_manager.execute_tasks_with_retries(
+            files=item_sources_paths, func=unpack_task
+        )
+
+        for file_path, result in results_ok.items():
+            unpacked_file = Path(result) / item_path
+            if unpacked_file.exists() and unpacked_file.is_file():
+                unpacked_files.append(unpacked_file)
+            else:
+                log.warning(f"Unpacked file does not exist: {unpacked_file}")
+
+        for file_path, error in results_ko.items():
+            log.error(f"Failed to unpack {file_path}: {error}")
 
         return unpacked_files
 

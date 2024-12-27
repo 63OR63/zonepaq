@@ -101,4 +101,4 @@ Yes, this tool is completely free and open source under the MIT License.
 
 ## Credits
 
-- ModsBySabre for testing
+- Sabre for testing
