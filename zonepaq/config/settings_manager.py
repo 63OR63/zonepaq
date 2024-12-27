@@ -157,7 +157,7 @@ GAMES = {
             },
             "game_pass": {
                 "display_name": "Game Pass",
-                "game_folder_name": "S.T.A.L.K.E.R 2",
+                "game_folder_name": "S.T.A.L.K.E.R. 2",
                 "shipping_exe_suffix": "Stalker2/Binaries/Win64/Stalker2-WinGDK-Shipping.exe",
                 "vanilla_archives_suffixes": [
                     "Stalker2/Content/Paks/pakchunk0-WinGDK.pak"
@@ -165,7 +165,7 @@ GAMES = {
                 "mods_path_suffix": "Stalker2/Content/Paks/~mods",
             },
         },
-        "fallback_path": "G:/Games/S.T.A.L.K.E.R. 2 Heart of Chornobyl",
+        "fallback_path": "Z:/Games/S.T.A.L.K.E.R. 2 Heart of Chornobyl",
     },
 }
 
@@ -279,13 +279,14 @@ class GamesManager:
             return None
 
     def find_game_pass_game_path(self, game_folder_name):
+
         if not sys.platform.startswith("win"):
             return None
 
         folder_name = Path("Xbox Games") / game_folder_name
-        for drive_letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
+        for drive_letter in "CDEFGHIJKLMNOPQRSTUVWXYZ":
             drive = Path(f"{drive_letter}:/")
-            potential_path = drive / folder_name
+            potential_path = Path(str(Path(drive / folder_name)))
             if potential_path.exists():
                 return str(potential_path)
         return None

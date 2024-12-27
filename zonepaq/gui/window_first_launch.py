@@ -233,36 +233,10 @@ class WindowFirstLaunch(TemplateBase):
             },
         )
 
-        # self.create_button(
-        #     question_frame,
-        #     text=translate("generic_yes"),
-        #     command=self.perform_setup_sequence,
-        #     padx=(self.padding, 0),
-        #     pady=(self.padding, 0),
-        #     sticky="e",
-        #     row="-1",
-        #     column=1,
-        # )
-        # self.create_button(
-        #     question_frame,
-        #     text=translate("generic_no"),
-        #     command=self.skip_setup_sequence,
-        #     padx=(self.padding, 0),
-        #     pady=(self.padding, 0),
-        #     sticky="e",
-        #     row="-2",
-        #     column=2,
-        # )
-
         self.create_button(
             question_frame,
             text=translate("generic_yes"),
-            command=partial(
-                self.perform_setup_sequence,
-                self,
-                self.games_manager,
-                self.tools_manager,
-            ),
+            command=self.perform_setup_sequence,
             padx=(self.padding, 0),
             pady=(self.padding, 0),
             sticky="e",
@@ -318,17 +292,18 @@ class WindowFirstLaunch(TemplateBase):
         # Add the handler to the root logger
         logging.getLogger().addHandler(self.text_handler)
 
-    def perform_setup_sequence(self, parent, games_manager, tools_manager):
+    def perform_setup_sequence(self):
         results = []
 
         def execute_tool_installation():
             for tool_key in settings.TOOLS_PATHS.keys():
                 self.installation_progress_callback(tool_key)
                 self.update_ui()
-                install_method = getattr(tools_manager, f"install_{tool_key}")
-                install_result = install_method(parent=parent, auto_mode=True)
+                install_method = getattr(self.tools_manager, f"install_{tool_key}")
+                install_result = install_method(parent=self, auto_mode=True)
                 results.append(install_result)
                 if install_result:
+                    log.info(f'{settings.TOOLS[tool_key]["display_name"]} installed.')
                     self.installation_progress_callback(tool_key, 1)
                     self._apply_style(
                         True,
@@ -341,11 +316,12 @@ class WindowFirstLaunch(TemplateBase):
 
         def execute_aes_key_detection():
             self.installation_progress_callback("aes_key")
-            detect_result = tools_manager.get_aes_key(
-                parent=parent, auto_mode=True, skip_aes_dumpster_download=True
+            detect_result = self.tools_manager.get_aes_key(
+                parent=self, auto_mode=True, skip_aes_dumpster_download=True
             )
             results.append(detect_result)
             if detect_result:
+                log.info("AES Key extracted.")
                 self.installation_progress_callback("aes_key", 1)
                 self._apply_style(
                     True, getattr(self, "aes_key_status_label"), text=self.text_detected
@@ -355,17 +331,21 @@ class WindowFirstLaunch(TemplateBase):
             self.update_ui()
 
         def execute_vanilla_unpack():
-            for index in range(len(games_manager.vanilla_files)):
+            for index in range(len(self.games_manager.vanilla_files)):
                 self.installation_progress_callback(f"vanilla_{index}")
                 self.update_ui()
-                unpack_result = tools_manager.unpack_vanilla_files(
-                    parent=parent,
-                    install_metadata={"index": index},
+                unpack_result = self.tools_manager.unpack_vanilla_files(
+                    parent=self,
+                    install_metadata={
+                        "index": index,
+                        "aes_key": settings.get("SETTINGS", "aes_key"),
+                    },
                     auto_mode=True,
                     skip_aes_extraction=True,
                 )
                 results.append(unpack_result)
                 if unpack_result:
+                    log.info("Vanilla files unpacked.")
                     self.installation_progress_callback(f"vanilla_{index}", 1)
                     self._apply_style(
                         True,

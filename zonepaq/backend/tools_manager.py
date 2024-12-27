@@ -85,22 +85,9 @@ class ToolsManager:
             auto_mode=auto_mode,
         )
 
-    def unpack_vanilla_files_in_background(
-        self,
-        parent,
-        install_metadata={},
-        auto_mode=False,
-        skip_aes_dumpster_download=False,
-        skip_aes_extraction=False,
-    ):
+    def unpack_vanilla_files_in_background(self, *args, **kwargs):
         def background_task():
-            self.unpack_vanilla_files(
-                parent,
-                install_metadata=install_metadata,
-                auto_mode=auto_mode,
-                skip_aes_dumpster_download=skip_aes_dumpster_download,
-                skip_aes_extraction=skip_aes_extraction,
-            )
+            self.unpack_vanilla_files(*args, **kwargs)
 
         ThreadManager.run_in_background(background_task)
 
@@ -112,7 +99,9 @@ class ToolsManager:
         skip_aes_dumpster_download=False,
         skip_aes_extraction=False,
     ):
-        if not skip_aes_extraction:
+        aes_key = install_metadata.get("aes_key")
+
+        if not aes_key and not skip_aes_extraction:
             self.get_aes_key(
                 parent=parent,
                 auto_mode=True,
@@ -162,7 +151,10 @@ class ToolsManager:
                 task_retry_manager.execute_tasks_with_retries(
                     [link_name],
                     lambda f: Repak.unpack(
-                        f, parent_folder, allowed_extensions=[".cfg", ".ini"]
+                        f,
+                        parent_folder,
+                        aes_key=aes_key,
+                        allowed_extensions=[".cfg", ".ini"],
                     ),
                 )
             )

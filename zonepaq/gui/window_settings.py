@@ -790,7 +790,7 @@ class WindowSettings(TemplateToplevel):
 
         # self.master.destroy()
 
-        # subprocess.Popen([sys.executable, *sys.argv])  # This will restart the app
+        # subprocess.Popen([sys.executable, *sys.argv])
         # script = sys.argv[0]
         # args = sys.argv[1:]
 
