@@ -165,7 +165,7 @@ GAMES = {
                 "mods_path_suffix": "Stalker2/Content/Paks/~mods",
             },
         },
-        "fallback_path": "C:/Games/S.T.A.L.K.E.R. 2 Heart of Chornobyl",
+        "fallback_path": "G:/Games/S.T.A.L.K.E.R. 2 Heart of Chornobyl",
     },
 }
 
