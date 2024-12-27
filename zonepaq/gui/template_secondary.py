@@ -186,8 +186,8 @@ class TemplateSecondary(TemplateToplevel):
                 for item in collector:
                     listbox.insert("END", item)
                     log.debug(f"Added {item} to listbox")
-                    value._text_label.configure(anchor="w")
-                    value.configure(anchor="w", height=0)
+                    list(listbox.buttons.values())[-1]._text_label.configure(anchor="w")
+                    list(listbox.buttons.values())[-1].configure(anchor="w", height=0)
 
                 # for value in list(listbox.buttons.values()):
                 #     value._text_label.configure(anchor="w")
@@ -216,8 +216,8 @@ class TemplateSecondary(TemplateToplevel):
             for item in collector:
                 listbox.insert("END", item)
                 log.debug(f"Added {item} to listbox")
-                value._text_label.configure(anchor="w")
-                value.configure(anchor="w", height=0)
+                list(listbox.buttons.values())[-1]._text_label.configure(anchor="w")
+                list(listbox.buttons.values())[-1].configure(anchor="w", height=0)
 
             # for value in list(listbox.buttons.values()):
             #     value._text_label.configure(anchor="w")
