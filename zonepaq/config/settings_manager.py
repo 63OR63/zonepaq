@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
 import re
+import sys
 import threading
 
 from backend.logger import log
@@ -156,7 +157,7 @@ GAMES = {
             },
             "game_pass": {
                 "display_name": "Game Pass",
-                "game_pass_id": "",
+                "game_folder_name": "S.T.A.L.K.E.R 2",
                 "shipping_exe_suffix": "Stalker2/Binaries/Win64/Stalker2-WinGDK-Shipping.exe",
                 "vanilla_archives_suffixes": [
                     "Stalker2/Content/Paks/pakchunk0-WinGDK.pak"
@@ -231,7 +232,7 @@ class GamesManager:
             return steam_path
 
         if game_pass_path := self.find_game_pass_game_path(
-            self.game_meta["installations"]["game_pass"]["game_pass_id"]
+            self.game_meta["installations"]["game_pass"]["game_folder_name"]
         ):
             game_pass_path = str(Path(game_pass_path))
             log.debug(f"Game Pass installation found: {game_pass_path}")
@@ -277,8 +278,16 @@ class GamesManager:
         except Exception:
             return None
 
-    def find_game_pass_game_path(self, game_id):
-        log.debug("Game Pass installation detection isn't implemented.")
+    def find_game_pass_game_path(self, game_folder_name):
+        if not sys.platform.startswith("win"):
+            return None
+
+        folder_name = Path("Xbox Games") / game_folder_name
+        for drive_letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
+            drive = Path(f"{drive_letter}:/")
+            potential_path = drive / folder_name
+            if potential_path.exists():
+                return str(potential_path)
         return None
 
     def get_aes_key(self, game_id):

@@ -8,7 +8,7 @@ from backend.logger import log
 from backend.merging import Merging
 from backend.repak import Repak
 from backend.utilities import Files
-from config.settings_manager import settings
+from config.settings_manager import GamesManager, settings
 from config.translations import translate
 from gui.window_messagebox import ModalFileDialog, WindowMessageBox
 
@@ -273,7 +273,6 @@ class ConflictProcessor:
         Files.create_dir(save_path.parent)
 
         if use_vanilla:
-            from config.settings_manager import GamesManager
 
             for item in GamesManager.vanilla_files:
                 unpacked_folder = item["unpacked"]
