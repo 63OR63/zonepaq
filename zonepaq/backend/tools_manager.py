@@ -134,6 +134,7 @@ class ToolsManager:
                     link_name.unlink()
 
                 # Create the symbolic link
+                Files.create_dir(parent_folder)
                 link_name.symlink_to(vanilla_file)
 
                 task_retry_manager = TaskRetryManager(ThreadExecutor())
