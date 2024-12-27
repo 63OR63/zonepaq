@@ -87,9 +87,9 @@ class Repak:
                             aes_key=settings.AES_KEY,
                             allowed_extensions=allowed_extensions,
                         )
-
-                log.error(f"Failed to unpack {str(source)}: {message}")
-                raise RuntimeError(f"Command failed with error:\n{message}")
+                else:
+                    log.error(f"Failed to unpack {str(source)}: {message}")
+                    raise RuntimeError(f"Command failed with error:\n{message}")
 
             log.debug(f"Successfully unpacked {str(source)} to parent folder.")
 

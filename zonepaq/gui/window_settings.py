@@ -532,7 +532,7 @@ class WindowSettings(TemplateToplevel):
         self.create_button(
             group_frame,
             text=translate("settings_tools_unpack"),
-            command=lambda: self.tools_manager.unpack_vanilla_files(
+            command=lambda: self.tools_manager.unpack_vanilla_files_in_background(
                 self, install_metadata={"index": index}
             ),
             style="Alt.CTkButton",

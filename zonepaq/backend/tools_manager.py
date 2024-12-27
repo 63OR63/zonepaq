@@ -85,6 +85,25 @@ class ToolsManager:
             auto_mode=auto_mode,
         )
 
+    def unpack_vanilla_files_in_background(
+        self,
+        parent,
+        install_metadata={},
+        auto_mode=False,
+        skip_aes_dumpster_download=False,
+        skip_aes_extraction=False,
+    ):
+        def background_task():
+            self.unpack_vanilla_files(
+                parent,
+                install_metadata=install_metadata,
+                auto_mode=auto_mode,
+                skip_aes_dumpster_download=skip_aes_dumpster_download,
+                skip_aes_extraction=skip_aes_extraction,
+            )
+
+        ThreadManager.run_in_background(background_task)
+
     def unpack_vanilla_files(
         self,
         parent,
@@ -93,74 +112,70 @@ class ToolsManager:
         skip_aes_dumpster_download=False,
         skip_aes_extraction=False,
     ):
-        def task_runner():
-            if not skip_aes_extraction:
-                self.get_aes_key(
-                    parent=parent,
-                    auto_mode=True,
-                    skip_aes_dumpster_download=skip_aes_dumpster_download,
+        if not skip_aes_extraction:
+            self.get_aes_key(
+                parent=parent,
+                auto_mode=True,
+                skip_aes_dumpster_download=skip_aes_dumpster_download,
+            )
+
+        from config.settings_manager import GamesManager
+
+        games_manager = GamesManager()
+
+        # Get the index from install_metadata
+        file_index = install_metadata.get("index")
+        if file_index is None or not (
+            0 <= file_index < len(games_manager.vanilla_files)
+        ):
+            raise ValueError("Invalid or missing index in install_metadata")
+
+        # Select the file based on the provided index
+        item = games_manager.vanilla_files[file_index]
+        vanilla_file = Path(item["archive"])
+        unpacked_folder = Path(item["unpacked"])
+        parent_folder = unpacked_folder.parent
+
+        results_ok = []
+        results_ko = []
+
+        # Skip unpacking if unpacked_folder isn't empty
+        if not Files.is_folder_empty(unpacked_folder):
+            results_ok.append(
+                f'{translate("generic_skipped")} {str(unpacked_folder)} {translate("generic_is_not_empty")}'
+            )
+        elif Files.is_existing_file(vanilla_file):
+            link_name = parent_folder / vanilla_file.name
+
+            # If the link already exists, remove it
+            if link_name.exists():
+                link_name.unlink()
+
+            # Create the symbolic link
+            Files.create_dir(parent_folder)
+            link_name.symlink_to(vanilla_file)
+
+            task_retry_manager = TaskRetryManager(ThreadExecutor())
+
+            # Unpack the vanilla files
+            results_ok_partial, results_ko_partial = (
+                task_retry_manager.execute_tasks_with_retries(
+                    [link_name],
+                    lambda f: Repak.unpack(
+                        f, parent_folder, allowed_extensions=[".cfg", ".ini"]
+                    ),
                 )
+            )
 
-            from config.settings_manager import GamesManager
+            results_ok.extend(str(file) for file in results_ok_partial)
+            results_ko.extend(
+                f"{str(file)}: {result}" for file, result in results_ko_partial.items()
+            )
 
-            games_manager = GamesManager()
+        if not auto_mode:
+            self.show_results(parent, results_ok, results_ko)
 
-            # Get the index from install_metadata
-            file_index = install_metadata.get("index")
-            if file_index is None or not (
-                0 <= file_index < len(games_manager.vanilla_files)
-            ):
-                raise ValueError("Invalid or missing index in install_metadata")
-
-            # Select the file based on the provided index
-            item = games_manager.vanilla_files[file_index]
-            vanilla_file = Path(item["archive"])
-            unpacked_folder = Path(item["unpacked"])
-            parent_folder = unpacked_folder.parent
-
-            results_ok = []
-            results_ko = []
-
-            # Skip unpacking if unpacked_folder isn't empty
-            if not Files.is_folder_empty(unpacked_folder):
-                results_ok.append(
-                    f'{translate("generic_skipped")} {str(unpacked_folder)} {translate("generic_is_not_empty")}'
-                )
-            elif Files.is_existing_file(vanilla_file):
-                link_name = parent_folder / vanilla_file.name
-
-                # If the link already exists, remove it
-                if link_name.exists():
-                    link_name.unlink()
-
-                # Create the symbolic link
-                Files.create_dir(parent_folder)
-                link_name.symlink_to(vanilla_file)
-
-                task_retry_manager = TaskRetryManager(ThreadExecutor())
-
-                # Unpack the vanilla files
-                results_ok_partial, results_ko_partial = (
-                    task_retry_manager.execute_tasks_with_retries(
-                        [link_name],
-                        lambda f: Repak.unpack(
-                            f, parent_folder, allowed_extensions=[".cfg", ".ini"]
-                        ),
-                    )
-                )
-
-                results_ok.extend(str(file) for file in results_ok_partial)
-                results_ko.extend(
-                    f"{str(file)}: {result}"
-                    for file, result in results_ko_partial.items()
-                )
-
-            if not auto_mode:
-                self.show_results(parent, results_ok, results_ko)
-
-            return bool(results_ok) and not bool(results_ko)
-
-        ThreadManager.run_in_background(task_runner)
+        return bool(results_ok) and not bool(results_ko)
 
     @staticmethod
     def show_results(parent, results_ok, results_ko):

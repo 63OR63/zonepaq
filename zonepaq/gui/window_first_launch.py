@@ -5,6 +5,7 @@ from pathlib import Path
 
 import customtkinter as ctk
 from backend.logger import LogConfig, log
+from backend.parallel_orchestrator import ThreadExecutor, ThreadManager
 from backend.utilities import Data, Files
 from config.defaults import TOOLS
 from config.metadata import APP_NAME
@@ -13,6 +14,7 @@ from config.themes import StyleManager
 from config.translations import translate
 from gui.template_base import TemplateBase
 from gui.window_messagebox import WindowMessageBox
+from functools import partial
 
 
 class TextBoxHandler(logging.Handler):
@@ -41,6 +43,7 @@ class WindowFirstLaunch(TemplateBase):
         super().__init__(title=translate("first_launch_sequence_title"))
 
         self.style_manager = StyleManager
+        self.executor = ThreadExecutor()
 
         self.text_installed = [
             translate("generic_installed"),
@@ -230,10 +233,36 @@ class WindowFirstLaunch(TemplateBase):
             },
         )
 
+        # self.create_button(
+        #     question_frame,
+        #     text=translate("generic_yes"),
+        #     command=self.perform_setup_sequence,
+        #     padx=(self.padding, 0),
+        #     pady=(self.padding, 0),
+        #     sticky="e",
+        #     row="-1",
+        #     column=1,
+        # )
+        # self.create_button(
+        #     question_frame,
+        #     text=translate("generic_no"),
+        #     command=self.skip_setup_sequence,
+        #     padx=(self.padding, 0),
+        #     pady=(self.padding, 0),
+        #     sticky="e",
+        #     row="-2",
+        #     column=2,
+        # )
+
         self.create_button(
             question_frame,
             text=translate("generic_yes"),
-            command=self.perform_setup_sequence,
+            command=partial(
+                self.perform_setup_sequence,
+                self,
+                self.games_manager,
+                self.tools_manager,
+            ),
             padx=(self.padding, 0),
             pady=(self.padding, 0),
             sticky="e",
@@ -289,31 +318,15 @@ class WindowFirstLaunch(TemplateBase):
         # Add the handler to the root logger
         logging.getLogger().addHandler(self.text_handler)
 
-    def installation_progress_callback(self, tool_key, value=None):
-        progress_bar_widget = getattr(self, f"{tool_key}_progress_bar")
-        progress_bar_grid_args = getattr(self, f"{tool_key}_progress_bar_grid_args")
-        progress_bar_widget.grid(**progress_bar_grid_args)
-        if value != None:
-            progress_bar_widget.stop()
-            progress_bar_widget.set(value)
-        else:
-            progress_bar_widget.start()
+    def perform_setup_sequence(self, parent, games_manager, tools_manager):
+        results = []
 
-    def perform_setup_sequence(self):
-        def background_task():
-            log.info("Initiating first launch initial setup sequence...")
-
-            results = []
-
-            from backend.tools_manager import ToolsManager
-
-            tools_manager = ToolsManager()
-
+        def execute_tool_installation():
             for tool_key in settings.TOOLS_PATHS.keys():
                 self.installation_progress_callback(tool_key)
-                self.queue_update_ui()
+                self.update_ui()
                 install_method = getattr(tools_manager, f"install_{tool_key}")
-                install_result = install_method(parent=self, auto_mode=True)
+                install_result = install_method(parent=parent, auto_mode=True)
                 results.append(install_result)
                 if install_result:
                     self.installation_progress_callback(tool_key, 1)
@@ -324,11 +337,12 @@ class WindowFirstLaunch(TemplateBase):
                     )
                 else:
                     self.installation_progress_callback(tool_key, 0)
-                self.queue_update_ui()
+                self.update_ui()
 
+        def execute_aes_key_detection():
             self.installation_progress_callback("aes_key")
             detect_result = tools_manager.get_aes_key(
-                parent=self, auto_mode=True, skip_aes_dumpster_download=True
+                parent=parent, auto_mode=True, skip_aes_dumpster_download=True
             )
             results.append(detect_result)
             if detect_result:
@@ -338,13 +352,14 @@ class WindowFirstLaunch(TemplateBase):
                 )
             else:
                 self.installation_progress_callback("aes_key", 0)
-            self.queue_update_ui()
+            self.update_ui()
 
-            for index in range(len(self.games_manager.vanilla_files)):
+        def execute_vanilla_unpack():
+            for index in range(len(games_manager.vanilla_files)):
                 self.installation_progress_callback(f"vanilla_{index}")
-                self.queue_update_ui()
+                self.update_ui()
                 unpack_result = tools_manager.unpack_vanilla_files(
-                    parent=self,
+                    parent=parent,
                     install_metadata={"index": index},
                     auto_mode=True,
                     skip_aes_extraction=True,
@@ -359,42 +374,46 @@ class WindowFirstLaunch(TemplateBase):
                     )
                 else:
                     self.installation_progress_callback(f"vanilla_{index}", 0)
-                self.queue_update_ui()
+                self.update_ui()
 
+        def finalize_report():
             if all(results):
-                self.queue_report("info", translate("dialogue_setup_sequence_success"))
+                self.report("info", translate("dialogue_setup_sequence_success"))
             else:
-                self.queue_report(
-                    "warning", translate("dialogue_setup_sequence_warning")
-                )
+                self.report("warning", translate("dialogue_setup_sequence_warning"))
 
-        threading.Thread(target=background_task, daemon=True).start()
+        # Schedule tasks sequentially in a background thread
+        def task_sequence():
+            execute_tool_installation()
+            execute_aes_key_detection()
+            execute_vanilla_unpack()
+            finalize_report()
 
-    def queue_update_ui(self):
-        self.after(0, self.update_idletasks)
+        ThreadManager.run_in_background(task_sequence)
 
-    def queue_report(self, msg_type, message):
+    def installation_progress_callback(self, tool_key, value=None):
+        progress_bar_widget = getattr(self, f"{tool_key}_progress_bar")
+        progress_bar_grid_args = getattr(self, f"{tool_key}_progress_bar_grid_args")
+        progress_bar_widget.grid(**progress_bar_grid_args)
+        if value != None:
+            progress_bar_widget.stop()
+            progress_bar_widget.set(value)
+        else:
+            progress_bar_widget.start()
+
+    def update_ui(self):
+        self.executor.run(self.update_idletasks)
+
+    def report(self, msg_type, message):
         def show_report():
             if msg_type == "info":
                 WindowMessageBox.showinfo(self, message=message)
             elif msg_type == "warning":
                 WindowMessageBox.showwarning(self, message=message)
 
-            # Schedule self.on_closing() to run after the message box is dismissed
             self.after(0, self.on_closing)
 
-        # Schedule the report to show on the main thread
-        self.after(0, show_report)
-
-    def skip_setup_sequence(self):
-        log.debug("Skipping first launch initial setup sequence...")
-
-        WindowMessageBox.showinfo(
-            self,
-            message=translate("dialogue_skip_setup_sequence"),
-        )
-
-        self.on_closing()
+        self.executor.run(show_report)
 
     def _apply_style(self, is_valid, entry_widget, text):
         if is_valid:
@@ -406,3 +425,13 @@ class WindowFirstLaunch(TemplateBase):
 
         self.style_manager.apply_style(entry_widget, style)
         entry_widget.configure(text=text)
+
+    def skip_setup_sequence(self):
+        log.debug("Skipping first launch initial setup sequence...")
+
+        WindowMessageBox.showinfo(
+            self,
+            message=translate("dialogue_skip_setup_sequence"),
+        )
+
+        self.on_closing()
