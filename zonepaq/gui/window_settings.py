@@ -323,11 +323,19 @@ class WindowSettings(TemplateToplevel):
                 entry_title=entry_data["entry_title"],
                 entry_type=entry_data["entry_type"],
                 entry_buttons=entry_data["entry_buttons"],
+                show_progressbar=entry_data.get("show_progressbar", False),
             )
         self.create_spacer(master)
 
     def _create_entry_line(
-        self, master, path_dict, settings_key, entry_title, entry_type, entry_buttons
+        self,
+        master,
+        path_dict,
+        settings_key,
+        entry_title,
+        entry_type,
+        entry_buttons,
+        show_progressbar=False,
     ):
         current_row = self._get_next_row(master)
 
@@ -373,8 +381,23 @@ class WindowSettings(TemplateToplevel):
             path_dict, settings_key, entry_variable.get(), entry_type, entry_widget
         )
 
+        if show_progressbar:
+            entry_progressbar_grid_args = {
+                "row": current_row,
+                "column": 2,
+                "sticky": "w",
+                "padx": (0, self.padding),
+            }
+            entry_progressbar = self.create_ctk_widget(
+                ctk_widget=ctk.CTkProgressBar,
+                widget_args={
+                    "master": master,
+                },
+                grid_args=entry_progressbar_grid_args,
+            )
+
         for index, button in enumerate(entry_buttons):
-            column_index = 2 + index
+            column_index = 2 + index + int(show_progressbar)
 
             command = button["command"]
 
@@ -385,6 +408,10 @@ class WindowSettings(TemplateToplevel):
                 "entry_type": entry_type,
                 "entry_variable": entry_variable,
                 "entry_widget": entry_widget,
+                "entry_progressbar": locals().get("entry_progressbar", None),
+                "entry_progressbar_grid_args": locals().get(
+                    "entry_progressbar_grid_args", None
+                ),
             }
 
             self.create_ctk_widget(
@@ -542,8 +569,8 @@ class WindowSettings(TemplateToplevel):
             padx=(0, self.padding),
             pady=self.padding / 5,
             sticky="ew",
-            row="-2",
-            column=2,
+            row=row,
+            column=column + 2,
         )
 
     def _apply_label_style(self, is_valid, entry_widget):
