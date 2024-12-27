@@ -186,11 +186,12 @@ class TemplateSecondary(TemplateToplevel):
                 for item in collector:
                     listbox.insert("END", item)
                     log.debug(f"Added {item} to listbox")
-
-                for value in list(listbox.buttons.values()):
-                    # !WORKAROUND for lacking anchor option in the text Label
                     value._text_label.configure(anchor="w")
                     value.configure(anchor="w", height=0)
+
+                # for value in list(listbox.buttons.values()):
+                #     value._text_label.configure(anchor="w")
+                #     value.configure(anchor="w", height=0)
 
         except Exception as e:
             log.error(f"DnD error: {e}")
@@ -215,11 +216,12 @@ class TemplateSecondary(TemplateToplevel):
             for item in collector:
                 listbox.insert("END", item)
                 log.debug(f"Added {item} to listbox")
-
-            for value in list(listbox.buttons.values()):
-                # !WORKAROUND for lacking anchor option in the text Label
                 value._text_label.configure(anchor="w")
                 value.configure(anchor="w", height=0)
+
+            # for value in list(listbox.buttons.values()):
+            #     value._text_label.configure(anchor="w")
+            #     value.configure(anchor="w", height=0)
 
         if not listbox.get("all"):
             dnd.grid(row=0, column=0)
@@ -231,7 +233,6 @@ class TemplateSecondary(TemplateToplevel):
             if str(folder) not in listbox.get("all"):
                 dnd.grid_forget()
                 listbox.insert("END", str(folder))
-                # !WORKAROUND for lacking anchor option in the text Label
                 list(listbox.buttons.values())[-1]._text_label.configure(anchor="w")
                 list(listbox.buttons.values())[-1].configure(anchor="w", height=0)
                 log.debug(f"Added {str(folder)} to listbox")

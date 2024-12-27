@@ -100,3 +100,5 @@ Theoretically, yes. You can try and leave your feedback.
 Yes, this tool is completely free and open source under the MIT License.
 
 ## Credits
+
+- ModsBySabre for testing
