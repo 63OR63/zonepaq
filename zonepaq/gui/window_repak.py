@@ -117,7 +117,9 @@ class WindowRepak(TemplateSecondary):
             return
 
         # Ask for the target folder on the main thread
-        folder = ModalFileDialog.askdirectory(parent=self)
+        folder = ModalFileDialog.askdirectory(
+            parent=self, initialdir=self.games_manager.mods_path
+        )
         if not folder:
             return
 
@@ -192,7 +194,9 @@ class WindowRepak(TemplateSecondary):
             return
 
         # Ask for the target folder on the main thread
-        target_folder = ModalFileDialog.askdirectory(parent=self)
+        target_folder = ModalFileDialog.askdirectory(
+            parent=self, initialdir=self.games_manager.mods_path
+        )
         if not target_folder:
             return
 

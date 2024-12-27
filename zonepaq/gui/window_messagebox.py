@@ -57,6 +57,7 @@ class WindowMessageBox(TemplateToplevel):
                         widget_args={
                             "master": box_frame,
                             "width": 500,
+                            "height": 100,
                             "wrap": "none",
                             # "state": "disabled",
                         },
@@ -188,7 +189,7 @@ class WindowMessageBox(TemplateToplevel):
 class ModalFileDialog:
     @staticmethod
     def askdirectory(
-        parent, initialdir=None, title=translate("filedialogue_askdirectory")
+        parent, initialdir="None", title=translate("filedialogue_askdirectory")
     ):
         return ModalFileDialog._show_modal_dialog(
             parent,
@@ -202,7 +203,7 @@ class ModalFileDialog:
         parent,
         initialdir=None,
         title=translate("filedialogue_askopenfilenames"),
-        filetypes=(("All Files", "*.*"),),
+        filetypes=((translate("generic_any_files"), "*.*"),),
     ):
         return ModalFileDialog._show_modal_dialog(
             parent,

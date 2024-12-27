@@ -96,7 +96,11 @@ class WindowMerge(TemplateSecondary):
                 0,
                 lambda: WindowMessageBox.showerror(
                     self,
-                    message=f'repak_cli {translate("error_executable_not_found_1")} {str(self.repak_cli)}\n{translate("error_executable_not_found_2")}',
+                    message=[
+                        f'repak_cli {translate("error_executable_not_found_1")}',
+                        str(self.repak_cli),
+                        translate("error_executable_not_found_2"),
+                    ],
                 ),
             )
             return

@@ -23,6 +23,8 @@ class ConflictProcessor:
         self.processed_conflicts = deque()
         self.not_processed = deque()
 
+        self.games_manager = GamesManager()
+
         self.executor = ThreadExecutor()
         self.retry_manager = TaskRetryManager(self.executor)
 
@@ -36,7 +38,11 @@ class ConflictProcessor:
         if not Files.is_existing_file_type(engine_path, ".exe"):
             log.error(f"{merging_engine} executable isn't found at {str(engine_path)}")
             return "error", (
-                f'{merging_engine} executable {translate("error_executable_not_found_1")} {str(engine_path)}\n{translate("error_executable_not_found_2")}'
+                [
+                    f'{merging_engine} executable {translate("error_executable_not_found_1")}',
+                    str(engine_path),
+                    translate("error_executable_not_found_2"),
+                ]
             )
 
         selected_items = self.tree.selection()
@@ -60,7 +66,9 @@ class ConflictProcessor:
                         log.warning(
                             f"Item '{item_name}' ({item_id}) has insufficient values: {item_values}"
                         )
-                        self.not_processed.append(f"{item_name} (invalid values)")
+                        self.not_processed.append(
+                            f"{item_name} ({translate('merging_error_invalid_values')})"
+                        )
                         continue
 
                     if not item_values[0] or not item_values[1] or not item_values[2]:
@@ -81,7 +89,9 @@ class ConflictProcessor:
                     if "no_conflicts" in item_tags:
                         if self.ignore_no_conflicts:
                             log.debug(f"{item_name} skipped (no conflicts)")
-                            self.not_processed.append(f"{item_name} (no conflicts)")
+                            self.not_processed.append(
+                                f"{item_name} ({translate('merging_error_no_conflicts')})"
+                            )
                         else:
                             self._unpack_and_merge(
                                 item_name,
@@ -118,19 +128,25 @@ class ConflictProcessor:
                         )
                     elif "complex" in item_tags:
                         log.debug(f"{item_name} skipped (too much sources)")
-                        self.not_processed.append(f"{item_name} (too much sources)")
+                        self.not_processed.append(
+                            f"{item_name} ({translate('merging_error_too_much_sources')})"
+                        )
                     else:
                         log.debug(f"{item_name} skipped (ineligible for merging)")
                         self.not_processed.append(
-                            f"{item_name} (ineligible for merging)"
+                            f"{item_name} ({translate('merging_error_ineligible_for_merging')})"
                         )
 
                 except KeyError as e:
                     log.exception(f"Missing key for item '{item_name}': {e}")
-                    self.not_processed.append(f"{item_name} (missing key)")
+                    self.not_processed.append(
+                        f"{item_name} ({translate('merging_error_missing_key')} key)"
+                    )
                 except Exception as e:
                     log.exception(f"Error processing '{item_name}': {e}")
-                    self.not_processed.append(f"{item_name} (processing error)")
+                    self.not_processed.append(
+                        f"{item_name} ({translate('merging_error_processing_error')})"
+                    )
 
             if not self.processed_conflicts and self.not_processed:
                 not_processed_str = "\n".join(map(str, self.not_processed))
@@ -148,7 +164,9 @@ class ConflictProcessor:
                 return "error", (translate("merge_dir_is_empty"))
             else:
                 folder_to_place_merged_mod = self._insistent_askdirectory(
-                    parent=self.master
+                    parent=self.master,
+                    initialdir=self.games_manager.mods_path,
+                    title=translate("merge_screen_conflicts_merged_mod_save_location"),
                 )
                 if folder_to_place_merged_mod:
 
@@ -172,28 +190,32 @@ class ConflictProcessor:
                                 map(str, self.processed_conflicts)
                             )
                             not_processed_str = "\n".join(map(str, self.not_processed))
-                            return "info", (
-                                [
-                                    f'{translate("merge_screen_conflicts_final_report_1")}\n{repak_result}',
-                                    "",
-                                    translate("merge_screen_conflicts_final_report_2"),
-                                    processed_str or translate("generic_none"),
-                                    translate("merge_screen_conflicts_final_report_3"),
-                                    not_processed_str or translate("generic_none"),
-                                ]
-                            )
+                            message = [
+                                f'{translate("merge_screen_conflicts_final_report_1")}',
+                                repak_result,
+                            ]
+                            if processed_str:
+                                message.extend(
+                                    [
+                                        translate(
+                                            "merge_screen_conflicts_final_report_2"
+                                        ),
+                                        processed_str,
+                                    ]
+                                )
+                            if not_processed_str:
+                                message.extend(
+                                    [
+                                        translate(
+                                            "merge_screen_conflicts_final_report_3"
+                                        ),
+                                        not_processed_str,
+                                    ]
+                                )
+                            return "info", (message)
 
                         else:
-                            return "error", (
-                                [
-                                    f'{translate("merge_screen_conflicts_final_report_1")}\n{repak_result}',
-                                    "",
-                                    translate("merge_screen_conflicts_final_report_2"),
-                                    processed_str or translate("generic_none"),
-                                    translate("merge_screen_conflicts_final_report_3"),
-                                    not_processed_str or translate("generic_none"),
-                                ]
-                            )
+                            return "error", (message)
 
                     except Exception as e:
                         log.exception(f"Unexpected error during repack: {str(e)}")
@@ -314,7 +336,7 @@ class ConflictProcessor:
 
         if use_vanilla:
 
-            for item in GamesManager.vanilla_files:
+            for item in self.games_manager.vanilla_files:
                 unpacked_folder = item["unpacked"]
                 vanilla_file = Path(unpacked_folder) / item_path
 
@@ -336,14 +358,14 @@ class ConflictProcessor:
             if not file_exists:
                 log.error(f"{str(item_path)} wasn't saved in {settings.MERGING_ENGINE}")
                 self.not_processed.append(
-                    f"{item_name} (wasn't saved in {settings.MERGING_ENGINE})"
+                    f"{item_name} ({translate('merging_error_wasn_not_saved_in')} {settings.MERGING_ENGINE})"
                 )
             else:
                 log.error(
                     f"Merging failed for {str(item_path)}: {compare_result.stderr}"
                 )
                 self.not_processed.append(
-                    f"{item_name} ({settings.MERGING_ENGINE} returned: {compare_result.stderr})"
+                    f"{item_name} ({settings.MERGING_ENGINE} {translate('merging_error_returned')}: {compare_result.stderr})"
                 )
 
     def _insistent_askdirectory(self, parent, initialdir=None, title=None):
