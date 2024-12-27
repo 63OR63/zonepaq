@@ -1,4 +1,5 @@
 import json
+from distutils.util import strtobool
 from unittest.mock import mock_open, patch
 
 import customtkinter as ctk
@@ -51,7 +52,7 @@ class TemplateBase(CTk):
 
         self.apply_color_theme(self.color_theme)
 
-        if eval(settings.DARK_MODE):
+        if bool(strtobool(settings.DARK_MODE)):
             ctk.set_appearance_mode("dark")
         else:
             ctk.set_appearance_mode("light")
@@ -95,7 +96,7 @@ class TemplateBase(CTk):
         )
 
     def create_header_button(self, master, command, image, image_hover, sticky):
-        return self.create_ctk_widget(
+        button = self.create_ctk_widget(
             ctk_widget=ctk.CTkButton,
             widget_args={
                 "master": self.get_first_widget(master),
@@ -124,6 +125,8 @@ class TemplateBase(CTk):
 
         button.bind("<Enter>", on_enter)
         button.bind("<Leave>", on_leave)
+
+        return button
 
     def apply_color_theme(self, color_theme):
         ### Using mocked file
@@ -213,15 +216,9 @@ class TemplateBase(CTk):
         return widget
 
     def create_header(self, master, text="", row="current", column=0):
-        if row == "current":
-            row = self._get_next_row(master)
-        elif isinstance(row, str) and row.startswith(("+", "-")):
-            row = max(eval(f"{self._get_next_row(master)} {row}"), 0)
 
-        if column == "current":
-            column = self._get_next_column(master)
-        elif isinstance(row, str) and row.startswith(("+", "-")):
-            column = max(eval(f"{self._get_next_column(master)} {column}"), 0)
+        row = self._calculate_position(self._get_next_row(master), row)
+        column = self._calculate_position(self._get_next_column(master), column)
 
         header_label = self.create_ctk_widget(
             ctk_widget=ctk.CTkLabel,
@@ -244,15 +241,9 @@ class TemplateBase(CTk):
         return header_label
 
     def create_subheader(self, master, text="", row="current", column=0):
-        if row == "current":
-            row = self._get_next_row(master)
-        elif isinstance(row, str) and row.startswith(("+", "-")):
-            row = max(eval(f"{self._get_next_row(master)} {row}"), 0)
 
-        if column == "current":
-            column = self._get_next_column(master)
-        elif isinstance(row, str) and row.startswith(("+", "-")):
-            column = max(eval(f"{self._get_next_column(master)} {column}"), 0)
+        row = self._calculate_position(self._get_next_row(master), row)
+        column = self._calculate_position(self._get_next_column(master), column)
 
         frame = self.create_frame(
             master,
@@ -301,15 +292,9 @@ class TemplateBase(CTk):
         column_weights=None,
         **kwargs,
     ):
-        if row == "current":
-            row = self._get_next_row(master)
-        elif isinstance(row, str) and row.startswith(("+", "-")):
-            row = max(eval(f"{self._get_next_row(master)} {row}"), 0)
 
-        if column == "current":
-            column = self._get_next_column(master)
-        elif isinstance(row, str) and row.startswith(("+", "-")):
-            column = max(eval(f"{self._get_next_column(master)} {column}"), 0)
+        row = self._calculate_position(self._get_next_row(master), row)
+        column = self._calculate_position(self._get_next_column(master), column)
 
         widget_args = {"master": master}
 
@@ -352,15 +337,9 @@ class TemplateBase(CTk):
         column_weights=None,
         **kwargs,
     ):
-        if row == "current":
-            row = self._get_next_row(master)
-        elif isinstance(row, str) and row.startswith(("+", "-")):
-            row = max(eval(f"{self._get_next_row(master)} {row}"), 0)
 
-        if column == "current":
-            column = self._get_next_column(master)
-        elif isinstance(row, str) and row.startswith(("+", "-")):
-            column = max(eval(f"{self._get_next_column(master)} {column}"), 0)
+        row = self._calculate_position(self._get_next_row(master), row)
+        column = self._calculate_position(self._get_next_column(master), column)
 
         widget_args = {"master": master, "height": self.padding / 2}
 
@@ -398,15 +377,9 @@ class TemplateBase(CTk):
         column_weights=None,
         **kwargs,
     ):
-        if row == "current":
-            row = self._get_next_row(master)
-        elif isinstance(row, str) and row.startswith(("+", "-")):
-            row = max(eval(f"{self._get_next_row(master)} {row}"), 0)
 
-        if column == "current":
-            column = self._get_next_column(master)
-        elif isinstance(row, str) and row.startswith(("+", "-")):
-            column = max(eval(f"{self._get_next_column(master)} {column}"), 0)
+        row = self._calculate_position(self._get_next_row(master), row)
+        column = self._calculate_position(self._get_next_column(master), column)
 
         widget_args = {"master": master, "height": 2}
 
@@ -430,16 +403,10 @@ class TemplateBase(CTk):
         )
 
     def create_hints(self, master, hints, row="current", column=0):
-        if eval(settings.SHOW_HINTS) and hints:
-            if row == "current":
-                row = self._get_next_row(master)
-            elif isinstance(row, str) and row.startswith(("+", "-")):
-                row = max(eval(f"{self._get_next_row(master)} {row}"), 0)
+        if bool(strtobool(settings.SHOW_HINTS)) and hints:
 
-            if column == "current":
-                column = self._get_next_column(master)
-            elif isinstance(row, str) and row.startswith(("+", "-")):
-                column = max(eval(f"{self._get_next_column(master)} {column}"), 0)
+            row = self._calculate_position(self._get_next_row(master), row)
+            column = self._calculate_position(self._get_next_column(master), column)
 
             return self.create_ctk_widget(
                 ctk_widget=ctk.CTkLabel,
@@ -467,6 +434,14 @@ class TemplateBase(CTk):
                 if grid_info["row"] == 0 and grid_info["column"] == 0:
                     return widget
         return None
+
+    def _calculate_position(self, current, offset="current"):
+        if isinstance(offset, int):
+            return offset
+        elif offset == "current":
+            return current
+        elif isinstance(offset, str) and offset.startswith(("+", "-")):
+            return max(eval(f"{current} {offset}"), 0)
 
     def _get_next_row(self, root=None):
         root = root or self
@@ -500,15 +475,9 @@ class TemplateBase(CTk):
         column_weights=None,
         **kwargs,
     ):
-        if row == "current":
-            row = self._get_next_row(master)
-        elif isinstance(row, str) and row.startswith(("+", "-")):
-            row = max(eval(f"{self._get_next_row(master)} {row}"), 0)
 
-        if column == "current":
-            column = self._get_next_column(master)
-        elif isinstance(row, str) and row.startswith(("+", "-")):
-            column = max(eval(f"{self._get_next_column(master)} {column}"), 0)
+        row = self._calculate_position(self._get_next_row(master), row)
+        column = self._calculate_position(self._get_next_column(master), column)
 
         widget_args = {
             "master": master,

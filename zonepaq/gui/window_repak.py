@@ -84,8 +84,12 @@ class WindowRepak(TemplateSecondary):
             self.after(
                 0,
                 lambda: self.show_results(
-                    [str(file) for file in results_ok],
-                    [f"{str(file)}: {result}" for file, result in results_ko.items()],
+                    results_ok=[str(file) for file in results_ok],
+                    results_ko=[
+                        f"{str(file)}: {result}" for file, result in results_ko.items()
+                    ],
+                    title_ok=translate("generic_files_were_unpacked"),
+                    title_ko=translate("generic_files_were_not_unpacked"),
                 ),
             )
 
@@ -131,13 +135,11 @@ class WindowRepak(TemplateSecondary):
         if existing_folders:
             overwrite = WindowMessageBox.askyesno(
                 self,
-                message="\n".join(
-                    [
-                        translate("repak_screen_unpack_msg_overwrite_1"),
-                        "\n".join(map(str, existing_folders)),
-                        translate("repak_screen_unpack_msg_overwrite_2"),
-                    ]
-                ),
+                message=[
+                    translate("repak_screen_unpack_msg_overwrite_1"),
+                    "\n".join(map(str, existing_folders)),
+                    translate("repak_screen_unpack_msg_overwrite_2"),
+                ],
             )
             if not overwrite:
                 return
@@ -156,11 +158,13 @@ class WindowRepak(TemplateSecondary):
             self.after(
                 0,
                 lambda: self.show_results(
-                    [str(folder) for folder in results_ok],
-                    [
+                    results_ok=[str(folder) for folder in results_ok],
+                    results_ko=[
                         f"{str(folder)}: {result}"
                         for folder, result in results_ko.items()
                     ],
+                    title_ok=translate("generic_folders_were_repacked"),
+                    title_ko=translate("generic_folders_were_not_repacked"),
                 ),
             )
 

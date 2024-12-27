@@ -148,4 +148,5 @@ settings.txt
 /nexus.py
 /pipreqs.py
 /archive.py
+/translation.py
 /*.zip

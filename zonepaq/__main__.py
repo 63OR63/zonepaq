@@ -1,6 +1,6 @@
 import os
 import platform
-import sys
+from distutils.util import strtobool
 
 import requests
 from backend.logger import log
@@ -17,118 +17,68 @@ def get_system_info():
     log.info("       System info")
     log.info("=" * 50)
 
-    # Operating System
-    try:
-        if platform.system() == "Windows":
-            os_version = platform.version()
-            if os_version.startswith("10.0"):
-                build_number = int(os_version.split(".")[2])
-                if build_number >= 22000:
-                    os_name = "Windows 11"
+    def get_operating_system():
+        try:
+            if platform.system() == "Windows":
+                os_version = platform.version()
+                if os_version.startswith("10.0"):
+                    build_number = int(os_version.split(".")[2])
+                    if build_number >= 22000:
+                        os_name = "Windows 11"
+                    else:
+                        os_name = "Windows 10"
                 else:
-                    os_name = "Windows 10"
+                    os_name = f"Windows (Unknown Version: {os_version})"
             else:
-                os_name = f"Windows (Unknown Version: {os_version})"
-        else:
-            os_name = f"{platform.system()} {platform.release()}"
-    except Exception:
-        os_name = "Unknown"
-    log.info(f"Operating System   : {os_name}")
+                os_name = f"{platform.system()} {platform.release()}"
+        except Exception:
+            os_name = "Unknown"
+        return os_name
 
-    # OS Version
-    try:
-        os_version = platform.version()
-    except Exception as e:
-        os_version = "Unknown"
-    log.info(f"OS Version         : {os_version}")
+    system_info = {
+        "Operating System": get_operating_system(),
+        "OS Version": platform.version(),
+        "Machine Type": platform.machine(),
+        "Processor": platform.processor(),
+        "Python Version": platform.python_version(),
+        "Python Build": platform.python_build(),
+        "Platform": platform.platform(),
+        "Architecture": platform.architecture()[0],
+        "Current Directory": os.getcwd(),
+    }
 
-    # Machine Type
-    try:
-        machine_type = platform.machine()
-    except Exception as e:
-        machine_type = "Unknown"
-    log.info(f"Machine Type       : {machine_type}")
-
-    # Processor
-    try:
-        processor = platform.processor()
-    except Exception as e:
-        processor = "Unknown"
-    log.info(f"Processor          : {processor}")
-
-    # Python Version
-    try:
-        python_version = platform.python_version()
-    except Exception as e:
-        python_version = "Unknown"
-    log.info(f"Python Version     : {python_version}")
-
-    # Python Build
-    try:
-        python_build = platform.python_build()
-    except Exception as e:
-        python_build = "Unknown"
-    log.info(f"Python Build       : {python_build}")
-
-    # Platform Details
-    try:
-        platform_details = platform.platform()
-    except Exception as e:
-        platform_details = "Unknown"
-    log.info(f"Platform           : {platform_details}")
-
-    # Architecture
-    try:
-        architecture = platform.architecture()[0]
-    except Exception as e:
-        architecture = "Unknown"
-    log.info(f"Architecture       : {architecture}")
-
-    # Current Directory
-    try:
-        current_dir = os.getcwd()
-    except Exception as e:
-        current_dir = "Unknown"
-    log.info(f"Current Directory  : {current_dir}")
-
+    for key, value in system_info.items():
+        log.info(f"{key:<20}: {value or 'Unknown'}")
     log.info("=" * 50)
 
 
 def check_new_release(github_repo, current_version):
+    headers = {"Accept": "application/vnd.github.v3+json"}
     try:
         log.debug(f"Querying {github_repo} Github repo...")
         response = requests.get(
-            f"https://api.github.com/repos/{github_repo}/releases/latest"
+            f"https://api.github.com/repos/{github_repo}/releases/latest",
+            headers=headers,
         )
         response.raise_for_status()
         release_data = response.json()
 
         latest_release_version = release_data.get("tag_name")
-        if latest_release_version:
-            try:
-                current_version_obj = version.parse(current_version.replace(" ", "-"))
-                latest_release_version_obj = version.parse(
-                    latest_release_version.replace(" ", "-")
-                )
+        if not latest_release_version:
+            log.warning("No release version found in API response.")
+            return False
 
-                if latest_release_version_obj > current_version_obj:
-                    log.info(f"A newer version {latest_release_version} is available!")
-                    return latest_release_version
-                else:
-                    log.info("You are on the latest version.")
-                    return False
-            except version.InvalidVersion:
-                log.exception(
-                    f"Invalid version format: {current_version} or {latest_release_version}"
-                )
-                return False
-        log.warning("Couldn't check the latest version.")
+        current_version_obj = version.parse(current_version)
+        latest_version_obj = version.parse(latest_release_version)
+
+        if latest_version_obj > current_version_obj:
+            log.info(f"Newer version {latest_release_version} available.")
+            return latest_release_version
+
+        log.info("You are on the latest version.")
         return False
     except requests.exceptions.RequestException as e:
-        log.exception(f"Error fetching release data: {e}")
-        return False
-    except Exception as e:
-        log.exception(f"Unexpected error during version check: {e}")
+        log.error(f"API error: {e}")
         return False
 
 
@@ -145,7 +95,6 @@ def check_for_update():
             return None
 
         from config.translations import translate
-
         from gui.template_base import TemplateBase
         from gui.window_messagebox import WindowMessageBox
 
@@ -178,7 +127,7 @@ if __name__ == "__main__":
     get_system_info()
     log.info("Starting the application...")
 
-    if eval(settings.config.get("SETTINGS").get("first_launch")):
+    if bool(strtobool(settings.get("SETTINGS", "first_launch"))):
 
         # Delete settings file
         Files.delete_path(settings.INI_SETTINGS_FILE)

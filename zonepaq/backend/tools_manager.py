@@ -129,8 +129,8 @@ class ToolsManager:
 
         # Skip unpacking if unpacked_folder isn't empty
         if not Files.is_folder_empty(unpacked_folder):
-            results_ok.append(
-                f'{translate("generic_skipped")} {str(unpacked_folder)} {translate("generic_is_not_empty")}'
+            results_ko.append(
+                f'{str(unpacked_folder)} ({translate("generic_folder_is_not_empty")})'
             )
         elif Files.is_existing_file(vanilla_file):
             link_name = parent_folder / vanilla_file.name
@@ -163,20 +163,32 @@ class ToolsManager:
             )
 
         if not auto_mode:
-            self.show_results(parent, results_ok, results_ko)
+            self.show_results(
+                parent,
+                results_ok,
+                results_ko,
+                title_ok=translate("generic_vanilla_were_unpacked"),
+                title_ko=translate("generic_vanilla_were_not_unpacked"),
+            )
 
         return bool(results_ok) and not bool(results_ko)
 
     @staticmethod
-    def show_results(parent, results_ok, results_ko):
+    def show_results(
+        parent,
+        results_ok,
+        results_ko,
+        title_ok=translate("generic_success"),
+        title_ko=translate("generic_fail"),
+    ):
         message_ok = "\n".join(results_ok) if results_ok else ""
         message_ko = "\n".join(results_ko) if results_ko else ""
 
         message = []
         if message_ok:
-            message += [translate("generic_success") + ":", message_ok]
+            message += [title_ok + ":", message_ok]
         if message_ko:
-            message += [translate("generic_fail") + ":", message_ko]
+            message += [title_ko + ":", message_ko]
 
         if message:
             WindowMessageBox.showinfo(parent, message=message)

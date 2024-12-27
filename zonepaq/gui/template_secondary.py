@@ -260,15 +260,21 @@ class TemplateSecondary(TemplateToplevel):
 
         dnd.grid(row=0, column=0)
 
-    def show_results(self, results_ok, results_ko):
+    def show_results(
+        self,
+        results_ok,
+        results_ko,
+        title_ok=translate("generic_success"),
+        title_ko=translate("generic_fail"),
+    ):
         message_ok = "\n".join(results_ok) if results_ok else ""
         message_ko = "\n".join(results_ko) if results_ko else ""
 
         message = []
         if message_ok:
-            message += [translate("generic_success") + ":", message_ok]
+            message += [title_ok + ":", message_ok]
         if message_ko:
-            message += [translate("generic_fail") + ":", message_ko]
+            message += [title_ko + ":", message_ko]
 
         if message:
             WindowMessageBox.showinfo(self, message=message)

@@ -40,9 +40,7 @@ TRANSLATIONS = {
         "generic_no": "No",
         "generic_cancel": "Cancel",
         "generic_retry": "Retry",
-        "generic_skip": "Skip",
-        "generic_skipped": "Skipped",
-        "generic_is_not_empty": "is not empty",
+        "generic_folder_is_not_empty": "Folder isn't empty",
         "generic_question": "Question",
         "generic_info": "Info",
         "generic_success": "Success",
@@ -56,6 +54,12 @@ TRANSLATIONS = {
         "generic_reset": "Reset",
         "generic_unpacked": "Unpacked",
         "generic_not_unpacked": "Not Unpacked",
+        "generic_vanilla_were_unpacked": "Vanilla files unpacked",
+        "generic_vanilla_were_not_unpacked": "Vanilla files not unpacked",
+        "generic_files_were_unpacked": "Files unpacked",
+        "generic_files_were_not_unpacked": "Files not unpacked",
+        "generic_folders_were_repacked": "Folders repacked",
+        "generic_folders_were_not_repacked": "Folders not repacked",
         "generic_installed": "Installed",
         "generic_not_installed": "Not Installed",
         "generic_detected": "Detected",
@@ -164,6 +168,7 @@ TRANSLATIONS = {
         "filedialogue_askdirectory": "Select Directory",
         "filedialogue_askopenfilenames": "Select Files",
         "tooltip_settings": "Settings",
+        "tooltip_button_reset": "Reset all setting to the default values",
         "tooltip_button_unpack": "Unpack files to destination",
         "tooltip_button_repack": "Repack folders to destination",
         "tooltip_button_merge": "Analyze conflicts",
@@ -217,9 +222,7 @@ TRANSLATIONS = {
         "generic_no": "Нет",
         "generic_cancel": "Отменить",
         "generic_retry": "Повторить",
-        "generic_skip": "Пропустить",
-        "generic_skipped": "Пропущен",
-        "generic_is_not_empty": "не пуста",
+        "generic_folder_is_not_empty": "Папка не пуста",
         "generic_question": "Вопрос",
         "generic_info": "Информация",
         "generic_success": "Успех",
@@ -233,6 +236,12 @@ TRANSLATIONS = {
         "generic_reset": "Сбросить",
         "generic_unpacked": "Распакован",
         "generic_not_unpacked": "Не распакован",
+        "generic_vanilla_were_unpacked": "Оригинальные файлы распакованы",
+        "generic_vanilla_were_not_unpacked": "Оригинальные файлы не распакованы",
+        "generic_files_were_unpacked": "Файлы распакованы",
+        "generic_files_were_not_unpacked": "Файлы не распакованы",
+        "generic_folders_were_repacked": "Папки упакованы",
+        "generic_folders_were_not_repacked": "Папки не упакованы",
         "generic_installed": "Установлен",
         "generic_not_installed": "Не установлен",
         "generic_detected": "Обнаружен",
@@ -320,13 +329,6 @@ TRANSLATIONS = {
             "...исходные .pak файлы для каждого конфликта будут распакованы, а конфликтующие файлы будут открываться в утилите сравнения по группам...\n"
             "2. Разрешите каждый конфликт вручную или используйте авто-слияние, затем сохраните результат. Важно: не меняйте предложенный путь сохранения!\n"
             "...когда все конфликты будут разрешены и последнее окно утилиты сравнения будет закрыто, сохраненные файлы будут упакованы в объединенный мод по выбранному пути...\n"
-            "\n"
-            "Пожалуйста, учтите:\n"
-            "- Чтобы использовать оригинальные файлы в сравнении, они должны быть пердварительно распакованы и указаны в настройках путей;\n"
-            '- Файлы без конфликтов будут включены в объединённый мод только если флажок "Игнорировать файлы без конфликтов" снят;\n'
-            "- Конфликты с двумя источниками откроются в утилите сравнения с оригинальным файлом в качестве основы;\n"
-            "- Конфликты с тремя источниками откроются в утилите сравнения без оригинальной основы;\n"
-            "- Сложные конфликты не могут быть обработаны из-за ограничения в утилите сравнения на открытие 3 файлов одновременно."
         ),
         "dialogue_pak_files": "PAK файлы",
         "dialogue_tools_redowndload_installer": (
@@ -345,6 +347,21 @@ TRANSLATIONS = {
         "dialogue_setup_sequence_success": "Первоначальная установка была проведена успешно.",
         "dialogue_setup_sequence_warning": "Первоначальная установка была проведена не полностью.\n\nПожалуйста, перейдите в Настройки и завершите необходимую конфигурацию.",
         "dialogue_relaunch": "Пожалуйста, перезапустите приложение.",
+        "filedialogue_askdirectory": "Выберите папку",
+        "filedialogue_askopenfilenames": "Выберите файлы",
+        "tooltip_settings": "Настройки",
+        "tooltip_button_reset": "Сбросить все настройки до значений по умолчанию",
+        "tooltip_button_unpack": "Распаковать файлы в назначение",
+        "tooltip_button_repack": "Запаковать папки в назначение",
+        "tooltip_button_merge": "Анализировать конфликты",
+        "tooltip_button_label_no_conflicts_count": 'Файлы, измененные одним модом; не будут сравниваться, если включена опция "Игнорировать файлы без конфликтов"',
+        "tooltip_button_label_dual_match_count": "Файлы, измененные двумя модами; совпадающий файл из оригинальной версии будет распакован и использован для сравнения",
+        "tooltip_button_label_dual_no_match_count": "Файлы, измененные двумя модами; совпадающий файл из оригинальной версии не найден, пожалуйста, распакуйте оригинальные файлы в настройках!",
+        "tooltip_button_label_tri_count": "Файлы, измененные тремя модами; будут сравниваться без оригинальной базы",
+        "tooltip_button_label_complex_count": "Файлы, измененные четырьмя и более модами; не могут быть объединены из-за ограничений механизма слияния!",
+        "tooltip_checkbox_ignore_no_conflicts": "Снимите галочку, чтобы включить файлы без конфликтов в объединение модов или сравнить их с совпадающим файлом из оригинальной версии",
+        "tooltip_button_select_all": "Выбрать все файлы в представлении дерева",
+        "tooltip_button_process": "Начать объединение выбранных файлов по группам",
     },
 }
 
@@ -358,15 +375,13 @@ def get_available_languages():
 
 
 def translate(text, lang=None):
-    from config.settings_manager import settings  # ! FIXME
+    from config.settings_manager import settings  # ! Circular import
 
-    if lang:
-        try:
-            return get_translation(lang).get(text) or get_translation("English").get(
-                text
-            )
-        except:
-            return get_translation("English").get(text)
-    return get_translation(settings.LANG_NAME).get(text) or get_translation(
-        "English"
-    ).get(text)
+    lang = lang or settings.LANG_NAME
+    if lang not in get_available_languages():
+        lang = "English"
+
+    lang_translations = get_translation(lang)
+    fallback_translations = get_translation("English")
+
+    return lang_translations.get(text, fallback_translations.get(text, text))
