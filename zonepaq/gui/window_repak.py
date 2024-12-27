@@ -1,7 +1,11 @@
-from concurrent.futures import as_completed
 from pathlib import Path
 
 from backend.logger import log
+from backend.parallel_orchestrator import (
+    TaskRetryManager,
+    ThreadExecutor,
+    ThreadManager,
+)
 from backend.repak import Repak
 from backend.utilities import Files
 from config.translations import translate
@@ -70,103 +74,125 @@ class WindowRepak(TemplateSecondary):
             self.create_section(**section)
 
     def unpack_files(self):
+        def task_runner(files, folder, overwrite):
+            task_retry_manager = TaskRetryManager(ThreadExecutor())
+            results_ok, results_ko = task_retry_manager.execute_tasks_with_retries(
+                files, lambda f: Repak.unpack(f, folder)
+            )
+
+            # Show results on the main thread
+            self.after(
+                0,
+                lambda: self.show_results(
+                    [str(file) for file in results_ok],
+                    [f"{str(file)}: {result}" for file, result in results_ko.items()],
+                ),
+            )
+
+        # Validate repak_cli path on the main thread
         if not Files.is_existing_file_type(self.repak_cli, ".exe"):
             log.error(f"repak_cli executable isn't found at {str(self.repak_cli)}")
-            WindowMessageBox.showerror(
-                self,
-                message=f'repak_cli executable {translate("error_executable_not_found_1")} {str(self.repak_cli)}\n{translate("error_executable_not_found_2")}',
+            self.after(
+                0,
+                lambda: WindowMessageBox.showerror(
+                    self,
+                    message=f'repak_cli executable {translate("error_executable_not_found_1")} {str(self.repak_cli)}\n{translate("error_executable_not_found_2")}',
+                ),
             )
             return
+
+        # Get file list on the main thread
         files = self.unpack_listbox.get("all")
-        if files:
-            folder = ModalFileDialog.askdirectory(parent=self)
-            if folder:
-                folder = Path(folder)
-                existing_folders = []
-                for file in files:
-                    file = Path(file)
-                    unpacked_folder = file.with_suffix("").name
-                    target_folder = folder / unpacked_folder
-                    if target_folder.is_dir():
-                        existing_folders.append(target_folder)
-
-                if existing_folders:
-                    overwrite = WindowMessageBox.askyesno(
-                        self,
-                        message=[
-                            translate("repak_screen_unpack_msg_overwrite_1"),
-                            "\n".join(map(str, existing_folders)),
-                            translate("repak_screen_unpack_msg_overwrite_2"),
-                        ],
-                    )
-                    if not overwrite:
-                        return
-
-                results_ok = []
-                results_ko = []
-                futures = {}
-
-                for file in files:
-                    file = Path(file)
-                    futures[Repak.unpack(file, folder)] = file
-
-                for future in as_completed(futures):
-                    file = futures[future]
-                    try:
-                        success, result = future.result()
-                        if success:
-                            results_ok.append(str(file))
-                        else:
-                            results_ko.append(f"{str(file)}: {result}")
-                    except Exception as e:
-                        results_ko.append(f"{str(file)}: {str(e)}")
-
-                self.show_results(results_ok, results_ko)
-
-        else:
-            WindowMessageBox.showwarning(
-                self,
-                message=translate("repak_screen_unpack_msg_empty_list"),
+        if not files:
+            self.after(
+                0,
+                lambda: WindowMessageBox.showwarning(
+                    self, message=translate("repak_screen_unpack_msg_empty_list")
+                ),
             )
+            return
+
+        # Ask for the target folder on the main thread
+        folder = ModalFileDialog.askdirectory(parent=self)
+        if not folder:
+            return
+
+        folder = Path(folder)
+        existing_folders = []
+        for file in files:
+            file = Path(file)
+            unpacked_folder = file.with_suffix("").name
+            target_folder = folder / unpacked_folder
+            if target_folder.is_dir():
+                existing_folders.append(target_folder)
+
+        # Handle overwrite confirmation on the main thread
+        overwrite = True
+        if existing_folders:
+            overwrite = WindowMessageBox.askyesno(
+                self,
+                message="\n".join(
+                    [
+                        translate("repak_screen_unpack_msg_overwrite_1"),
+                        "\n".join(map(str, existing_folders)),
+                        translate("repak_screen_unpack_msg_overwrite_2"),
+                    ]
+                ),
+            )
+            if not overwrite:
+                return
+
+        # Run the background task
+        ThreadManager.run_in_background(lambda: task_runner(files, folder, overwrite))
 
     def _repack_folders(self):
+        def task_runner(folders, target_folder):
+            task_retry_manager = TaskRetryManager(ThreadExecutor())
+            results_ok, results_ko = task_retry_manager.execute_tasks_with_retries(
+                folders, lambda f: Repak.repack(Path(f), target_folder)
+            )
+
+            # Show results on the main thread
+            self.after(
+                0,
+                lambda: self.show_results(
+                    [str(folder) for folder in results_ok],
+                    [
+                        f"{str(folder)}: {result}"
+                        for folder, result in results_ko.items()
+                    ],
+                ),
+            )
+
+        # Validate repak_cli path on the main thread
         if not Files.is_existing_file_type(self.repak_cli, ".exe"):
             log.error(f"repak_cli executable isn't found at {str(self.repak_cli)}")
-            WindowMessageBox.showerror(
-                self,
-                message=f'repak_cli executable {translate("error_executable_not_found_1")} {str(self.repak_cli)}\n{translate("error_executable_not_found_2")}',
+            self.after(
+                0,
+                lambda: WindowMessageBox.showerror(
+                    self,
+                    message=f'repak_cli executable {translate("error_executable_not_found_1")} {str(self.repak_cli)}\n{translate("error_executable_not_found_2")}',
+                ),
             )
             return
+
+        # Get folders list on the main thread
         folders = self.repack_listbox.get("all")
-        if folders:
-            target_folder = ModalFileDialog.askdirectory(parent=self)
-            if target_folder:
-                target_folder = Path(target_folder)
-                results_ok = []
-                results_ko = []
-
-                futures = {}
-
-                # Submit repack tasks
-                for folder in folders:
-                    folder = Path(folder)
-                    futures[Repak.repack(folder, target_folder)] = folder
-
-                for future in as_completed(futures):
-                    folder = futures[future]
-                    try:
-                        success, result = future.result()
-                        if success:
-                            results_ok.append(str(folder))
-                        else:
-                            results_ko.append(f"{str(folder)}: {result}")
-                    except Exception as e:
-                        results_ko.append(f"{str(folder)}: {str(e)}")
-
-                self.show_results(results_ok, results_ko)
-
-        else:
-            WindowMessageBox.showwarning(
-                self,
-                message=translate("repak_screen_repack_msg_empty_list"),
+        if not folders:
+            self.after(
+                0,
+                lambda: WindowMessageBox.showwarning(
+                    self, message=translate("repak_screen_repack_msg_empty_list")
+                ),
             )
+            return
+
+        # Ask for the target folder on the main thread
+        target_folder = ModalFileDialog.askdirectory(parent=self)
+        if not target_folder:
+            return
+
+        # Run the background task
+        ThreadManager.run_in_background(
+            lambda: task_runner(folders, Path(target_folder))
+        )

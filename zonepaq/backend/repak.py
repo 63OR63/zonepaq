@@ -1,7 +1,6 @@
-import subprocess
 from pathlib import Path
 
-from backend.executor import run_in_executor
+from backend.parallel_orchestrator import SubprocessManager, ThreadManager
 from backend.logger import log
 from backend.utilities import Data, Files
 from config.settings_manager import settings
@@ -11,49 +10,41 @@ class Repak:
     """Provides methods for listing, unpacking, and repacking files using the Repak CLI tool."""
 
     @classmethod
-    @run_in_executor  # ! sometimes hang the app on consecutive call
     def get_list(cls, file):
         log.debug(f"Attempting to list contents of the file: {file}")
-        try:
-            repak_path = settings.TOOLS_PATHS["repak_cli"]
 
-            if not Files.is_existing_file_type(repak_path, ".exe"):
-                raise FileNotFoundError(f"repak_cli doesn't exist at {repak_path}")
+        repak_path = settings.TOOLS_PATHS["repak_cli"]
+        # if not Files.is_existing_file_type(repak_path, ".exe"):
+        #     raise FileNotFoundError(f"repak doesn't exist at {repak_path}")
 
-            file = Path(file)
-            result = subprocess.run(
-                [repak_path, "list", str(file)],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-            )
+        # Prepare the command to list the file contents
+        command = [repak_path, "list", str(file)]
 
-            if result.returncode != 0:
-                log.error(
-                    f"Failed to list contents of {str(file)}: {result.stderr.strip()}"
-                )
-                raise RuntimeError(
-                    f"Command failed with error:\n{result.stderr.strip()}"
-                )
+        # Use the threading method with subprocess execution
+        result_container = ThreadManager.run_in_thread_with_result(
+            SubprocessManager.execute_subprocess, timeout=60, command=command
+        )
 
-            log.debug(f"Successfully listed contents of {str(file)}")
-            return True, result.stdout.strip().splitlines()
-        except Exception as e:
-            log.exception(
-                f"An error occurred while listing the contents of {str(file)}"
-            )
-            return False, str(e)
+        # Handle errors and log
+        success, message = SubprocessManager.handle_errors(
+            result_container, context=f"listing contents of {file}"
+        )
+
+        if not success:
+            return False, message
+
+        log.debug(f"Successfully listed contents of {file}.")
+        return True, message.splitlines()
 
     @classmethod
-    @run_in_executor
     def unpack(cls, source, destination, aes_key=None, allowed_extensions=None):
         log.debug(
             f'Attempting to unpack: {str(source)}{" using key: " + aes_key if aes_key else ""}'
         )
         try:
             repak_path = settings.TOOLS_PATHS["repak_cli"]
-            if not Files.is_existing_file_type(repak_path, ".exe"):
-                raise FileNotFoundError(f"repak doesn't exist at {repak_path}")
+            # if not Files.is_existing_file_type(repak_path, ".exe"):
+            #     raise FileNotFoundError(f"repak doesn't exist at {repak_path}")
 
             source = Path(source)
             destination = Path(destination)
@@ -68,18 +59,18 @@ class Repak:
             command.extend(["unpack", str(source)])
 
             log.debug(f"Unpacking {str(source)} to parent folder...")
-            result = subprocess.run(
-                command,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
+            result_container = ThreadManager.run_in_thread_with_result(
+                SubprocessManager.execute_subprocess, timeout=360, command=command
             )
 
-            if result.returncode != 0:
+            success, message = SubprocessManager.handle_errors(
+                result_container, context=f"unpacking {str(source)}"
+            )
+
+            if not success:
                 if (
                     not aes_key
-                    and "pak is encrypted but no key was provided"
-                    in result.stderr.strip()
+                    and "pak is encrypted but no key was provided" in message
                 ):
                     if not Data.is_valid_aes_key(settings.AES_KEY):
                         log.warning(
@@ -90,19 +81,15 @@ class Repak:
                         log.debug(
                             f"{str(source)} is encrypted, trying again with AES key..."
                         )
-                        future = cls.unpack(
+                        return cls.unpack(
                             source,
                             destination,
                             aes_key=settings.AES_KEY,
                             allowed_extensions=allowed_extensions,
                         )
-                        success, output = future.result()
-                        return success, output
 
-                log.error(f"Failed to unpack {str(source)}: {result.stderr.strip()}")
-                raise RuntimeError(
-                    f"Command failed with error:\n{result.stderr.strip()}"
-                )
+                log.error(f"Failed to unpack {str(source)}: {message}")
+                raise RuntimeError(f"Command failed with error:\n{message}")
 
             log.debug(f"Successfully unpacked {str(source)} to parent folder.")
 
@@ -129,7 +116,6 @@ class Repak:
             return False, str(e)
 
     @classmethod
-    @run_in_executor
     def repack(cls, source, destination=None, forced_destination=None):
         if not destination and not forced_destination:
             raise TypeError(
@@ -138,8 +124,8 @@ class Repak:
         log.debug(f"Attempting to repack: {source}")
         try:
             repak_path = settings.TOOLS_PATHS["repak_cli"]
-            if not Files.is_existing_file_type(repak_path, ".exe"):
-                raise FileNotFoundError(f"repak doesn't exist at {repak_path}")
+            # if not Files.is_existing_file_type(repak_path, ".exe"):
+            #     raise FileNotFoundError(f"repak doesn't exist at {repak_path}")
 
             source = Path(source)
 
@@ -152,25 +138,26 @@ class Repak:
                 log.debug(f"Removing existing packed file: {packed_file}")
                 Files.delete_path(packed_file)
 
-            result = subprocess.run(
-                [
-                    repak_path,
-                    "pack",
-                    "--version",
-                    "V11",
-                    str(source),
-                    str(packed_file),
-                ],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
+            command = [
+                repak_path,
+                "pack",
+                "--version",
+                "V11",
+                str(source),
+                str(packed_file),
+            ]
+
+            result_container = ThreadManager.run_in_thread_with_result(
+                SubprocessManager.execute_subprocess, timeout=360, command=command
             )
 
-            if result.returncode != 0:
+            success, message = SubprocessManager.handle_errors(
+                result_container, context=f"repacking {str(source)}"
+            )
+
+            if not success:
                 log.error(f"Failed to repack {str(source)} to {str(packed_file)}")
-                raise RuntimeError(
-                    f"Command failed with error:\n{result.stderr.strip()}"
-                )
+                raise RuntimeError(f"Command failed with error:\n{message}")
 
             log.debug(f"Successfully repacked {str(source)} to {str(packed_file)}")
             return True, str(packed_file)

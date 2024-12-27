@@ -2,7 +2,7 @@ import json
 from unittest.mock import mock_open, patch
 
 import customtkinter as ctk
-from backend.games_manager import GamesManager
+from config.settings_manager import GamesManager
 from backend.logger import handle_exception, log
 from backend.tools_manager import ToolsManager
 from backend.utilities import Files

@@ -273,7 +273,7 @@ class ConflictProcessor:
         Files.create_dir(save_path.parent)
 
         if use_vanilla:
-            from backend.games_manager import GamesManager
+            from config.settings_manager import GamesManager
 
             for item in GamesManager.vanilla_files:
                 unpacked_folder = item["unpacked"]

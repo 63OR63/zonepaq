@@ -11,6 +11,11 @@ from pathlib import Path
 
 import requests
 from backend.logger import log
+from backend.parallel_orchestrator import (
+    TaskRetryManager,
+    ThreadExecutor,
+    ThreadManager,
+)
 from backend.repak import Repak
 from backend.utilities import Data, Files
 from config.settings_manager import settings
@@ -88,72 +93,73 @@ class ToolsManager:
         skip_aes_dumpster_download=False,
         skip_aes_extraction=False,
     ):
-        if not skip_aes_extraction:
-            self.get_aes_key(
-                parent=parent,
-                auto_mode=True,
-                skip_aes_dumpster_download=skip_aes_dumpster_download,
-            )
-
-        from backend.games_manager import GamesManager
-
-        games_manager = GamesManager()
-
-        results_ok = []
-        results_ko = []
-        futures = {}
-
-        # Get the index from install_metadata
-        file_index = install_metadata.get("index")
-        if file_index is None or not (
-            0 <= file_index < len(games_manager.vanilla_files)
-        ):
-            raise ValueError("Invalid or missing index in install_metadata")
-
-        # Select the file based on the provided index
-        item = games_manager.vanilla_files[file_index]
-        vanilla_file = Path(item["archive"])
-        unpacked_folder = Path(item["unpacked"])
-        parent_folder = unpacked_folder.parent
-
-        # Skip unpacking if unpacked_folder isn't empty
-        if not Files.is_folder_empty(unpacked_folder):
-            results_ok.append(
-                f'{translate("generic_skipped")} {str(unpacked_folder)} {translate("generic_is_not_empty")}'
-            )
-        elif Files.is_existing_file(vanilla_file):
-            link_name = parent_folder / vanilla_file.name
-
-            # If the link already exists, remove it
-            if link_name.exists():
-                link_name.unlink()
-
-            # Create the symbolic link
-            link_name.symlink_to(vanilla_file)
-
-            futures[
-                Repak.unpack(
-                    link_name,
-                    parent_folder,
-                    allowed_extensions=[".cfg", ".ini"],
+        def task_runner():
+            if not skip_aes_extraction:
+                self.get_aes_key(
+                    parent=parent,
+                    auto_mode=True,
+                    skip_aes_dumpster_download=skip_aes_dumpster_download,
                 )
-            ] = vanilla_file
 
-        for future in as_completed(futures):
-            vanilla_file = futures[future]
-            try:
-                success, result = future.result()
-                if success:
-                    results_ok.append(str(vanilla_file))
-                else:
-                    results_ko.append(f"{str(vanilla_file)}: {result}")
-            except Exception as e:
-                results_ko.append(f"{str(vanilla_file)}: {str(e)}")
+            from config.settings_manager import GamesManager
 
-        if not auto_mode:
-            self.show_results(parent, results_ok, results_ko)
+            games_manager = GamesManager()
 
-        return bool(results_ok) and not bool(results_ko)
+            # Get the index from install_metadata
+            file_index = install_metadata.get("index")
+            if file_index is None or not (
+                0 <= file_index < len(games_manager.vanilla_files)
+            ):
+                raise ValueError("Invalid or missing index in install_metadata")
+
+            # Select the file based on the provided index
+            item = games_manager.vanilla_files[file_index]
+            vanilla_file = Path(item["archive"])
+            unpacked_folder = Path(item["unpacked"])
+            parent_folder = unpacked_folder.parent
+
+            results_ok = []
+            results_ko = []
+
+            # Skip unpacking if unpacked_folder isn't empty
+            if not Files.is_folder_empty(unpacked_folder):
+                results_ok.append(
+                    f'{translate("generic_skipped")} {str(unpacked_folder)} {translate("generic_is_not_empty")}'
+                )
+            elif Files.is_existing_file(vanilla_file):
+                link_name = parent_folder / vanilla_file.name
+
+                # If the link already exists, remove it
+                if link_name.exists():
+                    link_name.unlink()
+
+                # Create the symbolic link
+                link_name.symlink_to(vanilla_file)
+
+                task_retry_manager = TaskRetryManager(ThreadExecutor())
+
+                # Unpack the vanilla files
+                results_ok_partial, results_ko_partial = (
+                    task_retry_manager.execute_tasks_with_retries(
+                        [link_name],
+                        lambda f: Repak.unpack(
+                            f, parent_folder, allowed_extensions=[".cfg", ".ini"]
+                        ),
+                    )
+                )
+
+                results_ok.extend(str(file) for file in results_ok_partial)
+                results_ko.extend(
+                    f"{str(file)}: {result}"
+                    for file, result in results_ko_partial.items()
+                )
+
+            if not auto_mode:
+                self.show_results(parent, results_ok, results_ko)
+
+            return bool(results_ok) and not bool(results_ko)
+
+        ThreadManager.run_in_background(task_runner)
 
     @staticmethod
     def show_results(parent, results_ok, results_ko):
@@ -180,7 +186,7 @@ class ToolsManager:
             if not skip_aes_dumpster_download:
                 self.install_aes_dumpster(parent=parent, auto_mode=True)
 
-            from backend.games_manager import GamesManager
+            from config.settings_manager import GamesManager
 
             games_manager = GamesManager()
 

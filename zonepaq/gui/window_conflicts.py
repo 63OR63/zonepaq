@@ -1,4 +1,3 @@
-import tkinter as tk
 from collections import deque
 from pathlib import Path
 from tkinter import ttk
@@ -8,11 +7,10 @@ from backend.conflicts import ConflictProcessor
 from backend.logger import log
 from config.settings_manager import settings
 from config.translations import translate
-from gui.template_base import TemplateBase
 from gui.template_toplevel import TemplateToplevel
 from gui.window_messagebox import WindowMessageBox
 
-
+# from gui.template_base import TemplateBase
 # class WindowConflicts(TemplateBase):
 #     """Displays conflict reports and provides tools to analyze and merge files."""
 
@@ -36,7 +34,7 @@ class WindowConflicts(TemplateToplevel):
         self.original_data = content_tree
 
         # Variable for checkbutton state
-        self.show_full_paths = tk.BooleanVar(value=False)
+        self.show_full_paths = ctk.BooleanVar(value=False)
 
         self.setup()
 
@@ -86,7 +84,7 @@ class WindowConflicts(TemplateToplevel):
         )
 
     def _create_search_entry(self, search_frame):
-        self.search_var = tk.StringVar(master=self)
+        self.search_var = ctk.StringVar(master=self)
         self.search_var.trace_add("write", lambda *args: self._search_tree())
         self.search_entry = self.create_ctk_widget(
             ctk_widget=ctk.CTkEntry,
@@ -228,9 +226,9 @@ class WindowConflicts(TemplateToplevel):
         self.tree.column("#0", stretch=False, width=400)
         self.tree.column("PAK Sources", stretch=True)
         self.tree.column(
-            "PAK Sources Paths", width=0, stretch=tk.NO
+            "PAK Sources Paths", width=0, stretch=ctk.NO
         )  # Invisible column
-        self.tree.column("File Path", width=0, stretch=tk.NO)  # Invisible column
+        self.tree.column("File Path", width=0, stretch=ctk.NO)  # Invisible column
 
     def _create_scrollbar(self, tree_frame):
         self.scrollbar = self.create_ctk_widget(
@@ -344,7 +342,7 @@ class WindowConflicts(TemplateToplevel):
         )
 
         self.ignore_no_conflicts = True
-        self.ignore_no_conflicts_var = tk.BooleanVar(value=self.ignore_no_conflicts)
+        self.ignore_no_conflicts_var = ctk.BooleanVar(value=self.ignore_no_conflicts)
 
         self.ignore_no_conflicts_check_button = self.create_ctk_widget(
             ctk_widget=ctk.CTkCheckBox,
@@ -587,11 +585,11 @@ class WindowConflicts(TemplateToplevel):
 
     def _toggle_path_display(self):
         if self.show_full_paths.get():
-            self.tree.column("PAK Sources", width=0, stretch=tk.NO)
+            self.tree.column("PAK Sources", width=0, stretch=ctk.NO)
             self.tree.column("PAK Sources Paths", stretch=True)
         else:
             self.tree.column("PAK Sources", stretch=True)
-            self.tree.column("PAK Sources Paths", width=0, stretch=tk.NO)
+            self.tree.column("PAK Sources Paths", width=0, stretch=ctk.NO)
 
     def _has_vanilla_match(self, conflict):
         for vanilla_file in self.games_manager.vanilla_files:

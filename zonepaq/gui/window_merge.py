@@ -1,7 +1,11 @@
-from concurrent.futures import as_completed
 from pathlib import Path
 
 from backend.logger import log
+from backend.parallel_orchestrator import (
+    TaskRetryManager,
+    ThreadExecutor,
+    ThreadManager,
+)
 from backend.repak import Repak
 from backend.utilities import Data, Files
 from config.translations import translate
@@ -52,43 +56,61 @@ class WindowMerge(TemplateSecondary):
             self.create_section(**section)
 
     def _find_conflicts(self):
+        def task_runner(files):
+            task_retry_manager = TaskRetryManager(ThreadExecutor())
+
+            # Execute the tasks
+            results_ok, results_ko = task_retry_manager.execute_tasks_with_retries(
+                files, Repak.get_list
+            )
+
+            # Handle errors and results on the main thread
+            if results_ko:
+                self.after(
+                    0,
+                    lambda: WindowMessageBox.showerror(
+                        self,
+                        message="\n".join(
+                            [
+                                translate("merge_screen_analyze_msg_error_header"),
+                                *[
+                                    f"{str(Path(key))} ({value})"
+                                    for key, value in results_ko.items()
+                                ],
+                            ]
+                        ),
+                    ),
+                )
+
+            if results_ok:
+                content_tree = Data.build_content_tree(results_ok)
+                log.debug("Opening conflicts resolver screen...")
+                self.after(
+                    0, lambda: WindowConflicts(master=self, content_tree=content_tree)
+                )
+
+        # Validate repak_cli path on the main thread
         if not Files.is_existing_file_type(self.repak_cli, ".exe"):
             log.error(f"repak_cli executable isn't found at {str(self.repak_cli)}")
-            WindowMessageBox.showerror(
-                self,
-                message=f'repak_cli {translate("error_executable_not_found_1")} {str(self.repak_cli)}\n{translate("error_executable_not_found_2")}',
+            self.after(
+                0,
+                lambda: WindowMessageBox.showerror(
+                    self,
+                    message=f'repak_cli {translate("error_executable_not_found_1")} {str(self.repak_cli)}\n{translate("error_executable_not_found_2")}',
+                ),
             )
             return
+
+        # Get file list on the main thread
         files = self.merge_listbox.get("all")
-        if files:
-            results_ok = {}
-            results_ko = {}
-            futures = {}
-
-            for file in files:
-                file = Path(file)
-                futures[Repak.get_list(file)] = file
-
-            for future in as_completed(futures):
-                file = futures[future]
-                try:
-                    success, result = future.result()
-                    if success:
-                        results_ok[file.as_posix()] = result
-                    else:
-                        results_ko[file.as_posix()] = result
-                except Exception as e:
-                    results_ko[file.as_posix()] = str(e)
-
-            content_tree = Data.build_content_tree(results_ok)
-
-            self.update_idletasks()
-            log.debug("Opening conflicts resolver screen...")
-            WindowConflicts(master=self, content_tree=content_tree)
-            # self.withdraw()
-
-        else:
-            WindowMessageBox.showwarning(
-                self,
-                message=translate("merge_screen_analyze_msg_empty_list"),
+        if not files:
+            self.after(
+                0,
+                lambda: WindowMessageBox.showwarning(
+                    self, message=translate("merge_screen_analyze_msg_empty_list")
+                ),
             )
+            return
+
+        # Run the background task
+        ThreadManager.run_in_background(lambda: task_runner(files))
