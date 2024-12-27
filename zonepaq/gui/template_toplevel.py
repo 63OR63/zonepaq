@@ -55,13 +55,11 @@ class TemplateToplevel(CTkToplevel):
 
         for name in attribute_names + method_names:
             if hasattr(self.master, name):
-                try:
-                    setattr(self, name, getattr(self.master, name))
-                    # log.debug(
-                    #     f"Bound '{name}' from {self.master.__class__.__name__} to {self.__class__.__name__}"
-                    # )
-                except AttributeError as e:
-                    log.exception(f"Failed to bind '{name}': {e}")
+                setattr(self, name, getattr(self.master, name))
+                # log.debug(
+                #     f"Bound '{name}' from {self.master.__class__.__name__} to {self.__class__.__name__}"
+                # )
+
             else:
                 log.warning(
                     f"'{name}' does not exist in {self.master.__class__.__name__}. Skipping."
