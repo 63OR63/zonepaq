@@ -113,14 +113,16 @@ class SettingsManager:
     def load(self):
 
         # shortcuts
+        self.SETTINGS = self.get("SETTINGS")
+        self.TOOLS_PATHS = self.get("TOOLS_PATHS")
+        self.GAME_PATHS = self.get("GAME_PATHS")
+
         self.MERGING_ENGINE = self.get("SETTINGS", "merging_engine")
         self.LANG_NAME = self.get("SETTINGS", "lang_name")
         self.THEME_NAME = self.get("SETTINGS", "theme_name")
         self.SHOW_HINTS = self.get("SETTINGS", "show_hints")
         self.DARK_MODE = self.get("SETTINGS", "dark_mode")
         self.AES_KEY = self.get("SETTINGS", "aes_key")
-        self.TOOLS_PATHS = self.get("TOOLS_PATHS")
-        self.GAME_PATHS = self.get("GAME_PATHS")
 
         # links
         self.TOOLS = TOOLS
@@ -132,6 +134,11 @@ class SettingsManager:
         self.save()
         self.load()
         return self._instance
+
+    def set(self, section, key, value):
+        self.config[section][key] = str(value)
+        self.load()
+        return
 
     def get(self, section, key=None):
         if key is None:
@@ -283,7 +290,7 @@ class GamesManager:
         if not sys.platform.startswith("win"):
             return None
 
-        folder_name = Path("Xbox Games") / game_folder_name
+        folder_name = Path("XboxGames") / game_folder_name
         for drive_letter in "CDEFGHIJKLMNOPQRSTUVWXYZ":
             drive = Path(f"{drive_letter}:/")
             potential_path = Path(str(Path(drive / folder_name)))

@@ -49,12 +49,13 @@ class WindowSettings(TemplateToplevel):
         for settings_key, new_value in self.temp_storage.items():
             new_value = str(new_value).strip()
             if settings_key == "aes_key":
-                settings.AES_KEY = new_value
+                settings.set("SETTINGS", settings_key, new_value)
             elif settings_key in settings.GAME_PATHS:
-                settings.GAME_PATHS[settings_key] = Files.get_relative_path(new_value)
-                self.games_manager.update_paths(new_value)
+                settings.set("GAME_PATHS", settings_key, new_value)
             elif settings_key in settings.TOOLS_PATHS:
-                settings.TOOLS_PATHS[settings_key] = Files.get_relative_path(new_value)
+                settings.set(
+                    "TOOLS_PATHS", settings_key, Files.get_relative_path(new_value)
+                )
         settings.save()
         if close:
             self.destroy()
@@ -198,7 +199,7 @@ class WindowSettings(TemplateToplevel):
         tools_group = {
             translate("settings_tools_path_tools"): {
                 "repak_cli": {
-                    "path_dict": settings.TOOLS_PATHS,
+                    "path_dict": "TOOLS_PATHS",
                     "entry_title": f'{settings.TOOLS["repak_cli"]["display_name"]}',
                     "entry_type": settings.TOOLS["repak_cli"]["exe_name"],
                     "entry_buttons": [
@@ -215,7 +216,7 @@ class WindowSettings(TemplateToplevel):
                     ],
                 },
                 "kdiff3": {
-                    "path_dict": settings.TOOLS_PATHS,
+                    "path_dict": "TOOLS_PATHS",
                     "entry_title": f'{settings.TOOLS["kdiff3"]["display_name"]}',
                     "entry_type": settings.TOOLS["kdiff3"]["exe_name"],
                     "entry_buttons": [
@@ -232,7 +233,7 @@ class WindowSettings(TemplateToplevel):
                     ],
                 },
                 "winmerge": {
-                    "path_dict": settings.TOOLS_PATHS,
+                    "path_dict": "TOOLS_PATHS",
                     "entry_title": f'{settings.TOOLS["winmerge"]["display_name"]}',
                     "entry_type": settings.TOOLS["winmerge"]["exe_name"],
                     "entry_buttons": [
@@ -347,7 +348,7 @@ class WindowSettings(TemplateToplevel):
         )
 
         entry_variable = ctk.StringVar(
-            master=self, value=path_dict.get(settings_key, "")
+            master=self, value=settings.get(path_dict, settings_key)
         )
 
         entry_widget = self.create_ctk_widget(
@@ -368,8 +369,8 @@ class WindowSettings(TemplateToplevel):
             },
         )
 
-        self._store_temp_path_and_apply_style(
-            settings_key, entry_variable.get(), entry_type, entry_widget
+        self._store_value_and_apply_style(
+            path_dict, settings_key, entry_variable.get(), entry_type, entry_widget
         )
 
         for index, button in enumerate(entry_buttons):
@@ -378,6 +379,7 @@ class WindowSettings(TemplateToplevel):
             command = button["command"]
 
             params = {
+                "path_dict": path_dict,
                 "settings_key": settings_key,
                 # "entry_title": entry_title,
                 "entry_type": entry_type,
@@ -409,8 +411,8 @@ class WindowSettings(TemplateToplevel):
 
         entry_variable.trace_add(
             "write",
-            lambda *args: self._store_temp_path_and_apply_style(
-                settings_key, entry_variable.get(), entry_type, entry_widget
+            lambda *args: self._store_value_and_apply_style(
+                path_dict, settings_key, entry_variable.get(), entry_type, entry_widget
             ),
         )
 
@@ -418,7 +420,7 @@ class WindowSettings(TemplateToplevel):
         game_group = {
             translate("settings_game_path"): {
                 self.games_manager.game_name: {
-                    "path_dict": settings.GAME_PATHS,
+                    "path_dict": "GAME_PATHS",
                     "entry_title": self.games_manager.game_display_name,
                     "entry_type": "folder",
                     "entry_buttons": [
@@ -437,7 +439,7 @@ class WindowSettings(TemplateToplevel):
             },
             translate("settings_game_keys"): {
                 "aes_key": {
-                    "path_dict": {"aes_key": settings.AES_KEY},
+                    "path_dict": "SETTINGS",
                     "entry_title": translate("settings_game_aes_key"),
                     "entry_type": "aes",
                     "entry_buttons": [
@@ -718,9 +720,11 @@ class WindowSettings(TemplateToplevel):
     def _show_frame(self, frame):
         frame.tkraise()
 
-    def _store_temp_path_and_apply_style(
-        self, settings_key, new_value, entry_type, entry_widget
+    def _store_value_and_apply_style(
+        self, path_dict, settings_key, new_value, entry_type, entry_widget
     ):
+        settings.update_config(path_dict, settings_key, new_value)
+
         self.temp_storage[settings_key] = new_value
 
         path = Path(entry_widget.get())
@@ -766,7 +770,8 @@ class WindowSettings(TemplateToplevel):
                 Files.get_relative_path(selected_path)
             )
 
-            self._store_temp_path_and_apply_style(
+            self._store_value_and_apply_style(
+                install_metadata["path_dict"],
                 install_metadata["settings_key"],
                 install_metadata["entry_variable"].get(),
                 install_metadata["entry_type"],
@@ -777,7 +782,8 @@ class WindowSettings(TemplateToplevel):
         game_path = self.games_manager.get_game_path()
 
         install_metadata["entry_variable"].set(Files.get_relative_path(game_path))
-        self._store_temp_path_and_apply_style(
+        self._store_value_and_apply_style(
+            install_metadata["path_dict"],
             install_metadata["settings_key"],
             install_metadata["entry_variable"].get(),
             install_metadata["entry_type"],

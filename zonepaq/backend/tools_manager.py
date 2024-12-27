@@ -301,6 +301,7 @@ class ToolsManager:
             return False
 
         # Extract variables from metadata dict
+        # path_dict = install_metadata.get("path_dict", None)
         settings_key = install_metadata.get("settings_key", None)
         display_name = install_metadata.get("display_name", None)
         exe_name = install_metadata.get("exe_name", None)
