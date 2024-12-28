@@ -278,6 +278,15 @@ class WindowFirstLaunch(TemplateBase):
             },
         )
 
+        def disable_input(event):
+            return "break"
+
+        # Bind events to disable user input
+        log_textbox.bind("<Key>", disable_input)  # Disable keyboard input
+        log_textbox.bind(
+            "<Button-1>", lambda e: None
+        )  # Allow normal text selection (do not block clicks)
+
         # Add the TextBoxHandler to the logger
         self.text_handler = TextBoxHandler(log_textbox)
         self.text_handler.setLevel(logging.INFO)

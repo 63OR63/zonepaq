@@ -161,9 +161,9 @@ GAMES = {
             "game_pass": {
                 "display_name": "Game Pass",
                 "game_folder_name": "S.T.A.L.K.E.R. 2",
-                "shipping_exe_suffix": "Stalker2/Binaries/WinGDK/Stalker2-WinGDK-Shipping.exe",
+                "shipping_exe_suffix": "Content/Stalker2/Binaries/WinGDK/Stalker2-WinGDK-Shipping.exe",
                 "vanilla_archives_suffixes": [
-                    "Stalker2/Content/Paks/pakchunk0-WinGDK.pak"
+                    "Content/Stalker2/Content/Paks/pakchunk0-WinGDK.pak"
                 ],
                 "mods_path_suffix": "Stalker2/Content/Paks/~mods",
             },

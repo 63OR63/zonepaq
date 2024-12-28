@@ -2,6 +2,7 @@ import os
 import re
 import shutil
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -84,7 +85,8 @@ class Files:
         Create a directory and its parents.
         """
         try:
-            path = Path(path).resolve()
+            # ! .resolve() will resolve symlink address
+            path = Path(path).absolute()
             start_time = time.time()
 
             for attempt in range(1, retries + 2):
@@ -120,8 +122,9 @@ class Files:
         Copy the contents of a folder to a destination folder by reusing `copy_path`.
         """
         try:
-            source_path = Path(source_folder).resolve()
-            destination_path = Path(destination_folder).resolve()
+            # ! .resolve() will resolve symlink address
+            source_path = Path(source_folder).absolute()
+            destination_path = Path(destination_folder).absolute()
 
             # Validate source folder
             if not source_path.is_dir():
@@ -155,10 +158,14 @@ class Files:
     def link_path(cls, src, dest, retries=3, delay=1):
         """
         Create a symbolic link from src to dest with retries and error handling.
+        If symbolic link creation fails, fall back to creating a hard link in a temp folder.
+        If both link types fail, fall back to copying the file or folder.
+        Returns the path to the link or copied file/folder if successful, otherwise False.
         """
         try:
-            src = Path(src).resolve()
-            dest = Path(dest).resolve()
+            # ! .resolve() will resolve symlink address
+            src = Path(src).absolute()
+            dest = Path(dest).absolute()
 
             cls.create_dir(dest.parent)
 
@@ -166,37 +173,69 @@ class Files:
                 log.error(f"Source path does not exist: {src}")
                 return False
 
-            for attempt in range(1, retries + 2):
-                try:
-                    if dest.exists() or dest.is_symlink():
-                        dest.unlink()  # Remove existing file/symlink
+            def attempt_link(create_link_func, *args):
+                for attempt in range(1, retries + 2):
+                    try:
+                        return create_link_func(*args)
+                    except Exception as e:
+                        log.warning(f"Attempt {attempt} failed for link creation: {e}")
+                        if attempt < retries + 1:
+                            time.sleep(cls._calculate_backoff(attempt, delay))
+                        else:
+                            log.error(f"Failed to create link after {retries} retries")
+                            return False
 
-                    dest.symlink_to(src)
-                    # log.debug(f"Created symlink from {src} to {dest}")
-                    return True
-                except Exception as e:
-                    log.warning(
-                        f"Attempt {attempt} failed for creating symlink from {src} to {dest}: {e}"
-                    )
-                    if attempt < retries + 1:
-                        time.sleep(cls._calculate_backoff(attempt, delay))
-                    else:
-                        log.error(
-                            f"Failed to create symlink after {retries} retries: {src} to {dest}"
-                        )
-                        return False
+            def create_symlink():
+                if dest.exists() or dest.is_symlink():
+                    dest.unlink()  # Remove existing file/symlink
+                dest.symlink_to(src)
+                log.debug(f"Created symlink from {src} to {dest}")
+                return str(dest)
+
+            def create_hardlink():
+                drive_temp_dir = Path(src.drive) / "temp"
+                drive_temp_dir.mkdir(parents=True, exist_ok=True)
+                temp_dir = Path(tempfile.mkdtemp(dir=drive_temp_dir))
+                hard_link_path = temp_dir / src.name
+                if hard_link_path.exists():
+                    hard_link_path.unlink()  # Remove existing file
+                os.link(src, hard_link_path)  # Create a hard link
+                log.debug(f"Created hard link from {src} to {hard_link_path}")
+                return str(hard_link_path)
+
+            # # Try to create a symbolic link
+            if attempt_link(create_symlink):
+                return str(dest)
+
+            # # Fallback to creating a hard link in a temporary folder
+            # # It's slower to copy many unpacked files even after cleaning then copy the original and
+            # hard_link_path = attempt_link(create_hardlink)
+            # if hard_link_path:
+            #     log.debug(
+            #         f"Fallback to creating hard link succeeded for {src} to {dest}"
+            #     )
+            #     return str(hard_link_path)
+
+            # Fallback to copying the file or folder
+            if cls.copy_path(src, dest, retries, delay):
+                return str(dest)
+            else:
+                log.error(f"All fallback methods failed for {src} to {dest}")
+                return False
+
         except Exception as e:
-            log.exception(f"Unexpected error during symlink operation: {e}")
+            log.exception(f"Unexpected error during link operation: {e}")
             return False
 
     @classmethod
-    def copy_path(cls, src, dest, retries=3, delay=1, timeout=10):
+    def copy_path(cls, src, dest, retries=3, delay=1):
         """
         Copy a file or folder to a destination with retries and error handling.
         """
         try:
-            src = Path(src).resolve()
-            dest = Path(dest).resolve()
+            # ! .resolve() will resolve symlink address
+            src = Path(src).absolute()
+            dest = Path(dest).absolute()
 
             cls.create_dir(dest.parent)
 
@@ -229,13 +268,14 @@ class Files:
             return False
 
     @classmethod
-    def move_path(cls, src, dest, retries=3, delay=1, timeout=10):
+    def move_path(cls, src, dest, retries=3, delay=1):
         """
         Move a file or folder to a destination with retries and error handling.
         """
         try:
-            src = Path(src).resolve()
-            dest = Path(dest).resolve()
+            # ! .resolve() will resolve symlink address
+            src = Path(src).absolute()
+            dest = Path(dest).absolute()
 
             cls.create_dir(dest.parent)
 
@@ -272,7 +312,7 @@ class Files:
         Optionally only delete files not in the allowed_extensions list.
         """
         try:
-            path = Path(path).resolve()
+            path = Path(path).absolute()
 
             # Check if the path is a root directory or top-level folder
             if path == path.anchor:
@@ -320,7 +360,10 @@ class Files:
                             timeout,
                             allowed_extensions,
                         )
-                        log.debug(f"Deleted folder: {str(path)}")
+                        if allowed_extensions:
+                            log.debug(f"Cleaned folder: {str(path)}")
+                        else:
+                            log.debug(f"Deleted folder: {str(path)}")
                     else:
                         if cls._should_delete_file(path, allowed_extensions):
                             cls._remove_file(path, start_time, retries, delay, timeout)
@@ -493,12 +536,12 @@ class Files:
 
     @staticmethod
     def get_relative_path(path):
-        resolved_path = Path(path).resolve()
+        absolute_path = Path(path).absolute()
         try:
-            relative_path = resolved_path.relative_to(Path.cwd())
+            relative_path = absolute_path.relative_to(Path.cwd().absolute())
             return str(relative_path)
         except ValueError:
-            return str(resolved_path)
+            return str(absolute_path)
 
     @staticmethod
     def find_app_installation(

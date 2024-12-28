@@ -681,6 +681,11 @@ class StyleManager:
             scrollbar_button_hover_color=ThemeManager.get_colors(
                 "color_accent_quaternary", color_palette
             ),
+            font=ctk.CTkFont(
+                family=ctk.ThemeManager.theme["Monospace.CustomFont"]["family"],
+                size=ctk.ThemeManager.theme["Monospace.CustomFont"]["size"],
+                weight=ctk.ThemeManager.theme["Monospace.CustomFont"]["weight"],
+            ),
         )
 
         cls.define_style(

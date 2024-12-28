@@ -200,13 +200,26 @@ class WindowSettings(TemplateToplevel):
 
         log_textbox = self.create_ctk_widget(
             ctk_widget=ctk.CTkTextbox,
-            widget_args={"master": log_frame, "wrap": "word", "height": 100},
+            widget_args={
+                "master": log_frame,
+                "wrap": "word",
+                "height": 100,
+            },
             widget_style="Console.CTkTextbox",
             grid_args={
                 "column": 0,
                 "sticky": "nsew",
             },
         )
+
+        def disable_input(event):
+            return "break"
+
+        # Bind events to disable user input
+        log_textbox.bind("<Key>", disable_input)  # Disable keyboard input
+        log_textbox.bind(
+            "<Button-1>", lambda e: None
+        )  # Allow normal text selection (do not block clicks)
 
         # Add the TextBoxHandler to the logger
         self.text_handler = TextBoxHandler(log_textbox)

@@ -60,7 +60,7 @@ class Repak:
 
             log.debug(f"Unpacking {str(source)}...")
             result_container = ThreadManager.run_in_thread_with_result(
-                SubprocessManager.execute_subprocess, timeout=360, command=command
+                SubprocessManager.execute_subprocess, timeout=1800, command=command
             )
 
             success, message = SubprocessManager.handle_errors(
@@ -101,10 +101,10 @@ class Repak:
 
             target_folder = destination / unpacked_folder.name
 
-            if unpacked_folder != target_folder:
+            if unpacked_folder.resolve() != target_folder.resolve():
                 log.debug(f"Deleting {target_folder}...")
                 Files.delete_path(target_folder)
-                log.debug(f"Moving unpacked folder to destination...")
+                log.debug("Moving unpacked folder to destination...")
                 Files.move_path(unpacked_folder, target_folder)
             log.debug(
                 f"Successfully unpacked {str(source)} and moved to {str(target_folder)}"
@@ -148,7 +148,7 @@ class Repak:
             ]
 
             result_container = ThreadManager.run_in_thread_with_result(
-                SubprocessManager.execute_subprocess, timeout=360, command=command
+                SubprocessManager.execute_subprocess, timeout=1800, command=command
             )
 
             success, message = SubprocessManager.handle_errors(
