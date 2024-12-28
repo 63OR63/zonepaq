@@ -109,7 +109,7 @@ class WindowSettings(TemplateToplevel):
             row=2,
             column=0,
             style="Tertiary.CTkFrame",
-            column_weights=[(0, 1), (1, 0), (2, 0)],
+            column_weights=[(0, 0), (1, 1), (2, 0), (3, 0)],
         )
 
         button_reset = self.create_button(
@@ -126,6 +126,20 @@ class WindowSettings(TemplateToplevel):
         )
         self.add_tooltip(button_reset, translate("tooltip_button_reset"))
 
+        button_restart = self.create_button(
+            save_frame,
+            text=translate("generic_restart"),
+            command=self._restart_app,
+            style="Action.CTkButton",
+            width=120,
+            padx=(0, self.padding),
+            pady=self.padding / 2,
+            sticky="w",
+            row=0,
+            column=1,
+        )
+        self.add_tooltip(button_restart, translate("tooltip_button_restart"))
+
         self.create_ctk_widget(
             ctk_widget=ctk.CTkLabel,
             widget_args={
@@ -137,7 +151,7 @@ class WindowSettings(TemplateToplevel):
             widget_style="Hints2.CTkLabel",
             grid_args={
                 "row": 0,
-                "column": 1,
+                "column": 2,
                 "sticky": "e",
             },
         )
@@ -152,7 +166,7 @@ class WindowSettings(TemplateToplevel):
             pady=self.padding / 2,
             sticky="e",
             row=0,
-            column=2,
+            column=3,
         )
 
         self.tools_button = self.create_button(
@@ -819,46 +833,88 @@ class WindowSettings(TemplateToplevel):
         )
 
     def _reset_settings(self):
+        response = WindowMessageBox.askokcancel(
+            self, message=translate("dialogue_relaunch")
+        )
+        if response:
+            log.info("Resetting settings...")
+            Files.delete_path(settings.INI_SETTINGS_FILE)
+            self._restart_app()
 
-        # import subprocess, os
+    def _restart_app(self):
+        import os
 
-        # self.master.destroy()
+        log.info("Restarting the app...")
+        os.execl(sys.executable, sys.executable, *sys.argv)
 
-        # subprocess.Popen([sys.executable, *sys.argv])
-        # script = sys.argv[0]
-        # args = sys.argv[1:]
+    # def wip(self, master): # ! TODO: refactor the whole module with a uniform flow
+    #     group = {
+    #         translate("settings_game_path"): {
+    #             self.games_manager.game_name: [
+    #                 {
+    #                     "widget_type": ctk.CTkLabel,
+    #                     "params": {"text": self.games_manager.game_display_name},
+    #                 },
+    #                 {
+    #                     "widget_type": ctk.CTkEntry,
+    #                     "params": {
+    #                         "textvariable": ctk.StringVar(
+    #                             master=self,
+    #                             value=settings.get(
+    #                                 "GAME_PATHS", self.games_manager.game_name
+    #                             ),
+    #                         ),
+    #                         "placeholder_text": self.games_manager.game_display_name,
+    #                     },
+    #                 },
+    #                 {
+    #                     "widget_type": ctk.CTkButton,
+    #                     "style": "Generic.CTkButton",
+    #                     "params": {
+    #                         "command": self._open_path_browse_dialog,
+    #                         "text": translate("settings_tools_browse"),
+    #                     },
+    #                 },
+    #                 {
+    #                     "widget_type": ctk.CTkButton,
+    #                     "style": "Alt.CTkButton",
+    #                     "params": {
+    #                         "command": self._get_game_path_wrapper,
+    #                         "text": translate("settings_game_find"),
+    #                     },
+    #                 },
+    #             ],
+    #         },
+    #     }
 
-        # # Restart the app
-        # os.execv(sys.executable, [sys.executable, script] + args)
-        # self.master.destroy()
-        # print(sys.argv)
-        # os.execv(sys.executable, [sys.executable] + sys.argv)
+    #     for section_index, (section_name, section_widgets) in enumerate(group.items()):
+    #         section_frame = self.create_frame(
+    #             master,
+    #             column_weights=[(0, 0), (1, 1), (2, 0), (3, 0)],
+    #             row=section_index,
+    #         )
+    #         self.create_subheader(section_frame, section_name)
+    #         self.create_spacer(section_frame)
 
-        # print(self.master.restart_callback(self.master))
+    #         for line_index, (line_name, widgets) in enumerate(section_widgets.items()):
+    #             line_index += 2
+    #             for widget_index, widget_data in enumerate(widgets):
+    #                 widget_type = widget_data.get("widget_type")
+    #                 widget_style = widget_data.get("style")
+    #                 widget_params = widget_data.get("params", {})
 
-        # print(self.destroy())
-        # print(self.master.destroy())
+    #                 widget_args = {"master": section_frame}
+    #                 widget_args.update(widget_params)
+    #                 widget = self.create_ctk_widget(
+    #                     ctk_widget=widget_type,
+    #                     widget_args=widget_args,
+    #                     widget_style=widget_style,
+    #                     grid_args={
+    #                         "row": line_index,
+    #                         "column": widget_index,
+    #                         "padx": self.padding,
+    #                         "sticky": "we",
+    #                     },
+    #                 )
 
-        # print(sys.executable)
-        # print(Path.cwd() / "__main__.py")
-
-        # import subprocess, os
-
-        # print(*sys.argv)
-
-        # subprocess.Popen([sys.executable, Path.cwd() / "zonepaq" / "__main__.py"])
-
-        # from __main__ import restart_application
-
-        # restart_application()
-
-        # os.execl(sys.executable, sys.executable, *sys.argv)
-        # os.execl(sys.executable, sys.executable, Path.cwd() / "zonepaq" / "__main__.py")
-
-        WindowMessageBox.showinfo(self, message=translate("dialogue_relaunch"))
-        log.info("Resetting settings...")
-        Files.delete_path(settings.INI_SETTINGS_FILE)
-        log.info("Exiting the app...")
-        self.destroy()
-        self.master.destroy()
-        sys.exit(0)
+    #         self.create_spacer(section_frame)
