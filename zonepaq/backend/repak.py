@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from backend.logger import log
@@ -58,9 +59,20 @@ class Repak:
                 command.extend(["-a", aes_key])
             command.extend(["unpack", str(source)])
 
+            # Set the working directory to where repak.exe is located
+            working_dir = Path(repak_path).parent
+
+            # Update the PATH environment variable to include the working directory
+            env = os.environ.copy()
+            env["PATH"] = str(working_dir) + ";" + env["PATH"]
+
             log.debug(f"Unpacking {str(source)}...")
             result_container = ThreadManager.run_in_thread_with_result(
-                SubprocessManager.execute_subprocess, timeout=1800, command=command
+                SubprocessManager.execute_subprocess,
+                timeout=1800,
+                command=command,
+                cwd=str(working_dir),  # Pass the working directory
+                env=env,  # Pass the updated environment
             )
 
             success, message = SubprocessManager.handle_errors(

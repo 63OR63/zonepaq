@@ -145,8 +145,6 @@ settings.txt
 /zonepaq/logs
 .VSCodeCounter
 /README.bbcode
-/nexus.py
-/pipreqs.py
-/archive.py
-/translation.py
+# /helpers
+/archives
 /*.zip

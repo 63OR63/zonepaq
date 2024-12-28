@@ -136,13 +136,15 @@ class SubprocessManager:
         return True, result_container.get("stdout", "").strip()
 
     @staticmethod
-    def execute_subprocess(result_container, command):
+    def execute_subprocess(result_container, command, cwd=None, env=None):
         try:
             process = subprocess.Popen(
                 command,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
+                cwd=cwd,
+                env=env,
             )
             stdout, stderr = process.communicate()
             result_container["stdout"] = stdout
