@@ -186,47 +186,47 @@ class ThemeManager:
         "CTkFont": {
             "macOS": {"family": "SF Display", "size": 14, "weight": "normal"},
             "Windows": {"family": "Arial", "size": 14, "weight": "normal"},
-            "Linux": {"family": "Roboto", "size": 14, "weight": "normal"},
+            "Linux": {"family": "DejaVu Sans", "size": 14, "weight": "normal"},
         },
         "Header.CustomFont": {
             "macOS": {"family": "SF Display", "size": 20, "weight": "bold"},
             "Windows": {"family": "Arial", "size": 20, "weight": "bold"},
-            "Linux": {"family": "Roboto", "size": 20, "weight": "bold"},
+            "Linux": {"family": "DejaVu Sans", "size": 20, "weight": "bold"},
         },
         "SubHeader.CustomFont": {
             "macOS": {"family": "SF Display", "size": 15, "weight": "bold"},
             "Windows": {"family": "Arial", "size": 15, "weight": "bold"},
-            "Linux": {"family": "Roboto", "size": 15, "weight": "bold"},
+            "Linux": {"family": "DejaVu Sans", "size": 15, "weight": "bold"},
         },
         "Hints.CustomFont": {
             "macOS": {"family": "SF Display", "size": 13, "weight": "normal"},
             "Windows": {"family": "Arial", "size": 13, "weight": "normal"},
-            "Linux": {"family": "Roboto", "size": 13, "weight": "normal"},
+            "Linux": {"family": "DejaVu Sans", "size": 13, "weight": "normal"},
         },
         "Monospace.CustomFont": {
-            "macOS": {"family": "SF Display", "size": 14, "weight": "normal"},
+            "macOS": {"family": "SF Mono", "size": 14, "weight": "normal"},
             "Windows": {"family": "Consolas", "size": 14, "weight": "normal"},
-            "Linux": {"family": "Roboto", "size": 14, "weight": "normal"},
+            "Linux": {"family": "DejaVu Sans Mono", "size": 14, "weight": "normal"},
         },
         "Dnd.CustomFont": {
-            "macOS": {"family": "SF Display", "size": 18, "weight": "normal"},
+            "macOS": {"family": "SF Mono", "size": 18, "weight": "normal"},
             "Windows": {"family": "Consolas", "size": 18, "weight": "normal"},
-            "Linux": {"family": "Roboto", "size": 18, "weight": "normal"},
+            "Linux": {"family": "DejaVu Sans Mono", "size": 18, "weight": "normal"},
         },
         "Generic.Button.CustomFont": {
             "macOS": {"family": "SF Display", "size": 15, "weight": "normal"},
             "Windows": {"family": "Arial", "size": 15, "weight": "normal"},
-            "Linux": {"family": "Roboto", "size": 15, "weight": "normal"},
+            "Linux": {"family": "DejaVu Sans", "size": 15, "weight": "normal"},
         },
         "Action.Button.CustomFont": {
             "macOS": {"family": "SF Display", "size": 16, "weight": "normal"},
             "Windows": {"family": "Arial", "size": 16, "weight": "normal"},
-            "Linux": {"family": "Roboto", "size": 16, "weight": "normal"},
+            "Linux": {"family": "DejaVu Sans", "size": 16, "weight": "normal"},
         },
         "Entry.CustomFont": {
-            "macOS": {"family": "SF Display", "size": 14, "weight": "normal"},
+            "macOS": {"family": "SF Mono", "size": 14, "weight": "normal"},
             "Windows": {"family": "Consolas", "size": 14, "weight": "normal"},
-            "Linux": {"family": "Roboto", "size": 14, "weight": "normal"},
+            "Linux": {"family": "DejaVu Sans Mono", "size": 14, "weight": "normal"},
         },
     }
 
