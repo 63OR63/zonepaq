@@ -37,7 +37,7 @@ class WindowRepak(TemplateSecondary):
                 "title": translate("repak_screen_unpack_header"),
                 "listbox_name": "unpack_listbox",
                 "listbox_mode": "pak",
-                "add_command": lambda: self._add_file_to_listbox(
+                "add_command": lambda: self._add_files_to_listbox(
                     self.unpack_listbox, self.unpack_listbox_dnd
                 ),
                 "remove_command": lambda: self._remove_from_listbox(

@@ -160,59 +160,17 @@ class TemplateSecondary(TemplateToplevel):
             columnspan=999,
         )
 
-    def _add_dnd_files_to_listbox(self, event, listbox, mode, dnd):
-        try:
-            dropped_files_raw = event.data
-            regex = r"(?:\{([^}]+)\}|\S+)"
-            files = [
-                match.group(1) or match.group(0)
-                for match in re.finditer(regex, dropped_files_raw)
-            ]
-
-            collector = []
-            for path in files:
-                path = Path(path.strip())
-                if str(path) not in listbox.get("all"):
-                    if (
-                        mode == "pak"
-                        and path.is_file()
-                        and path.suffix.lower() == ".pak"
-                    ):
-                        collector.append(str(path))
-                    elif mode == "folders" and path.is_dir():
-                        collector.append(str(path))
-                    else:
-                        log.debug(f"Invalid path: {str(path)} (Mode: {mode})")
-
-            if collector:
-                dnd.grid_forget()
-
-                for item in collector:
-                    listbox.insert("END", item)
-                    log.debug(f"Added {item} to listbox")
-                    list(listbox.buttons.values())[-1]._text_label.configure(anchor="w")
-                    list(listbox.buttons.values())[-1].configure(anchor="w", height=0)
-
-                # for value in list(listbox.buttons.values()):
-                #     value._text_label.configure(anchor="w")
-                #     value.configure(anchor="w", height=0)
-
-        except Exception as e:
-            log.error(f"DnD error: {e}")
-
-        if not listbox.get("all"):
-            dnd.grid(row=0, column=0)
-
-    def _add_file_to_listbox(self, listbox, dnd):
-        files = ModalFileDialog.askopenfilenames(
-            parent=self, filetypes=[(translate("dialogue_pak_files"), "*.pak")]
-        )
-
+    def _add_items_to_listbox(self, items, listbox, dnd, mode):
         collector = []
-        for file in files:
-            file = Path(file.strip())
-            if str(file) not in listbox.get("all"):
-                collector.append(str(file))
+        for item in items:
+            path = Path(item.strip())
+            if str(path) not in listbox.get("all"):
+                if mode == "pak" and path.is_file() and path.suffix.lower() == ".pak":
+                    collector.append(str(path))
+                elif mode == "folders" and path.is_dir():
+                    collector.append(str(path))
+                else:
+                    log.debug(f"Invalid path: {str(path)} (Mode: {mode})")
 
         if collector:
             dnd.grid_forget()
@@ -223,25 +181,31 @@ class TemplateSecondary(TemplateToplevel):
                 list(listbox.buttons.values())[-1]._text_label.configure(anchor="w")
                 list(listbox.buttons.values())[-1].configure(anchor="w", height=0)
 
-            # for value in list(listbox.buttons.values()):
-            #     value._text_label.configure(anchor="w")
-            #     value.configure(anchor="w", height=0)
-
         if not listbox.get("all"):
             dnd.grid(row=0, column=0)
+
+    def _add_dnd_files_to_listbox(self, event, listbox, mode, dnd):
+        try:
+            dropped_files_raw = event.data
+            regex = r"(?:\{([^}]+)\}|\S+)"
+            files = [
+                match.group(1) or match.group(0)
+                for match in re.finditer(regex, dropped_files_raw)
+            ]
+            self._add_items_to_listbox(files, listbox, dnd, mode)
+        except Exception as e:
+            log.error(f"DnD error: {e}")
+
+    def _add_files_to_listbox(self, listbox, dnd):
+        files = ModalFileDialog.askopenfilenames(
+            parent=self, filetypes=[(translate("dialogue_pak_files"), "*.pak")]
+        )
+        self._add_items_to_listbox(files, listbox, dnd, mode="pak")
 
     def _add_folder_to_listbox(self, listbox, dnd):
         folder = ModalFileDialog.askdirectory(parent=self)
         if folder:
-            folder = Path(folder.strip())
-            if str(folder) not in listbox.get("all"):
-                dnd.grid_forget()
-                listbox.insert("END", str(folder))
-                list(listbox.buttons.values())[-1]._text_label.configure(anchor="w")
-                list(listbox.buttons.values())[-1].configure(anchor="w", height=0)
-                log.debug(f"Added {str(folder)} to listbox")
-        if not listbox.get("all"):
-            dnd.grid(row=0, column=0)
+            self._add_items_to_listbox([folder], listbox, dnd, mode="folders")
 
     def _remove_from_listbox(self, listbox, dnd):
         try:
