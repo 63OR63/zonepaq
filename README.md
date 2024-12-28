@@ -49,6 +49,8 @@ All required tools can be downloaded and installed automatically.
     pythonw zonepaq
     ```
 
+**Note:** You may want to check these issues in utilized libraries (fixes have been applied in the compiled version): [1](https://github.com/Akascape/CTkToolTip/issues/20), [1](https://github.com/TomSchimansky/CustomTkinter/pull/2162)
+
 ## Compiling
 
 You can compile an executable for your operating system by running `python build.py`
@@ -101,4 +103,7 @@ Yes, this tool is completely free and open source under the MIT License.
 
 ## Credits
 
-- Sabre for testing
+- Gratitude to the developers of Tkinter, CustomTkinter, and all other libraries utilized in this project.
+- A huge thanks to Sabre for testing and assisting with debugging!
+- Special thanks to the respective developers of repak_cli, KDiff3, WinMerge, AESDumpster, and 7z.
+- Appreciation to the developers of S.T.A.L.K.E.R. 2.
