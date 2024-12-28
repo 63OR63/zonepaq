@@ -21,9 +21,20 @@ class Repak:
         # Prepare the command to list the file contents
         command = [repak_path, "list", str(file)]
 
+        # Set the working directory to where repak.exe is located
+        working_dir = Path(repak_path).parent
+
+        # Update the PATH environment variable to include the working directory
+        env = os.environ.copy()
+        env["PATH"] = str(working_dir) + ";" + env["PATH"]
+
         # Use the threading method with subprocess execution
         result_container = ThreadManager.run_in_thread_with_result(
-            SubprocessManager.execute_subprocess, timeout=60, command=command
+            SubprocessManager.execute_subprocess,
+            timeout=60,
+            command=command,
+            cwd=str(working_dir),  # Pass the working directory
+            env=env,
         )
 
         # Handle errors and log
@@ -159,8 +170,19 @@ class Repak:
                 str(packed_file),
             ]
 
+            # Set the working directory to where repak.exe is located
+            working_dir = Path(repak_path).parent
+
+            # Update the PATH environment variable to include the working directory
+            env = os.environ.copy()
+            env["PATH"] = str(working_dir) + ";" + env["PATH"]
+
             result_container = ThreadManager.run_in_thread_with_result(
-                SubprocessManager.execute_subprocess, timeout=1800, command=command
+                SubprocessManager.execute_subprocess,
+                timeout=1800,
+                command=command,
+                cwd=str(working_dir),  # Pass the working directory
+                env=env,
             )
 
             success, message = SubprocessManager.handle_errors(

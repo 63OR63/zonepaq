@@ -6,6 +6,9 @@ WORKING_DIR = Path(__file__).resolve().parent.parent
 
 
 def markdown_to_bbcode(markdown_text):
+    # Remove lines with github user attachments
+    markdown_text = re.sub(r".*github\.com/user-attachments.*\n?", "", markdown_text)
+
     # Convert headers
     bbcode_text = re.sub(
         r"^# (.+)$", r"[size=6][b]\1[/b][/size]", markdown_text, flags=re.MULTILINE
