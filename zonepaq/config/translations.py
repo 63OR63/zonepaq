@@ -20,7 +20,7 @@ TRANSLATIONS = {
         "settings_tools_get": "Get",
         "settings_game": "Game",
         "settings_game_path": "Game Folder Path",
-        "settings_game_vanilla_unpacked": "Vanilla Unpacked",
+        "settings_game_vanilla_unpacked": "Vanilla Files",
         "settings_game_keys": "Encryption Keys",
         "settings_game_aes_key": "AES Key",
         "settings_game_find": "Find",

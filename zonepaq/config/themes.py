@@ -19,6 +19,8 @@ class ThemeManager:
             "color_background_primary": ["#eceff4", "#2e3440"],
             "color_background_secondary": ["#e5e9f0", "#3b4252"],
             "color_background_tertiary": ["#d8dee9", "#434c5e"],
+            "color_text_console": ["#eceff4", "#eceff4"],
+            "color_background_console": ["#22262f", "#22262f"],
             "color_accent_primary": ["#88c0d0", "#88c0d0"],
             "color_accent_secondary": ["#8fbcbb", "#8fbcbb"],
             "color_accent_tertiary": ["#81a1c1", "#5e81ac"],
@@ -37,6 +39,8 @@ class ThemeManager:
             "color_background_primary": ["#f5eaf0", "#1b1e22"],
             "color_background_secondary": ["#cfc6cb", "#191b1f"],
             "color_background_tertiary": ["#b7afaa", "#5d705e"],
+            "color_text_console": ["#fdf9fb", "#fff7e1"],
+            "color_background_console": ["#3e3a39", "#121417"],
             "color_accent_primary": ["#96bb98", "#7a947a"],
             "color_accent_secondary": ["#9fcda1", "#a8c8a5"],
             "color_accent_tertiary": ["#719888", "#14161a"],
@@ -55,6 +59,8 @@ class ThemeManager:
             "color_background_primary": ["#c1c9b7", "#1a1a1a"],
             "color_background_secondary": ["#b4bca9", "#262626"],
             "color_background_tertiary": ["#a8b09d", "#333333"],
+            "color_text_console": ["#dfe1d4", "#dfe1d4"],
+            "color_background_console": ["#3d4637", "#3d4637"],
             "color_accent_primary": ["#fb991e", "#fb991e"],
             "color_accent_secondary": ["#ffb91e", "#ffb91e"],
             "color_accent_tertiary": ["#fb620a", "#fb620a"],
@@ -73,6 +79,8 @@ class ThemeManager:
             "color_background_primary": ["#e9efff", "#1a2633"],
             "color_background_secondary": ["#d1ddfb", "#233645"],
             "color_background_tertiary": ["#a4b0cf", "#2b3d4f"],
+            "color_text_console": ["#eef4fa", "#eef4fa"],
+            "color_background_console": ["#414657", "#131c25"],
             "color_accent_primary": ["#698aff", "#568fa0"],
             "color_accent_secondary": ["#6182dc", "#6ab1c6"],
             "color_accent_tertiary": ["#ff2f2f", "#a11429"],
@@ -91,6 +99,8 @@ class ThemeManager:
             "color_background_primary": ["#0f121a", "#171017"],
             "color_background_secondary": ["#1f1a22", "#151219"],
             "color_background_tertiary": ["#35181d", "#212219"],
+            "color_text_console": ["#ffffff", "#ffffff"],
+            "color_background_console": ["#0b0d13", "#110c11"],
             "color_accent_primary": ["#8c0c2c", "#135143"],
             "color_accent_secondary": ["#c70842", "#106a56"],
             "color_accent_tertiary": ["#00716f", "#19373d"],
@@ -109,6 +119,8 @@ class ThemeManager:
             "color_background_primary": ["#9fbfbe", "#061f1f"],
             "color_background_secondary": ["#88abaf", "#002637"],
             "color_background_tertiary": ["#689193", "#024c6f"],
+            "color_text_console": ["#cbe4e3", "#cbe4e3"],
+            "color_background_console": ["#0d3331", "#041717"],
             "color_accent_primary": ["#00d5cc", "#003758"],
             "color_accent_secondary": ["#3bded3", "#006490"],
             "color_accent_tertiary": ["#31b8af", "#002d3d"],
@@ -657,6 +669,21 @@ class StyleManager:
         )
 
         cls.define_style(
+            "Console.CTkTextbox",
+            fg_color=ThemeManager.get_colors("color_background_console", color_palette),
+            border_color=ThemeManager.get_colors(
+                "color_background_console", color_palette
+            ),
+            text_color=ThemeManager.get_colors("color_text_console", color_palette),
+            scrollbar_button_color=ThemeManager.get_colors(
+                "color_accent_tertiary", color_palette
+            ),
+            scrollbar_button_hover_color=ThemeManager.get_colors(
+                "color_accent_quaternary", color_palette
+            ),
+        )
+
+        cls.define_style(
             "Transparent.CTkFrame",
             fg_color="transparent",
             # border_color="red",
@@ -755,6 +782,22 @@ class StyleManager:
             ),
             border_color=ThemeManager.get_colors(
                 "color_accent_secondary", color_palette
+            ),
+            font=ctk.CTkFont(
+                family=ctk.ThemeManager.theme["Action.Button.CustomFont"]["family"],
+                size=ctk.ThemeManager.theme["Action.Button.CustomFont"]["size"],
+                weight=ctk.ThemeManager.theme["Action.Button.CustomFont"]["weight"],
+            ),
+        )
+
+        cls.define_style(
+            "Restart.CTkButton",
+            fg_color=ThemeManager.get_colors("color_accent_tertiary", color_palette),
+            hover_color=ThemeManager.get_colors(
+                "color_accent_quaternary", color_palette
+            ),
+            border_color=ThemeManager.get_colors(
+                "color_accent_quaternary", color_palette
             ),
             font=ctk.CTkFont(
                 family=ctk.ThemeManager.theme["Action.Button.CustomFont"]["family"],

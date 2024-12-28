@@ -1,5 +1,4 @@
 import logging
-import tkinter as tk
 from pathlib import Path
 
 import customtkinter as ctk
@@ -24,8 +23,8 @@ class TextBoxHandler(logging.Handler):
         try:
             if self.text_widget.winfo_exists():  # Check if the widget still exists
                 msg = self.format(record)
-                self.text_widget.insert(tk.END, msg + "\n")
-                self.text_widget.see(tk.END)
+                self.text_widget.insert(ctk.END, msg + "\n")
+                self.text_widget.see(ctk.END)
         except Exception:
             self.handleError(record)
 
@@ -268,16 +267,14 @@ class WindowFirstLaunch(TemplateBase):
         # Create the log display as a CTkTextbox
         log_textbox = self.create_ctk_widget(
             ctk_widget=ctk.CTkTextbox,
+            widget_style="Console.CTkTextbox",
             widget_args={
                 "master": log_frame,
                 "wrap": "word",
             },
-            # widget_style="SubHeader2.CTkLabel",
             grid_args={
                 "column": 0,
                 "sticky": "nsew",
-                # "padx": (0, self.padding),
-                # "pady": (self.padding, 0),
             },
         )
 

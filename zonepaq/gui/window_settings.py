@@ -1,3 +1,4 @@
+import logging
 import sys
 from pathlib import Path
 
@@ -10,6 +11,26 @@ from config.translations import get_available_languages, translate
 from gui.template_toplevel import TemplateToplevel
 from gui.window_help import WindowHelp
 from gui.window_messagebox import ModalFileDialog, WindowMessageBox
+
+
+class TextBoxHandler(logging.Handler):
+    def __init__(self, text_widget):
+        super().__init__()
+        self.text_widget = text_widget
+
+    def emit(self, record):
+        try:
+            if self.text_widget.winfo_exists():  # Check if the widget still exists
+                msg = self.format(record)
+                self.text_widget.insert(ctk.END, msg + "\n")
+                self.text_widget.see(ctk.END)
+        except Exception:
+            self.handleError(record)
+
+    def close(self):
+        # Perform cleanup when the handler is removed
+        self.text_widget = None
+        super().close()
 
 
 class WindowSettings(TemplateToplevel):
@@ -106,10 +127,18 @@ class WindowSettings(TemplateToplevel):
 
         save_frame = self.create_frame(
             self,
-            row=2,
+            row=3,
             column=0,
             style="Tertiary.CTkFrame",
             column_weights=[(0, 0), (1, 1), (2, 0), (3, 0)],
+        )
+
+        log_frame = self.create_frame(
+            self,
+            row=2,
+            column=0,
+            style="Tertiary.CTkFrame",
+            column_weights=[(0, 1)],
         )
 
         button_reset = self.create_button(
@@ -130,7 +159,7 @@ class WindowSettings(TemplateToplevel):
             save_frame,
             text=translate("generic_restart"),
             command=self._restart_app,
-            style="Action.CTkButton",
+            style="Restart.CTkButton",
             width=120,
             padx=(0, self.padding),
             pady=self.padding / 2,
@@ -168,6 +197,28 @@ class WindowSettings(TemplateToplevel):
             row=0,
             column=3,
         )
+
+        log_textbox = self.create_ctk_widget(
+            ctk_widget=ctk.CTkTextbox,
+            widget_args={"master": log_frame, "wrap": "word", "height": 100},
+            widget_style="Console.CTkTextbox",
+            grid_args={
+                "column": 0,
+                "sticky": "nsew",
+            },
+        )
+
+        # Add the TextBoxHandler to the logger
+        self.text_handler = TextBoxHandler(log_textbox)
+        self.text_handler.setLevel(logging.INFO)
+
+        # Define a custom format for logs displayed in the TextBox
+        custom_format = "%(asctime)s - %(levelname)s - %(message)s"
+        formatter = logging.Formatter(custom_format, datefmt="%Y-%m-%d %H:%M:%S")
+        self.text_handler.setFormatter(formatter)
+
+        # Add the handler to the root logger
+        logging.getLogger().addHandler(self.text_handler)
 
         self.tools_button = self.create_button(
             sidebar_frame,

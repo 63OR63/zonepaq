@@ -1,4 +1,3 @@
-import tkinter as tk
 from tkinter import filedialog
 
 import customtkinter as ctk
@@ -16,10 +15,10 @@ class WindowMessageBox(TemplateToplevel):
 
         self.adjust_to_content(self)
 
-        log.info("Message Box window opened.")
+        log.debug("Message Box window opened.")
 
     def on_closing(self):
-        log.info("Message Box window closed.")
+        log.debug("Message Box window closed.")
         self.destroy()
 
     def _create_message_box(self, message, buttons):
@@ -63,7 +62,7 @@ class WindowMessageBox(TemplateToplevel):
                         },
                         grid_args={"sticky": "nsew", "pady": self.padding / 2},
                     )
-                    textbox.insert(tk.END, msg)
+                    textbox.insert(ctk.END, msg)
 
         button_frame = self.create_frame(
             box_frame, pady=(self.padding, 0), column_weights=[(0, 1), (1, 0)]
