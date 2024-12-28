@@ -163,7 +163,11 @@ class TemplateSecondary(TemplateToplevel):
     def _add_dnd_files_to_listbox(self, event, listbox, mode, dnd):
         try:
             dropped_files_raw = event.data
-            files = re.findall(r"\{[^}]+\}|\S+", dropped_files_raw)
+            regex = r"(?:\{([^}]+)\}|\S+)"
+            files = [
+                match.group(1) or match.group(0)
+                for match in re.finditer(regex, dropped_files_raw)
+            ]
 
             collector = []
             for path in files:
