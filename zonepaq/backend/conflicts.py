@@ -252,40 +252,6 @@ class ConflictProcessor:
                 use_vanilla,
             )
 
-    # def unpack_files(
-    #     self, item_sources_paths, item_sources_names, item_path, temp_dir_path
-    # ):
-    #     unpacked_files = deque()
-    #     futures = {}
-
-    #     for i, item_source_path in enumerate(item_sources_paths):
-    #         item_source_path = str(Path(item_source_path))
-    #         future = Repak.unpack(item_source_path, temp_dir_path)
-    #         futures[future] = (i, item_source_path)
-
-    #     for future in as_completed(futures):
-    #         i, item_source_path = futures[future]
-    #         try:
-    #             unpack_success, unpacked_folder = future.result()
-    #             if unpack_success:
-    #                 unpacked_file = Path(unpacked_folder) / item_path
-    #                 if unpacked_file.exists() and unpacked_file.is_file():
-    #                     unpacked_files.append(unpacked_file)
-    #                 else:
-    #                     log.warning(f"Unpacked file does not exist: {unpacked_file}")
-    #             else:
-    #                 log.error(f"Unpack failed for {item_source_path}")
-    #         except FileNotFoundError as e:
-    #             log.exception(
-    #                 f"File not found: {item_sources_names[i]} -> {item_source_path}: {e}"
-    #             )
-    #         except Exception as e:
-    #             log.exception(
-    #                 f"Unexpected error unpacking {item_sources_names[i]}: {e}"
-    #             )
-
-    #     return unpacked_files
-
     def unpack_file(self, file_path, temp_dir_path):
 
         try:

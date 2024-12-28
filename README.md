@@ -33,19 +33,19 @@ All required tools can be downloaded and installed automatically.
 
 2. Clone the repository to your local machine:
 
-    ```bash
+    ```cmd
     git clone https://github.com/63OR63/zonepaq && cd zonepaq
     ```
 
 3. Install requirements:
 
-    ```bash
+    ```cmd
     pip install --upgrade -r requirements.txt
     ```
 
 4. Run `run.cmd` or execute in terminal:
 
-    ```bash
+    ```cmd
     pythonw zonepaq
     ```
 

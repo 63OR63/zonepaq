@@ -213,15 +213,15 @@ class WindowConflicts(TemplateToplevel):
         )
 
     def _configure_treeview_columns(self):
-        self.tree.column("#0", stretch=False, width=400)
+        self.tree.column("#0", width=400, stretch=False)
         self.tree.column("PAK Sources", stretch=True)
         self.tree.column(
-            "PAK Sources Paths", width=0, stretch=ctk.NO
+            "PAK Sources Paths", width=0, stretch=False
         )  # Invisible column
-        self.tree.column("File Path", width=0, stretch=ctk.NO)  # Invisible column
+        self.tree.column("File Path", width=0, stretch=False)  # Invisible column
 
     def _create_scrollbar(self, tree_frame):
-        self.scrollbar = self.create_ctk_widget(
+        self.scrollbar_v = self.create_ctk_widget(
             ctk_widget=ctk.CTkScrollbar,
             widget_args={
                 "master": tree_frame,
@@ -231,11 +231,27 @@ class WindowConflicts(TemplateToplevel):
             grid_args={
                 "row": 0,
                 "column": 1,
-                "sticky": "nsw",
+                "sticky": "ns",
             },
         )
+        self.tree.configure(yscrollcommand=self.scrollbar_v.set)
 
-        self.tree.configure(yscrollcommand=self.scrollbar.set)
+        # ! fixme
+        # self.scrollbar_h = self.create_ctk_widget(
+        #     ctk_widget=ctk.CTkScrollbar,
+        #     widget_args={
+        #         "master": tree_frame,
+        #         "orientation": "horizontal",
+        #         "command": self.tree.xview,
+        #     },
+        #     grid_args={
+        #         "row": 1,
+        #         "column": 0,
+        #         "sticky": "ew",
+        #     },
+        # )
+        # self.tree.configure(xscrollcommand=self.scrollbar_h.set)
+
         self.tree.grid(row=0, column=0, sticky="nsew")
 
     def _create_legend_frame(self):

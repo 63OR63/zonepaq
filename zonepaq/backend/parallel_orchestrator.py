@@ -82,7 +82,9 @@ class TaskRetryManager:
                 for future in futures:
                     if not future.done():
                         future.cancel()
-            self.executor.shutdown()
+                # ! calling in between calls breaks the loop. was previously outside `with self.lock`
+                # if all(retry_count[file] > max_retries for file in retry_count):
+                #     self.executor.shutdown()
 
         return results_ok, results_ko
 
