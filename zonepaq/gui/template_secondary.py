@@ -198,7 +198,9 @@ class TemplateSecondary(TemplateToplevel):
 
     def _add_files_to_listbox(self, listbox, dnd):
         files = ModalFileDialog.askopenfilenames(
-            parent=self, filetypes=[(translate("dialogue_pak_files"), "*.pak")]
+            parent=self,
+            filetypes=[(translate("dialogue_pak_files"), "*.pak")],
+            initialdir=self.games_manager.mods_path,
         )
         self._add_items_to_listbox(files, listbox, dnd, mode="pak")
 
