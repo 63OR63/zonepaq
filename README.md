@@ -1,5 +1,11 @@
 # ![ZonePaq Toolkit](https://github.com/user-attachments/assets/9feab811-87b0-4c4a-bc54-379133e6b273)
 
+## Preview
+
+![gui](https://github.com/user-attachments/assets/4d50f7cb-32fb-4a7e-b656-cccd50ad4893)
+
+![themes](https://github.com/user-attachments/assets/081dcae1-5cb4-4eaa-ac4e-970913384dfa)
+
 ## Description
 
 **ZonePaq Toolkit** is an application designed for managing `.pak` **mods for S.T.A.L.K.E.R. 2**. The toolkit provides essential functionalities for **unpacking, repacking, and resolving conflicts** in mod files, ensuring smooth mod integration and reduced compatibility issues.
