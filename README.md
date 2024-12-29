@@ -90,7 +90,7 @@ To resolve complex conflicts, create a merged mod for groups of 2 or 3 mods, the
 
 - ### Should I keep original mods after creating a merged one?
 
-Generally, you can delete the original mods after creating the merged one. However, since the merged mod has the highest priority by default and loads last to overwrite conflicts, keeping the originals shouldn't cause any issues.
+A merged mod will include only the files that had conflicts between mods, so it's generally recommended to **keep the original mods** in case some files were not merged. Since the merged mod has the highest priority by default and loads last to overwrite conflicts, keeping the originals shouldn't cause any issues.
 
 - ### Where are the installed tools and unpacked vanilla files located?
 
