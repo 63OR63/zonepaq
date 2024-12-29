@@ -11,7 +11,7 @@
 
 **Backend:**
 
-- Added auto-instalation of repak cli, KDiff3, WinMerge, AESDumpster, 7zr
+- Added auto-installation of repak cli, KDiff3, WinMerge, AESDumpster, 7zr
 - Added auto-detection of AES encryption key
 - Added auto-extraction and cleaning of vanilla game archives
 - Added auto-detection of Game Pass installation
