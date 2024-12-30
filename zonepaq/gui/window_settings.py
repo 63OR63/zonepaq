@@ -203,7 +203,7 @@ class WindowSettings(TemplateToplevel):
             widget_args={
                 "master": log_frame,
                 "wrap": "word",
-                "height": 100,
+                "height": 120,
             },
             widget_style="Console.CTkTextbox",
             grid_args={
