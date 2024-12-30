@@ -36,6 +36,7 @@ def get_system_info():
         return os_name
 
     system_info = {
+        "ZonePaq Version": APP_VERSION,
         "Operating System": get_operating_system(),
         "OS Version": platform.version(),
         "Machine Type": platform.machine(),
