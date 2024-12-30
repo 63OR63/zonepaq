@@ -350,7 +350,7 @@ class WindowSettings(TemplateToplevel):
                 "master": group_frame,
                 "text": f"{translate('settings_tools_used_tool')}:",
                 "anchor": "w",
-                "pady": self.padding / 5,
+                "pady": self.padding / 4,
             },
             grid_args={
                 "row": current_row,
@@ -379,7 +379,7 @@ class WindowSettings(TemplateToplevel):
                 "column": 1,
                 "sticky": "w",
                 "padx": (0, self.padding),
-                "pady": self.padding / 5,
+                "pady": self.padding / 4,
             },
         )
 
@@ -420,7 +420,7 @@ class WindowSettings(TemplateToplevel):
                 "master": master,
                 "text": f"{entry_title}:",
                 "anchor": "w",
-                "pady": self.padding / 5,
+                "pady": self.padding / 4,
             },
             grid_args={
                 "row": current_row,
@@ -448,7 +448,7 @@ class WindowSettings(TemplateToplevel):
                 "column": 1,
                 "sticky": "ew",
                 "padx": (0, self.padding),
-                "pady": self.padding / 5,
+                "pady": self.padding / 4,
             },
         )
 
@@ -505,7 +505,7 @@ class WindowSettings(TemplateToplevel):
                     "column": column_index,
                     "sticky": "ew",
                     "padx": (0, self.padding),
-                    "pady": self.padding / 5,
+                    "pady": self.padding / 4,
                 },
                 row_weights=None,
                 column_weights=None,
@@ -646,7 +646,7 @@ class WindowSettings(TemplateToplevel):
             style="Alt.CTkButton",
             width=120,
             padx=(0, self.padding),
-            pady=self.padding / 5,
+            pady=self.padding / 4,
             sticky="ew",
             row=row,
             column=column + 2,
@@ -671,7 +671,7 @@ class WindowSettings(TemplateToplevel):
                     "master": group_frame,
                     "text": label_text,
                     "anchor": "w",
-                    "pady": self.padding / 5,
+                    "pady": self.padding / 4,
                 },
                 grid_args={
                     "row": row,
@@ -695,7 +695,7 @@ class WindowSettings(TemplateToplevel):
                     "column": column + 1,
                     "sticky": "w",
                     "padx": (0, self.padding),
-                    "pady": self.padding / 5,
+                    "pady": self.padding / 4,
                 },
             )
 
@@ -708,7 +708,7 @@ class WindowSettings(TemplateToplevel):
                     "master": group_frame,
                     "text": label_label,
                     "anchor": "w",
-                    "pady": self.padding / 5,
+                    "pady": self.padding / 4,
                 },
                 grid_args={
                     "row": row,
@@ -733,7 +733,7 @@ class WindowSettings(TemplateToplevel):
                     "column": column + 1,
                     "sticky": "w",
                     "padx": (0, self.padding),
-                    "pady": self.padding / 5,
+                    "pady": self.padding / 4,
                 },
             )
 
