@@ -16,28 +16,18 @@ A clear and concise description of what the bug is.
 Steps to reproduce the behavior:
 
 1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+2. Click on '...'
+3. See error
 
 ### Expected behavior
 
 A clear and concise description of what you expected to happen.
 
-### Environment Details
-
-Please complete the following information:
-
-- **ZonePaq Version**: [e.g., 1.0]
-- **Launch Type**: [Compiled / Uncompiled]
-- **Python Version (if uncompiled)**: [e.g., 3.8]
-- **Operating System**: [e.g., Windows 11]
-
 ### Logs
 
-Please, include lines from `logs/zonepaq.log` file in the following code block:
+Please, include the contents of `zonepaq/logs/zonepaq.log` file in the following code block:
 
-<details><summary>Click to expand</summary><code>logs/zonepaq.log:
+<details><summary>Click to expand</summary><code>zonepaq/logs/zonepaq.log:
 ...log lines here...
 </code></details>
 
