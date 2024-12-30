@@ -52,6 +52,15 @@ class TemplateSecondary(TemplateToplevel):
         self.grid_rowconfigure(section_frame.grid_info().get("row"), weight=1)
 
         self._create_listbox(section_frame, listbox_name, listbox_mode)
+
+        # ! need to expand clickable area
+        listbox = getattr(self, listbox_name)
+        dnd = getattr(self, f"{listbox_name}_dnd")
+        dnd.bind(
+            "<Button-1>",
+            lambda e: self._add_manually_to_listbox(listbox, dnd, listbox_mode),
+        )
+
         self._create_side_buttons(
             section_frame, add_command, remove_command, clear_command
         )
@@ -92,20 +101,28 @@ class TemplateSecondary(TemplateToplevel):
         )
         setattr(self, f"{listbox_name}_dnd", dnd)
 
+        listbox.bind(
+            "<Control-v>",
+            lambda e: self._paste_clipboard_to_listbox(listbox, dnd, mode=listbox_mode),
+        )
+
+        # ! https://github.com/Akascape/CTkListbox/pull/68
+        # listbox.bind(
+        #     "<Control-a>", lambda e: self._select_all_items_in_listbox(listbox)
+        # )
+
+        listbox.bind("<Delete>", lambda e: self._remove_from_listbox(listbox, dnd))
+
         listbox.master.drop_target_register(DND_FILES)
         listbox.master.dnd_bind(
             "<<Drop>>",
-            lambda e: self._add_dnd_files_to_listbox(e, listbox, listbox_mode, dnd),
+            lambda e: self._add_dnd_to_listbox(e, listbox, dnd, listbox_mode),
         )
-        # listbox.bind(
-        #     "<Delete>",
-        #     lambda e: self._remove_from_listbox(listbox, f"{listbox_name}_dnd"),
-        # )
 
         dnd.drop_target_register(DND_FILES)
         dnd.dnd_bind(
             "<<Drop>>",
-            lambda e: self._add_dnd_files_to_listbox(e, listbox, listbox_mode, dnd),
+            lambda e: self._add_dnd_to_listbox(e, listbox, dnd, listbox_mode),
         )
 
         return listbox
@@ -160,6 +177,23 @@ class TemplateSecondary(TemplateToplevel):
             columnspan=999,
         )
 
+    # ! https://github.com/Akascape/CTkListbox/pull/68
+    # def _select_all_items_in_listbox(self, listbox):
+    #     try:
+    #         listbox.select("all")
+    #         CTkListbox.select("all")
+    #     except Exception as e:
+    #         log.error("Couldn't select all items in a listbox:", e)
+
+    def _paste_clipboard_to_listbox(self, listbox, dnd, mode):
+        try:
+            clipboard_data = self.clipboard_get()
+            paths = clipboard_data.splitlines()
+
+            self._add_items_to_listbox(paths, listbox, dnd, mode)
+        except Exception as e:
+            log.error("Clipboard error:", e)
+
     def _add_items_to_listbox(self, items, listbox, dnd, mode):
         collector = []
         for item in items:
@@ -174,6 +208,7 @@ class TemplateSecondary(TemplateToplevel):
 
         if collector:
             dnd.grid_forget()
+            listbox.focus_set()
 
             for item in collector:
                 listbox.insert("END", item)
@@ -184,7 +219,7 @@ class TemplateSecondary(TemplateToplevel):
         if not listbox.get("all"):
             dnd.grid(row=0, column=0)
 
-    def _add_dnd_files_to_listbox(self, event, listbox, mode, dnd):
+    def _add_dnd_to_listbox(self, event, listbox, dnd, mode):
         try:
             dropped_files_raw = event.data
             regex = r"(?:\{([^}]+)\}|\S+)"
@@ -196,18 +231,19 @@ class TemplateSecondary(TemplateToplevel):
         except Exception as e:
             log.error(f"DnD error: {e}")
 
-    def _add_files_to_listbox(self, listbox, dnd):
-        files = ModalFileDialog.askopenfilenames(
-            parent=self,
-            filetypes=[(translate("dialogue_pak_files"), "*.pak")],
-            initialdir=self.games_manager.mods_path,
-        )
-        self._add_items_to_listbox(files, listbox, dnd, mode="pak")
-
-    def _add_folder_to_listbox(self, listbox, dnd):
-        folder = ModalFileDialog.askdirectory(parent=self)
-        if folder:
-            self._add_items_to_listbox([folder], listbox, dnd, mode="folders")
+    def _add_manually_to_listbox(self, listbox, dnd, mode):
+        if mode == "pak":
+            files = ModalFileDialog.askopenfilenames(
+                parent=self,
+                filetypes=[(translate("dialogue_pak_files"), "*.pak")],
+                initialdir=self.games_manager.mods_path,
+            )
+            if files:
+                self._add_items_to_listbox(files, listbox, dnd, mode="pak")
+        elif mode == "folders":
+            folder = ModalFileDialog.askdirectory(parent=self)
+            if folder:
+                self._add_items_to_listbox([folder], listbox, dnd, mode="folders")
 
     def _remove_from_listbox(self, listbox, dnd):
         try:
@@ -217,8 +253,8 @@ class TemplateSecondary(TemplateToplevel):
                 return
 
             for index in reversed(selected_indices):
+                log.debug(f"Removing {listbox.get(index)} from listbox")
                 listbox.delete(index)
-                log.debug(f"Removed {listbox.get(index)} from listbox")
         except Exception as e:
             log.error(f"Error removing selected items: {e}")
         if not listbox.get("all"):

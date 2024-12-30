@@ -37,8 +37,8 @@ class WindowRepak(TemplateSecondary):
                 "title": translate("repak_screen_unpack_header"),
                 "listbox_name": "unpack_listbox",
                 "listbox_mode": "pak",
-                "add_command": lambda: self._add_files_to_listbox(
-                    self.unpack_listbox, self.unpack_listbox_dnd
+                "add_command": lambda: self._add_manually_to_listbox(
+                    self.unpack_listbox, self.unpack_listbox_dnd, "pak"
                 ),
                 "remove_command": lambda: self._remove_from_listbox(
                     self.unpack_listbox, self.unpack_listbox_dnd
@@ -55,8 +55,8 @@ class WindowRepak(TemplateSecondary):
                 "title": translate("repak_screen_repack_header"),
                 "listbox_name": "repack_listbox",
                 "listbox_mode": "folders",
-                "add_command": lambda: self._add_folder_to_listbox(
-                    self.repack_listbox, self.repack_listbox_dnd
+                "add_command": lambda: self._add_manually_to_listbox(
+                    self.repack_listbox, self.repack_listbox_dnd, "folders"
                 ),
                 "remove_command": lambda: self._remove_from_listbox(
                     self.repack_listbox, self.repack_listbox_dnd

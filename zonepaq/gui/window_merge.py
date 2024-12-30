@@ -37,8 +37,8 @@ class WindowMerge(TemplateSecondary):
                 "title": translate("merge_screen_header"),
                 "listbox_name": "merge_listbox",
                 "listbox_mode": "pak",
-                "add_command": lambda: self._add_files_to_listbox(
-                    self.merge_listbox, self.merge_listbox_dnd
+                "add_command": lambda: self._add_manually_to_listbox(
+                    self.merge_listbox, self.merge_listbox_dnd, "pak"
                 ),
                 "remove_command": lambda: self._remove_from_listbox(
                     self.merge_listbox, self.merge_listbox_dnd
