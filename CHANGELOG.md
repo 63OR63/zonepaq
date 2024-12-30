@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0-rc.2] - 2024-12-30
+
+- Reimplemented `Ctrl+V` and `Delete` keyboard actions for listboxes
+- Introduced an `Open file` dialogue on click for DnD labels
+- Adjusted spacing in `Settings` menu
+- Bug fix: Removed excess param in copy method calls
+
 ## [2.0-rc.1] - 2024-12-29
 
 **GUI:**
