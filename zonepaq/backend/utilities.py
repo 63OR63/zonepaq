@@ -116,7 +116,7 @@ class Files:
 
     @classmethod
     def copy_folder_contents(
-        cls, source_folder, destination_folder, retries=3, delay=1, timeout=10
+        cls, source_folder, destination_folder, retries=3, delay=1
     ):
         """
         Copy the contents of a folder to a destination folder by reusing `copy_path`.
@@ -142,7 +142,7 @@ class Files:
                 destination_item = destination_path / item.name
 
                 # Use `copy_path` to handle each item
-                if not cls.copy_path(item, destination_item, retries, delay, timeout):
+                if not cls.copy_path(item, destination_item, retries, delay):
                     return False  # Stop on the first failure
 
             log.debug(
