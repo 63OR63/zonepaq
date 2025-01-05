@@ -31,7 +31,7 @@ All required tools can be downloaded and installed automatically.
 1. Download the **[latest release](https://github.com/63OR63/zonepaq/releases/latest)**
 2. Run `.exe` file and follow on-screen hints.
 
-**Note:** Running from source may offers superior performance in some conditions.
+**Note:** Running from source may offer superior performance in some conditions.
 
 ## Running from Source
 
