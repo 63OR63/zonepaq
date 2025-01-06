@@ -296,9 +296,5 @@ class GamesManager:
                 return str(potential_path)
         return None
 
-    def get_aes_key(self, game_id):
-        log.debug("Game Pass installation detection isn't implemented.")
-        return None
-
 
 settings = SettingsManager()
